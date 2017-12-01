@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+  <POU Name="EL2964_v0_00" Id="{da88f501-ef06-4c75-bce9-a89e8f9abd13}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL2964 | 1-channel digital output terminal, TwinSAFE, 24 V DC, potential-free contacts
+FUNCTION_BLOCK EL2964_v0_00
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="EL2964_v0_00">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
