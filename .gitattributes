@@ -1,0 +1,8 @@
+# end of line conversion CLRF -- LF
+# Default is no conversion (follow Visual Studio)
+* -text
+#
+.gitattributes text
+.gitignore text
+
+
