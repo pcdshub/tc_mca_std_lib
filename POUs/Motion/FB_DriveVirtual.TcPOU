@@ -313,18 +313,6 @@ IF bExecute AND nCommand=10  THEN
 ELSIF NOT bExecute AND  nCommand=10 AND NOT bHomingToggled THEN
 	nExecutionCounter:=0;
 END_IF
-(*Counter on LimitSwitch to avoid error*)
-//IF bExecute AND (NOT bLimitFwd OR NOT bLimitBwd) AND fActVelocity<>0 THEN
-//	nLimitCounter:=nLimitCounter+1;
-//ELSIF bError AND nErrorId=16#4D06 THEN
-//	nLimitCounter:=nLimitCounter;
-//ELSE
-//	nLimitCounter:=0;
-//END_IF
-
-(*Changing Direction process*)
-//fbRiseTrigger(CLK:=bLimitBwd , Q=> );
-//fbRiseTrigger(CLK:=bLimitFwd , Q=> );
 
 IF bLimitBwd AND bLimitFwd AND bChangingDirection THEN
 	bLimitTrigg:=TRUE;
@@ -456,7 +444,6 @@ IF nCommand=10 THEN
 		bSearchForHomeSensor:=TRUE;
 		bChangingDirection:=TRUE;
 		nHomeSensorSearchDirection:=SEL(nCmdData MOD 2=0,0,1);
-	
 	ELSIF NOT(nCmdData=7 OR nCmdData=8) AND NOT bStartAtLimitSwitch THEN
 		nHomeSensorSearchDirection:=SEL(nCmdData MOD 2=0,1,0);
 	ELSIF (nCmdData=7 OR nCmdData=8) AND bHomeSensor AND NOT bDirectionFlag THEN
@@ -831,11 +818,8 @@ IF bFirstScan THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_DriveVirtual">
-      <LineId Id="3" Count="185" />
-      <LineId Id="884" Count="0" />
-      <LineId Id="189" Count="133" />
-      <LineId Id="897" Count="0" />
-      <LineId Id="323" Count="32" />
+      <LineId Id="3" Count="177" />
+      <LineId Id="192" Count="163" />
       <LineId Id="900" Count="0" />
       <LineId Id="357" Count="78" />
       <LineId Id="469" Count="12" />
