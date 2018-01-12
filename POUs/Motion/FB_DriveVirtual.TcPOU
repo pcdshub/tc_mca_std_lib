@@ -117,7 +117,7 @@ VAR
 	bChangeDir:BOOL;
 	bReadyToGo:BOOL;
 	bFlag1:BOOL;
-	bFlagWrite4Done:BOOL;
+	bWriteHomeDirCamToNC2Done:BOOL;
 	bMode6Flag:BOOL;
 	bDirectionFlag:BOOL;
 	bStartAtLimitSwitch:BOOL;
@@ -319,8 +319,8 @@ IF bLimitBwd AND bLimitFwd AND bChangingDirection THEN
 	bChangingDirection:=FALSE;
 END_IF
 
-IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bSearchForHomeSensor AND NOT bHomeTrigg AND NOT bStartAtLimitSwitch THEN
-	IF bHomingExecute AND (NOT bLimitBwd OR NOT bLimitFwd OR bChangeDir) AND bFlagWrite4Done THEN
+IF nCommand=10 AND (nCmdData=3 OR nCmdData=4 OR nCmdData=5 OR nCmdData=6 )AND bSearchForHomeSensor AND NOT bHomeTrigg AND NOT bStartAtLimitSwitch THEN
+	IF bHomingExecute AND (NOT bLimitBwd OR NOT bLimitFwd OR bChangeDir) AND bWriteHomeDirCamToNC2Done THEN
 		bHomingExecute:=FALSE;
 		bChangeDir:=FALSE;
 		bHomingToggled:=TRUE;
@@ -333,7 +333,7 @@ IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bS
 END_IF
 (*Changing configuration depending on selected Homing Procedure*)
 fbWriteHomeDirCamToNC(
-	bExecute:=nCommand=10 AND NOT bStartAtLimitSwitch AND (NOT bLimitBwd OR NOT bLimitFwd OR bCenterCalculated) AND bFlagWrite4Done AND bSearchForHomeSensor AND (nCmdData=3 OR nCmdData=4 OR nCmdData=5 OR nCmdData=6),
+	bExecute:=nCommand=10 AND NOT bStartAtLimitSwitch AND (NOT bLimitBwd OR NOT bLimitFwd OR bCenterCalculated) AND bWriteHomeDirCamToNC2Done AND bSearchForHomeSensor AND (nCmdData=3 OR nCmdData=4 OR nCmdData=5 OR nCmdData=6),
 	nDeviceGroup:= 16#5000,
 	nIndexOffset:=16#101,	//Direction for Calibration Cam Search
 	nData:=,
@@ -411,7 +411,7 @@ IF  (bHomed AND NOT bExecute AND NOT bHomingToggled) OR bReset THEN //If we not 
 		bHomeTrigg:=FALSE;
 		bDirectionFlag:=FALSE;
 		bStartAtLimitSwitch:=FALSE;
-		bFlagWrite4Done:=FALSE;
+		bWriteHomeDirCamToNC2Done:=FALSE;
 		bHomingToggled:=FALSE;
 		bHomingState1:=FALSE;
 		bHomingState2:=FALSE;
@@ -440,7 +440,7 @@ END_IF
 IF nCommand=10 THEN
 	IF nExecutionCounter=1 AND (((nCmdData=3 OR nCmdData=5) AND NOT bLimitBwd) OR ((nCmdData=4 OR nCmdData=6) AND NOT bLimitFwd)) THEN
 		bStartAtLimitSwitch:=TRUE;
-		bFlagWrite4Done:=TRUE;
+		bWriteHomeDirCamToNC2Done:=TRUE;
 		bSearchForHomeSensor:=TRUE;
 		bChangingDirection:=TRUE;
 		nHomeSensorSearchDirection:=SEL(nCmdData MOD 2=0,0,1);
@@ -454,7 +454,7 @@ IF nCommand=10 THEN
 		bDirectionFlag:=TRUE;
 	END_IF
 	IF fbWriteHomeDirCamToNC2.bDone THEN
-		bFlagWrite4Done:=TRUE;
+		bWriteHomeDirCamToNC2Done:=TRUE;
 	END_IF
 END_IF
 (*Homing Procedures*)
@@ -474,7 +474,7 @@ END_IF
 (*Mode 2*)
 IF nCommand=10 AND (nCmdData=4 OR nCmdData=3) AND bExecute THEN //Mode 2 (*Go to EndSwitch and then to the HomeSensor*)
 	fbWriteRefModeToNC.nData:=1;		//PLC Cam Reference Mode
-	IF fbWriteRefModeToNC.bDone THEN	//Wait till Homing configured as desired	//AND bFlagWrite4Done
+	IF fbWriteRefModeToNC.bDone THEN	//Wait till Homing configured as desired	//AND bWriteHomeDirCamToNC2Done
 		bReadyToGo:=TRUE;
 		IF bSearchForHomeSensor THEN		        //Wait till LimitSwitch is activated
 			fbHome.bCalibrationCam:=bHomeSensor;			
