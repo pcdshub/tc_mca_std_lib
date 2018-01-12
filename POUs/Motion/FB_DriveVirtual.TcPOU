@@ -16,7 +16,7 @@
 FUNCTION_BLOCK FB_DriveVirtual
 VAR
 	sVersion: STRING:='1.0.2';
-	bMovingRelOrAbs: BOOL;
+	bMovingRelOrAbs: BOOL;	
 END_VAR
 VAR_INPUT
 	En: BOOL;
@@ -88,10 +88,10 @@ VAR
 	fbReadFloatParameter:FB_ReadFloatParameter;
 	fbReadFloatParameter2:FB_ReadFloatParameter;
 	fbReadFloatParameter3:FB_ReadFloatParameter;
-	fbWriteParameter:FB_WriteParameterInNc_v1_00;
-	fbWriteParameter2:FB_WriteParameterInNc_v1_00;
-	fbWriteParameter3:FB_WriteParameterInNc_v1_00;
-	fbWriteParameter4:FB_WriteParameterInNc_v1_00;
+	fbWriteHomeDirCamToNC:FB_WriteParameterInNc_v1_00;
+	fbWriteRefModeToNC:FB_WriteParameterInNc_v1_00;
+	fbWriteHomeDirSyncToNC:FB_WriteParameterInNc_v1_00;
+	fbWriteHomeDirCamToNC2:FB_WriteParameterInNc_v1_00;
 	fbRiseTrigger:R_trig;
 	fDistance:LREAL;
 	fCenterPosition:LREAL;
@@ -104,7 +104,8 @@ VAR
 	nCounter2:UINT;
 	nDelayCounter:UINT;
 	nCalculatedCounter:UINT;
-	nRealDirection:UINT;
+	nHomeSensorSearchDirection:UINT;
+	eDirection:typeDirection;
 	nExecutionCounter:UINT;
 	nLimitCounter:UINT;
 	nInternalHomeRevOffset:UINT;
@@ -132,9 +133,7 @@ VAR
 	bLimitTimeOut:BOOL;
 	bChangingDirection:BOOL;
 	////////////////////////////////
-END_VAR
-
-]]></Declaration>
+END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
@@ -315,16 +314,17 @@ ELSIF NOT bExecute AND  nCommand=10 AND NOT bHomingToggled THEN
 	nExecutionCounter:=0;
 END_IF
 (*Counter on LimitSwitch to avoid error*)
-IF bExecute AND (NOT bLimitFwd OR NOT bLimitBwd) AND fActVelocity<>0 THEN
-	nLimitCounter:=nLimitCounter+1;
-ELSIF bError AND nErrorId=16#4D06 THEN
-	nLimitCounter:=nLimitCounter;
-ELSE
-	nLimitCounter:=0;
-END_IF
+//IF bExecute AND (NOT bLimitFwd OR NOT bLimitBwd) AND fActVelocity<>0 THEN
+//	nLimitCounter:=nLimitCounter+1;
+//ELSIF bError AND nErrorId=16#4D06 THEN
+//	nLimitCounter:=nLimitCounter;
+//ELSE
+//	nLimitCounter:=0;
+//END_IF
+
 (*Changing Direction process*)
-fbRiseTrigger(CLK:=bLimitBwd , Q=> );
-fbRiseTrigger(CLK:=bLimitFwd , Q=> );
+//fbRiseTrigger(CLK:=bLimitBwd , Q=> );
+//fbRiseTrigger(CLK:=bLimitFwd , Q=> );
 
 IF bLimitBwd AND bLimitFwd AND bChangingDirection THEN
 	bLimitTrigg:=TRUE;
@@ -336,7 +336,7 @@ IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bH
 		bHomingExecute:=FALSE;
 		bChangeDir:=FALSE;
 		bHomingToggled:=TRUE;
-	ELSIF  fbWriteParameter.bDone AND ABS(fActVelocity)<=4 THEN	//(fHomeVelocity-1
+	ELSIF  fbWriteHomeDirCamToNC.bDone AND ABS(fActVelocity)<=4 THEN	//(fHomeVelocity-1
 		bHomingExecute:=TRUE;
 		bHomeTrigg:=TRUE;
 		bHomingToggled:=FALSE;
@@ -344,8 +344,8 @@ IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bH
 	bChangingDirection:=TRUE;
 END_IF
 (*Changing configuration depending on selected Homing Procedure*)
-fbWriteParameter(
-	bExecute:=nCommand=10 AND NOT bStartAtLimitSwitch AND (NOT bLimitBwd OR NOT bLimitFwd OR bCenterCalculated) AND bFlagWrite4Done AND bHomeflag AND ((nCmdData=4 OR nCmdData=3) OR (nCmdData=6 OR nCmdData=5)),
+fbWriteHomeDirCamToNC(
+	bExecute:=nCommand=10 AND NOT bStartAtLimitSwitch AND (NOT bLimitBwd OR NOT bLimitFwd OR bCenterCalculated) AND bFlagWrite4Done AND bHomeflag AND (nCmdData=3 OR nCmdData=4 OR nCmdData=5 OR nCmdData=6),
 	nDeviceGroup:= 16#5000,
 	nIndexOffset:=16#101,	//Direction for Calibration Cam Search
 	nData:=,
@@ -354,7 +354,7 @@ fbWriteParameter(
 	bError=>,
 	nErrorId=>,
 	Axis:=Axis);
-fbWriteParameter2(		//Write PLC Cam or Hardaware Sync Reference Mode depending on the Homing procedure
+fbWriteRefModeToNC(		//Write PLC Cam or Hardaware Sync Reference Mode depending on the Homing procedure
 	bExecute:=nCommand=10 AND bExecute,
 	nDeviceGroup:=16#5000 ,
 	nIndexOffset:=16#107,  //Reference Mode
@@ -394,7 +394,7 @@ fbReadFloatParameter2(
 	bError=> ,
 	nErrorId=> ,
 	Axis:= Axis);
-fbWriteParameter3( //(NOT bLimitBwd OR NOT bLimitFwd) OR bCenterCalculated) OR
+fbWriteHomeDirSyncToNC( //(NOT bLimitBwd OR NOT bLimitFwd) OR bCenterCalculated) OR
 	bExecute:= bCenterCalculated OR nCommand=10 AND (((nCmdData=4 OR nCmdData=3) AND bHomeFlag) OR bExecute AND (((nCmdData=8 OR nCmdData=7) AND bReadyToGo )OR (bReadyToGo AND (nCmdData=2 OR nCmdData=10 OR nCmdData=1 OR nCmdData=9)))),
 	nDeviceGroup:=16#5000 ,
 	nIndexOffset:=16#102 , //Direction for Sync Impuls Search
@@ -404,11 +404,11 @@ fbWriteParameter3( //(NOT bLimitBwd OR NOT bLimitFwd) OR bCenterCalculated) OR
 	bError=> ,
 	nErrorId=> ,
 	Axis:=axis );
-fbWriteParameter4(		//Write the direction for Homing
+fbWriteHomeDirCamToNC2(		//Write the direction for Homing
 	bExecute:=nCommand=10 AND bExecute AND NOT bReadyToGo,
 	nDeviceGroup:=16#5000 ,
 	nIndexOffset:=16#101 ,  //Direction for Calibration Cam Search
-	nData:= nRealDirection,
+	nData:= nHomeSensorSearchDirection,
 	bBusy=> ,
 	bDone=> ,
 	bError=> ,
@@ -451,72 +451,73 @@ END_IF
 (*Homing direction depending on selected Homing Procedure*)
 IF nCommand=10 THEN
 	IF nExecutionCounter=1 AND (((nCmdData=3 OR nCmdData=5) AND NOT bLimitBwd) OR ((nCmdData=4 OR nCmdData=6) AND NOT bLimitFwd)) THEN
-			bStartAtLimitSwitch:=TRUE;
-			bFlagWrite4Done:=TRUE;
-			bHomeflag:=TRUE;
-			bChangingDirection:=TRUE;
-			nRealDirection:=SEL(nCmdData MOD 2=0,0,1);
+		bStartAtLimitSwitch:=TRUE;
+		bFlagWrite4Done:=TRUE;
+		bHomeflag:=TRUE;
+		bChangingDirection:=TRUE;
+		nHomeSensorSearchDirection:=SEL(nCmdData MOD 2=0,0,1);
+	
 	ELSIF NOT(nCmdData=7 OR nCmdData=8) AND NOT bStartAtLimitSwitch THEN
-		nRealDirection:=SEL(nCmdData MOD 2=0,1,0);
+		nHomeSensorSearchDirection:=SEL(nCmdData MOD 2=0,1,0);
 	ELSIF (nCmdData=7 OR nCmdData=8) AND bHomeSensor AND NOT bDirectionFlag THEN
-		nRealDirection:=0;
+		nHomeSensorSearchDirection:=0;
 		bDirectionFlag:=TRUE;
 	ELSIF (nCmdData=7 OR nCmdData=8) AND NOT bHomeSensor AND NOT bDirectionFlag THEN
-		nRealDirection:=1;
+		nHomeSensorSearchDirection:=1;
 		bDirectionFlag:=TRUE;
 	END_IF
-	IF fbWriteParameter4.bDone THEN
+	IF fbWriteHomeDirCamToNC2.bDone THEN
 		bFlagWrite4Done:=TRUE;
 	END_IF
 END_IF
 (*Homing Procedures*)
 (*Mode 1*)
 IF  nCommand=10 AND (nCmdData=2 OR nCmdData=1) AND bExecute THEN //Mode 1 (* EndSwitches as Home *)
-	fbWriteParameter2.nData:=1;			//PLC Cam Reference Mode
-	IF fbWriteParameter2.bDone  THEN	//Wait till Homing configured as desired
+	fbWriteRefModeToNC.nData:=1;			//PLC Cam Reference Mode
+	IF fbWriteRefModeToNC.bDone  THEN	//Wait till Homing configured as desired
 		bReadyToGo:=TRUE;
-		IF nRealDirection=0 THEN
+		IF nHomeSensorSearchDirection=0 THEN
 			fbHome.bCalibrationCam:=NOT(bLimitFwd);
-		ELSIF nRealDirection=1 THEN
+		ELSIF nHomeSensorSearchDirection=1 THEN
 			fbHome.bCalibrationCam:=NOT(bLimitBwd);
 		END_IF
-		fbWriteParameter3.nData:=SEL(nRealDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
+		fbWriteHomeDirSyncToNC.nData:=SEL(nHomeSensorSearchDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
 	END_IF
 END_IF
 (*Mode 2*)
 IF nCommand=10 AND (nCmdData=4 OR nCmdData=3) AND bExecute THEN //Mode 2 (*Go to EndSwitch and then to the HomeSensor*)
-	fbWriteParameter2.nData:=1;		//PLC Cam Reference Mode
-	IF fbWriteParameter2.bDone THEN	//Wait till Homing configured as desired	//AND bFlagWrite4Done
+	fbWriteRefModeToNC.nData:=1;		//PLC Cam Reference Mode
+	IF fbWriteRefModeToNC.bDone THEN	//Wait till Homing configured as desired	//AND bFlagWrite4Done
 		bReadyToGo:=TRUE;
 		IF NOT bHomeflag THEN		//Wait till LimitSwitch is activated
 			fbHome.bCalibrationCam:=FALSE;
 		ELSE
 			fbHome.bCalibrationCam:=bHomeSensor;
 		END_IF
-		IF nRealDirection=0 THEN
+		IF nHomeSensorSearchDirection=0 THEN
 			IF NOT bLimitFwd THEN
-				fbWriteParameter.nData:=1;	//SEL(nRealDirection=0,0,1)
+				fbWriteHomeDirCamToNC.nData:=1;	//SEL(nHomeSensorSearchDirection=0,0,1)
 				bHomeflag:=TRUE;
 			END_IF
-		ELSIF nRealDirection=1 THEN
+		ELSIF nHomeSensorSearchDirection=1 THEN
 			IF NOT bLimitBwd THEN
-				fbWriteParameter.nData:=0;		//SEL(nRealDirection=0,1,0)
+				fbWriteHomeDirCamToNC.nData:=0;		//SEL(nHomeSensorSearchDirection=0,1,0)
 				bHomeflag:=TRUE;
 			END_IF
 		END_IF
 		IF bStartAtLimitSwitch THEN
-			fbWriteParameter3.nData:=SEL(nRealDirection=0,0,1);		//SEL(nRealDirection=0,1,0)   //Direction from PLC Cam must be the opposite in this case
+			fbWriteHomeDirSyncToNC.nData:=SEL(nHomeSensorSearchDirection=0,0,1);		//SEL(nHomeSensorSearchDirection=0,1,0)   //Direction from PLC Cam must be the opposite in this case
 		ELSE
-			fbWriteParameter3.nData:=nRealDirection;		//nRealDirection 	//Direction from PLC Cam must be the opposite in this case
+			fbWriteHomeDirSyncToNC.nData:=nHomeSensorSearchDirection;		//nHomeSensorSearchDirection 	//Direction from PLC Cam must be the opposite in this case
 		END_IF
 	END_IF
 END_IF
 (*Mode 3*)
 IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
-	fbWriteParameter2.nData:=1;		//PLC Cam Reference Mode
-	IF fbWriteParameter2.bDone THEN		//Wait till Homing configured as desired
+	fbWriteRefModeToNC.nData:=1;		//PLC Cam Reference Mode
+	IF fbWriteRefModeToNC.bDone THEN		//Wait till Homing configured as desired
 		bReadyToGo:=TRUE;
-		fbWriteParameter4.bExecute:=FALSE;
+		fbWriteHomeDirCamToNC2.bExecute:=FALSE;
 		IF NOT bHomeflag THEN
 			fbHome.bCalibrationCam:=FALSE;
 		ELSIF bHomeflag AND NOT bCenterCalculated THEN
@@ -534,11 +535,11 @@ IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
 				bChangeDir:=TRUE;
 				bHomeTrigg:=FALSE;
 				IF bDirection THEN
-					fbWriteParameter.nData:=0;
-					fbWriteParameter3.nData:=0;
+					fbWriteHomeDirCamToNC.nData:=0;
+					fbWriteHomeDirSyncToNC.nData:=0;
 				ELSE
-					fbWriteParameter.nData:=1;
-					fbWriteParameter3.nData:=1;
+					fbWriteHomeDirCamToNC.nData:=1;
+					fbWriteHomeDirSyncToNC.nData:=1;
 				END_IF
 			END_IF
 		ELSIF bHomeFlag AND bCenterCalculated THEN
@@ -550,15 +551,15 @@ IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
 				END_IF
 			END_IF
 		END_IF
-		IF nRealDirection=0 THEN
+		IF nHomeSensorSearchDirection=0 THEN
 			IF  NOT bLimitFwd THEN
-					fbWriteParameter.nData:=1;
+					fbWriteHomeDirCamToNC.nData:=1;
 					bDirection:=TRUE;
 					bHomeflag:=TRUE;
 			END_IF
-		ELSIF nRealDirection=1 THEN
+		ELSIF nHomeSensorSearchDirection=1 THEN
 			IF NOT bLimitBwd THEN
-					fbWriteParameter.nData:=0;
+					fbWriteHomeDirCamToNC.nData:=0;
 					bDirection:=FALSE;
 					bHomeflag:=TRUE;
 			END_IF
@@ -569,85 +570,28 @@ IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
 END_IF
 
 (*Mode 4*)
-(*IF nCommand=10 AND (nCmdData=8 OR nCmdData=7) AND bExecute THEN (* Mode 4: Home switch step function. No mechanical switches *)
-	fbWriteParameter2.nData:=1;	//PLC Cam Reference Mode
-	IF fbWriteParameter2.bDone THEN		//Wait till Homing configured as desired
-		fbWriteParameter4.bExecute:=FALSE;
-	//	IF NOT bStop THEN
-			IF NOT fbHome.Done THEN
-				IF bHomeSensor THEN
-					IF  NOT bFlag2 THEN
-						bFlag1:=TRUE;
-						fbWriteParameter3.nData:=SEL(nEncDirection=0,1,0);
-						fbHome.bCalibrationCam:=bHomeSensor;
-					ELSE
-						fbHome.bCalibrationCam:=NOT(bHomeSensor);
-					END_IF
-				ELSE
-					IF NOT bFlag1 THEN
-						bFlag2:=TRUE;
-						fbWriteParameter3.nData:=SEL(nEncDirection=0,0,1);
-						fbHome.bCalibrationCam:=NOT(bHomeSensor);
-					ELSE
-						fbHome.bCalibrationCam:=bHomeSensor;
-					END_IF
-				END_IF
-				IF fbWriteParameter3.bDone THEN
-					bReadyToGo:=TRUE;
-				END_IF
-			END_IF
-	END_IF
-//	END_IF
-//ELSE
-	//bStop:=FALSE;
-END_IF*)
-
 IF nCommand=10 AND (nCmdData=8 OR nCmdData=7) AND bExecute THEN (* Mode 4: Home switch step function. No mechanical switches *)
-	fbWriteParameter2.nData:=1;	//PLC Cam Reference Mode
-	IF fbWriteParameter2.bDone THEN		//Wait till Homing configured as desired
-		fbWriteParameter4.bExecute:=FALSE;
+	fbWriteRefModeToNC.nData:=1;	//PLC Cam Reference Mode
+	IF fbWriteRefModeToNC.bDone THEN		//Wait till Homing configured as desired
+		fbWriteHomeDirCamToNC2.bExecute:=FALSE;
 		bReadyToGo:=TRUE;
-		IF nRealDirection=0 THEN
+		IF nHomeSensorSearchDirection=0 THEN
 			fbHome.bCalibrationCam:=NOT(bHomeSensor);
-		ELSIF nRealDirection=1 THEN
+		ELSIF nHomeSensorSearchDirection=1 THEN
 			fbHome.bCalibrationCam:=bHomeSensor;
 		END_IF
-		fbWriteParameter3.nData:=SEL(nRealDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
+		fbWriteHomeDirSyncToNC.nData:=SEL(nHomeSensorSearchDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
 	END_IF
 END_IF
-(*
-(*Mode 5*)
-IF  nCommand=10 AND (nCmdData=10 OR nCmdData=9) AND bExecute THEN //Mode 5 (* EndSwitch and syncronise with the index signal from the encoder *)
-		fbWriteParameter2.nData:=2;	//Hardware Sync Reference Mode
-		fScalingFactor:=fbReadFloatParameter3.nData;
-		nInternalHomeRevOffset:=1;
-		IF fbWriteParameter2.bDone  THEN	//Wait till Homing configured as desired
-			fbWriteParameter4.bExecute:=FALSE;
-			bReadyToGo:=TRUE;
-			IF nRealDirection=0 THEN
-				fbHome.bCalibrationCam:=NOT(bLimitFwd);
-				IF NOT bLimitFwd THEN
-					fPositionAfterSensor:=fActPosition;
-				END_IF
-			ELSIF nRealDirection=1 THEN
-				fbHome.bCalibrationCam:=NOT(bLimitBwd);
-				IF NOT bLimitBwd THEN
-					fPositionAfterSensor:=fActPosition;
-				END_IF
-			END_IF
-			fbWriteParameter3.nData:=SEL(nRealDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
-		END_IF
 
-END_IF
-*)
 (*Mode 5*)
 IF  nCommand=10 AND (nCmdData=10 OR nCmdData=9) AND bExecute THEN //Mode 5 (* EndSwitch and syncronise with the index signal from the encoder. Possibility of choosing how many index signals before homed
-	fbWriteParameter2.nData:=2;	//Hardware Sync Reference Mode
+	fbWriteRefModeToNC.nData:=2;	//Hardware Sync Reference Mode
 	fScalingFactor:=fbReadFloatParameter3.nData;
-		IF fbWriteParameter2.bDone  THEN	//Wait till Homing configured as desired
-			fbWriteParameter4.bExecute:=FALSE;
+		IF fbWriteRefModeToNC.bDone  THEN	//Wait till Homing configured as desired
+			fbWriteHomeDirCamToNC2.bExecute:=FALSE;
 			bReadyToGo:=TRUE;
-			IF nRealDirection=0 THEN
+			IF nHomeSensorSearchDirection=0 THEN
 				fbHome.bCalibrationCam:=NOT(bLimitFwd);
 				IF NOT bLimitFwd THEN
 					fPositionAfterSensor:=fActPosition;
@@ -655,7 +599,7 @@ IF  nCommand=10 AND (nCmdData=10 OR nCmdData=9) AND bExecute THEN //Mode 5 (* En
 					nInternalHomeRevOffset:=nHomeRevOffset; //Remove if we don't use finally Mode 5
 					bFlag1:=TRUE;
 				END_IF
-			ELSIF nRealDirection=1 THEN
+			ELSIF nHomeSensorSearchDirection=1 THEN
 				fbHome.bCalibrationCam:=NOT(bLimitBwd);
 				IF NOT bLimitBwd THEN
 					fPositionAfterSensor:=fActPosition;
@@ -672,7 +616,7 @@ IF  nCommand=10 AND (nCmdData=10 OR nCmdData=9) AND bExecute THEN //Mode 5 (* En
 			IF fActPosition=fSkipPosition THEN
 				bFlag1:=FALSE;
 			END_IF
-			fbWriteParameter3.nData:=SEL(nRealDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
+			fbWriteHomeDirSyncToNC.nData:=SEL(nHomeSensorSearchDirection=0,0,1);	//Direction from PLC Cam must be the opposite in this case
 		END_IF
 END_IF
 
@@ -763,18 +707,18 @@ ELSIF Axis.Status.Error  THEN
 	bError:=TRUE;
 	nErrorId:=fbWriteToNC.nErrorId;*)
 ///////////////////////////////////
-ELSIF fbWriteParameter.bError AND fbWriteParameter.bBusy THEN
-	bError:=fbWriteParameter.bExecute;
-	nErrorId:=fbWriteParameter.nErrorId;
-ELSIF fbWriteParameter2.bError AND fbWriteParameter2.bBusy THEN
-	bError:=fbWriteParameter2.bExecute;
-	nErrorId:=fbWriteParameter2.nErrorId;
-ELSIF fbWriteParameter3.bError AND fbWriteParameter3.bBusy THEN
-	bError:=fbWriteParameter3.bExecute;
-	nErrorId:=fbWriteParameter3.nErrorId;
-ELSIF fbWriteParameter4.bError AND fbWriteParameter4.bBusy THEN
-	bError:=fbWriteParameter4.bExecute;
-	nErrorId:=fbWriteParameter4.nErrorId;
+ELSIF fbWriteHomeDirCamToNC.bError AND fbWriteHomeDirCamToNC.bBusy THEN
+	bError:=fbWriteHomeDirCamToNC.bExecute;
+	nErrorId:=fbWriteHomeDirCamToNC.nErrorId;
+ELSIF fbWriteRefModeToNC.bError AND fbWriteRefModeToNC.bBusy THEN
+	bError:=fbWriteRefModeToNC.bExecute;
+	nErrorId:=fbWriteRefModeToNC.nErrorId;
+ELSIF fbWriteHomeDirSyncToNC.bError AND fbWriteHomeDirSyncToNC.bBusy THEN
+	bError:=fbWriteHomeDirSyncToNC.bExecute;
+	nErrorId:=fbWriteHomeDirSyncToNC.nErrorId;
+ELSIF fbWriteHomeDirCamToNC2.bError AND fbWriteHomeDirCamToNC2.bBusy THEN
+	bError:=fbWriteHomeDirCamToNC2.bExecute;
+	nErrorId:=fbWriteHomeDirCamToNC2.nErrorId;
 ELSIF fbReadFloatParameter.bError AND fbReadFloatParameter.bBusy THEN
 	bError:=fbReadFloatParameter.bExecute;
 	nErrorId:=fbReadFloatParameter.nErrorId;
@@ -810,7 +754,7 @@ ELSIF nCommand=10 AND (nCmdData=9 OR nCmdData=10) AND nHomeRevOffset=0 THEN
 	bError:=TRUE;
 	bSyncError:=TRUE;
 	nErrorId:=16#4D05; //Index Can't be 0
-ELSIF nCommand=10 AND (nCmdData=9 OR nCmdData=10) AND bHomingState4 AND ((NOT bLimitBwd AND nRealDirection=0) OR (NOT bLimitFwd AND nRealDirection=1)) THEN
+ELSIF nCommand=10 AND (nCmdData=9 OR nCmdData=10) AND bHomingState4 AND ((NOT bLimitBwd AND nHomeSensorSearchDirection=0) OR (NOT bLimitFwd AND nHomeSensorSearchDirection=1)) THEN
 	bError:=TRUE;
 	bSyncError:=TRUE;
 	nErrorId:=16#4D06; //More Index pulses selected than possible
@@ -824,10 +768,10 @@ ELSIF nCommand=10 AND (nCmdData=9 OR nCmdData=10) AND bHomingState4 AND fActPosi
 	nErrorId:=16#4D07; //Not Encoder, therefore not able to use  Mode 5
 
 ///////////////////////////////////
-ELSIF nLimitCounter>=300 THEN
-	bError:=TRUE;
-	bLimitTimeOut:=TRUE;
-	nErrorId:=16#4D08; //Error in the Limit Switch.
+//ELSIF nLimitCounter>=300 THEN
+//	bError:=TRUE;
+//	bLimitTimeOut:=TRUE;
+//	nErrorId:=16#4D08; //Error in the Limit Switch.
 ///////////////////////////////////
 ELSE
 	bError:=FALSE;
@@ -887,7 +831,14 @@ IF bFirstScan THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_DriveVirtual">
-      <LineId Id="3" Count="747" />
+      <LineId Id="3" Count="185" />
+      <LineId Id="884" Count="0" />
+      <LineId Id="189" Count="133" />
+      <LineId Id="897" Count="0" />
+      <LineId Id="323" Count="112" />
+      <LineId Id="469" Count="12" />
+      <LineId Id="483" Count="0" />
+      <LineId Id="507" Count="243" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
