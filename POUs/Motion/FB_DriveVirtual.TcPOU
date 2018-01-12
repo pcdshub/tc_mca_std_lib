@@ -109,7 +109,7 @@ VAR
 	nExecutionCounter:UINT;
 	nLimitCounter:UINT;
 	nInternalHomeRevOffset:UINT;
-	bHomeflag:BOOL;
+	bSearchForHomeSensor:BOOL;
 	bHomeTrigg: BOOL;
 	bLimitTrigg: BOOL;
 	bCenterCalculated: BOOL;
@@ -331,7 +331,7 @@ IF bLimitBwd AND bLimitFwd AND bChangingDirection THEN
 	bChangingDirection:=FALSE;
 END_IF
 
-IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bHomeflag AND NOT bHomeTrigg AND NOT bStartAtLimitSwitch THEN
+IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bSearchForHomeSensor AND NOT bHomeTrigg AND NOT bStartAtLimitSwitch THEN
 	IF bHomingExecute AND (NOT bLimitBwd OR NOT bLimitFwd OR bChangeDir) AND bFlagWrite4Done THEN
 		bHomingExecute:=FALSE;
 		bChangeDir:=FALSE;
@@ -345,7 +345,7 @@ IF nCommand=10 AND (nCmdData=4 OR nCmdData=6 OR nCmdData=3 OR nCmdData=5 )AND bH
 END_IF
 (*Changing configuration depending on selected Homing Procedure*)
 fbWriteHomeDirCamToNC(
-	bExecute:=nCommand=10 AND NOT bStartAtLimitSwitch AND (NOT bLimitBwd OR NOT bLimitFwd OR bCenterCalculated) AND bFlagWrite4Done AND bHomeflag AND (nCmdData=3 OR nCmdData=4 OR nCmdData=5 OR nCmdData=6),
+	bExecute:=nCommand=10 AND NOT bStartAtLimitSwitch AND (NOT bLimitBwd OR NOT bLimitFwd OR bCenterCalculated) AND bFlagWrite4Done AND bSearchForHomeSensor AND (nCmdData=3 OR nCmdData=4 OR nCmdData=5 OR nCmdData=6),
 	nDeviceGroup:= 16#5000,
 	nIndexOffset:=16#101,	//Direction for Calibration Cam Search
 	nData:=,
@@ -365,7 +365,7 @@ fbWriteRefModeToNC(		//Write PLC Cam or Hardaware Sync Reference Mode depending 
 	nErrorId=> ,
 	Axis:=axis );
 fbReadFloatParameter(
-	bExecute:= bHomeflag AND NOT bCenterCalculated,
+	bExecute:= bSearchForHomeSensor AND NOT bCenterCalculated,
 	nDeviceGroup:= 16#4000,
 	nIndexOffset:= 16#7,
 	nData=> ,
@@ -385,7 +385,7 @@ fbReadFloatParameter3(
 	nErrorId=> ,
 	Axis:= Axis);
 fbReadFloatParameter2(
-	bExecute:= bHomeflag AND NOT bCenterCalculated,
+	bExecute:= bSearchForHomeSensor AND NOT bCenterCalculated,
 	nDeviceGroup:= 16#4000,
 	nIndexOffset:= 16#6 ,
 	nData=> ,
@@ -395,7 +395,7 @@ fbReadFloatParameter2(
 	nErrorId=> ,
 	Axis:= Axis);
 fbWriteHomeDirSyncToNC( //(NOT bLimitBwd OR NOT bLimitFwd) OR bCenterCalculated) OR
-	bExecute:= bCenterCalculated OR nCommand=10 AND (((nCmdData=4 OR nCmdData=3) AND bHomeFlag) OR bExecute AND (((nCmdData=8 OR nCmdData=7) AND bReadyToGo )OR (bReadyToGo AND (nCmdData=2 OR nCmdData=10 OR nCmdData=1 OR nCmdData=9)))),
+	bExecute:= bCenterCalculated OR nCommand=10 AND (((nCmdData=4 OR nCmdData=3) AND bSearchForHomeSensor) OR bExecute AND (((nCmdData=8 OR nCmdData=7) AND bReadyToGo )OR (bReadyToGo AND (nCmdData=2 OR nCmdData=10 OR nCmdData=1 OR nCmdData=9)))),
 	nDeviceGroup:=16#5000 ,
 	nIndexOffset:=16#102 , //Direction for Sync Impuls Search
 	nData:= ,
@@ -418,7 +418,7 @@ fbWriteHomeDirCamToNC2(		//Write the direction for Homing
 IF  (bHomed AND NOT bExecute AND NOT bHomingToggled) OR bReset THEN //If we not consider to bExecute=FALSE an Error we can removed bHomed and in that way evry time bExecute=FALSE the variable will be initialised
 		bReadyToGo:=FALSE;
 		bFlag1:=FALSE;
-		bHomeflag:=FALSE;
+		bSearchForHomeSensor:=FALSE;
 		bCenterCalculated:=FALSE;
 		bHomeTrigg:=FALSE;
 		bDirectionFlag:=FALSE;
@@ -453,7 +453,7 @@ IF nCommand=10 THEN
 	IF nExecutionCounter=1 AND (((nCmdData=3 OR nCmdData=5) AND NOT bLimitBwd) OR ((nCmdData=4 OR nCmdData=6) AND NOT bLimitFwd)) THEN
 		bStartAtLimitSwitch:=TRUE;
 		bFlagWrite4Done:=TRUE;
-		bHomeflag:=TRUE;
+		bSearchForHomeSensor:=TRUE;
 		bChangingDirection:=TRUE;
 		nHomeSensorSearchDirection:=SEL(nCmdData MOD 2=0,0,1);
 	
@@ -489,20 +489,20 @@ IF nCommand=10 AND (nCmdData=4 OR nCmdData=3) AND bExecute THEN //Mode 2 (*Go to
 	fbWriteRefModeToNC.nData:=1;		//PLC Cam Reference Mode
 	IF fbWriteRefModeToNC.bDone THEN	//Wait till Homing configured as desired	//AND bFlagWrite4Done
 		bReadyToGo:=TRUE;
-		IF NOT bHomeflag THEN		//Wait till LimitSwitch is activated
-			fbHome.bCalibrationCam:=FALSE;
+		IF bSearchForHomeSensor THEN		        //Wait till LimitSwitch is activated
+			fbHome.bCalibrationCam:=bHomeSensor;			
 		ELSE
-			fbHome.bCalibrationCam:=bHomeSensor;
+			fbHome.bCalibrationCam:=FALSE;
 		END_IF
 		IF nHomeSensorSearchDirection=0 THEN
 			IF NOT bLimitFwd THEN
 				fbWriteHomeDirCamToNC.nData:=1;	//SEL(nHomeSensorSearchDirection=0,0,1)
-				bHomeflag:=TRUE;
+				bSearchForHomeSensor:=TRUE;
 			END_IF
 		ELSIF nHomeSensorSearchDirection=1 THEN
 			IF NOT bLimitBwd THEN
 				fbWriteHomeDirCamToNC.nData:=0;		//SEL(nHomeSensorSearchDirection=0,1,0)
-				bHomeflag:=TRUE;
+				bSearchForHomeSensor:=TRUE;
 			END_IF
 		END_IF
 		IF bStartAtLimitSwitch THEN
@@ -518,9 +518,9 @@ IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
 	IF fbWriteRefModeToNC.bDone THEN		//Wait till Homing configured as desired
 		bReadyToGo:=TRUE;
 		fbWriteHomeDirCamToNC2.bExecute:=FALSE;
-		IF NOT bHomeflag THEN
+		IF NOT bSearchForHomeSensor THEN
 			fbHome.bCalibrationCam:=FALSE;
-		ELSIF bHomeflag AND NOT bCenterCalculated THEN
+		ELSIF bSearchForHomeSensor AND NOT bCenterCalculated THEN
 			fbHome.bCalibrationCam:=FALSE;
 			IF bHomeSensor  THEN
 				nCounter:=nCounter+1;
@@ -542,7 +542,7 @@ IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
 					fbWriteHomeDirSyncToNC.nData:=1;
 				END_IF
 			END_IF
-		ELSIF bHomeFlag AND bCenterCalculated THEN
+		ELSIF bSearchForHomeSensor AND bCenterCalculated THEN
 			fbHome.bCalibrationCam:=bHomeSensor;
 			IF bHomeSensor AND axis.Status.Moving  THEN
 				nCounter2:=nCounter2+1;
@@ -555,13 +555,13 @@ IF nCommand=10 AND (nCmdData=6 OR nCmdData=5) AND bExecute THEN
 			IF  NOT bLimitFwd THEN
 					fbWriteHomeDirCamToNC.nData:=1;
 					bDirection:=TRUE;
-					bHomeflag:=TRUE;
+					bSearchForHomeSensor:=TRUE;
 			END_IF
 		ELSIF nHomeSensorSearchDirection=1 THEN
 			IF NOT bLimitBwd THEN
 					fbWriteHomeDirCamToNC.nData:=0;
 					bDirection:=FALSE;
-					bHomeflag:=TRUE;
+					bSearchForHomeSensor:=TRUE;
 			END_IF
 		END_IF
 			fHomeVelocity:=fbReadFloatParameter2.nData;
@@ -732,7 +732,7 @@ ELSIF fbReadFloatParameter3.bError AND fbReadFloatParameter3.bBusy THEN
 ELSIF bHomingState1 AND NOT bExecute AND NOT bHomingState6 AND NOT bHomingToggled THEN
 	bError:=TRUE;
 	nErrorId:=16#4D01;	//bExecute gets down before bHomed
-ELSIF bHomeflag AND bLimitTrigg  AND (NOT bLimitBwd OR NOT bLimitFwd) AND (nCmdData>=2 AND nCmdData<=5) THEN
+ELSIF bSearchForHomeSensor AND bLimitTrigg  AND (NOT bLimitBwd OR NOT bLimitFwd) AND (nCmdData>=2 AND nCmdData<=5) THEN
 	bError:=TRUE;
 	nErrorId:=16#4D02; //HomeSensor not detected 	(*Mode 2 and Mode 3*)
 ELSIF bHomingState4 AND (NOT bLimitBwd OR NOT bLimitFwd) AND (NOT nCmdData=9 OR NOT nCmdData=10) AND NOT bHomingToggled THEN
@@ -835,7 +835,9 @@ END_IF]]></ST>
       <LineId Id="884" Count="0" />
       <LineId Id="189" Count="133" />
       <LineId Id="897" Count="0" />
-      <LineId Id="323" Count="112" />
+      <LineId Id="323" Count="32" />
+      <LineId Id="900" Count="0" />
+      <LineId Id="357" Count="78" />
       <LineId Id="469" Count="12" />
       <LineId Id="483" Count="0" />
       <LineId Id="507" Count="243" />
