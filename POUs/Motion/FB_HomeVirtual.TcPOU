@@ -12,48 +12,140 @@ VAR_INPUT
 	bHomeSensor: BOOL;	
 	fHomePosition:LREAL;
 	nHomeRevOffset: UINT;
+END_VAR
+VAR_IN_OUT
 	Axis: AXIS_REF;
 END_VAR
 VAR_OUTPUT
 	EnO: BOOL;	
 	bBusy: BOOL;
 	bDone: BOOL;
+	bHomed:BOOL;
 	bError: BOOL;
 	nErrorId: UDINT;
 END_VAR
 VAR
 	fbHomeToSwitch: FB_HomeToSwitch;
 	fbRTrigg: R_TRIG;
+	nHomingState:INT:=0;
+	bExecuteLocal:BOOL:=FALSE;
+	bSequenceReady:BOOL:=FALSE;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[En:=EnO;
+      <ST><![CDATA[EnO:=En;
 
 IF bReset THEN	
 	bError:=FALSE;
 	nErrorId:=0;
+	nHomingState:=0;
+	bSequenceReady:=FALSE;
 END_IF
 
 //Start preparation of NC if rising edge on bExecute
 fbRTrigg(CLK:=bExecute);
 IF fbRTrigg.Q THEN
-  CASE nCmdData OF
-   1:
-      fbHomeToSwitch.bSearchDirection:=0;	 
-   2:
-      fbHomeToSwitch.bSearchDirection:=1;	 
-  END_CASE;
+  nHomingState:=0;
+  bSequenceReady:=FALSE;
+  IF nCmdData > 4 THEN
+     bError:=TRUE;
+     nErrorId:=16#4FFF;
+  END_IF
 END_IF
 
 CASE nCmdData OF
    1:  // Home to low limit switch
-      fbHomeToSwitch.bSensor:=NOT bLimitBwd;	  
+      fbHomeToSwitch.bSearchDirTwoardsCam:=0;
+      fbHomeToSwitch.bSearchDirOffCam:=1;	 
+      fbHomeToSwitch.bCamSensor:=NOT bLimitBwd;
+	  bExecuteLocal:=bExecute;
+	  bHomed:=Axis.Status.Homed;	  
    2:  // Home to high limit switch
-      fbHomeToSwitch.bSensor:=NOT bLimitFwd;     	
+      fbHomeToSwitch.bSearchDirTwoardsCam:=1;
+      fbHomeToSwitch.bSearchDirOffCam:=0;	 
+      fbHomeToSwitch.bCamSensor:=NOT bLimitFwd;
+      bExecuteLocal:=bExecute;  
+	  bHomed:=Axis.Status.Homed;	
+   3:
+      CASE nHomingState OF
+		  0:  // Home to bLimitBwd switch
+		    bHomed:=Axis.Status.Homed;
+		    IF bLimitBwd THEN
+			  nHomingState:=1;
+			ELSE  //Standing on limit switch go directlly to state 2
+			  nHomingState:=2;
+			END_IF		  
+		  1:  // Home to bLimitBwd switch
+            bHomed:=FALSE;		  
+		    fbHomeToSwitch.bSearchDirTwoardsCam:=0;
+      		fbHomeToSwitch.bSearchDirOffCam:=1;	 
+      		fbHomeToSwitch.bCamSensor:=NOT bLimitBwd;
+		    bExecuteLocal:=bExecute;
+			bSequenceReady:=FALSE;
+			bHomed:=FALSE;	
+			IF fbHomeToSwitch.bDone THEN
+				nHomingState:=2;
+				bExecuteLocal:=FALSE;
+			END_IF
+		  2: // Home to bHomeSensor switch
+		    bHomed:=FALSE;
+		    fbHomeToSwitch.bSearchDirTwoardsCam:=1;
+      		fbHomeToSwitch.bSearchDirOffCam:=1;	 
+      		fbHomeToSwitch.bCamSensor:=bHomeSensor;
+		    bExecuteLocal:=bExecute;
+			bSequenceReady:=FALSE;
+			bHomed:=FALSE;
+            IF fbHomeToSwitch.bDone THEN
+				nHomingState:=3;
+				bExecuteLocal:=FALSE;
+				bHomed:=Axis.Status.Homed;
+            END_IF
+	  	  3: //Homing done
+		    bSequenceReady:=TRUE;	  
+	  END_CASE
+   4:
+       CASE nHomingState OF		   
+		  0:  // Home to bLimitBwd switch
+		    bHomed:=Axis.Status.Homed;
+		    IF bLimitBwd THEN
+			  nHomingState:=1;
+			ELSE  //Standing on limit switch go directlly to state 2
+			  nHomingState:=2;
+			END_IF
+		  1:  // Home to bLimitFwd switch
+		    bHomed:=FALSE;
+		    fbHomeToSwitch.bSearchDirTwoardsCam:=1;
+      		fbHomeToSwitch.bSearchDirOffCam:=0;	 
+      		fbHomeToSwitch.bCamSensor:=NOT bLimitFwd;
+		    bExecuteLocal:=bExecute;
+			bSequenceReady:=FALSE;
+			bHomed:=FALSE;
+			IF fbHomeToSwitch.bDone THEN
+				nHomingState:=2;
+				bExecuteLocal:=FALSE;
+			END_IF
+		  2: // Home to bHomeSensor switch
+		    bHomed:=FALSE;
+		    fbHomeToSwitch.bSearchDirTwoardsCam:=0;
+      		fbHomeToSwitch.bSearchDirOffCam:=0;	 
+      		fbHomeToSwitch.bCamSensor:=bHomeSensor;
+		    bExecuteLocal:=bExecute;	
+			bSequenceReady:=FALSE;
+			bHomed:=FALSE;
+            IF fbHomeToSwitch.bDone THEN
+				nHomingState:=3;
+				bExecuteLocal:=FALSE;
+				bHomed:=Axis.Status.Homed;	
+            END_IF
+	  	  3: //Homing done
+		    bSequenceReady:=TRUE;              
+	  END_CASE
+ELSE
+	  fbHomeToSwitch.bCamSensor:=FALSE;
 END_CASE;
 
 fbHomeToSwitch(
-	bExecute:=bExecute,
+	bExecute:=bExecuteLocal AND NOT bError,
  	bReset:=bReset,
 	fHomePosition:=fHomePosition,
 	Axis:=Axis
@@ -66,35 +158,96 @@ END_IF
 
 CASE nCmdData OF
    1:  // Home to low limit switch
-      bDone:=fbHomeToSwitch.bDone;
+      bDone:=fbHomeToSwitch.bDone AND bExecute;
       bBusy:=fbHomeToSwitch.bBusy;	  
    2:  // Home to high limit switch
-      bDone:=fbHomeToSwitch.bDone;
-	  bBusy:=fbHomeToSwitch.bBusy;     	 
-ELSE
-     bError:=TRUE;
-     nErrorId:=16#4FFF;
-END_CASE;
-
-]]></ST>
+      bDone:=fbHomeToSwitch.bDone AND bExecute;
+	  bBusy:=fbHomeToSwitch.bBusy;   
+   3: 
+      bDone:=bSequenceReady AND bExecute;
+  	  bBusy:=NOT bSequenceReady;	 
+   4: 
+      bDone:=bSequenceReady AND bExecute;
+  	  bBusy:=NOT bSequenceReady;	  
+END_CASE;]]></ST>
     </Implementation>
     <LineIds Name="FB_HomeVirtual">
       <LineId Id="9" Count="0" />
       <LineId Id="184" Count="0" />
       <LineId Id="179" Count="0" />
       <LineId Id="181" Count="1" />
+      <LineId Id="267" Count="0" />
+      <LineId Id="305" Count="0" />
       <LineId Id="95" Count="0" />
       <LineId Id="183" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="98" Count="0" />
-      <LineId Id="128" Count="2" />
-      <LineId Id="132" Count="1" />
+      <LineId Id="268" Count="0" />
+      <LineId Id="304" Count="0" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="229" Count="1" />
       <LineId Id="99" Count="1" />
       <LineId Id="149" Count="0" />
-      <LineId Id="138" Count="2" />
+      <LineId Id="138" Count="1" />
+      <LineId Id="269" Count="1" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="350" Count="0" />
       <LineId Id="142" Count="0" />
+      <LineId Id="271" Count="1" />
       <LineId Id="148" Count="0" />
+      <LineId Id="279" Count="0" />
+      <LineId Id="351" Count="0" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="280" Count="0" />
+      <LineId Id="359" Count="0" />
+      <LineId Id="378" Count="0" />
+      <LineId Id="361" Count="1" />
+      <LineId Id="364" Count="1" />
+      <LineId Id="363" Count="0" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="379" Count="0" />
+      <LineId Id="287" Count="1" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="285" Count="0" />
+      <LineId Id="300" Count="0" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="289" Count="1" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="380" Count="0" />
+      <LineId Id="294" Count="3" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="353" Count="0" />
+      <LineId Id="330" Count="0" />
+      <LineId Id="333" Count="1" />
+      <LineId Id="377" Count="0" />
+      <LineId Id="331" Count="0" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="335" Count="0" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="376" Count="0" />
+      <LineId Id="370" Count="4" />
+      <LineId Id="368" Count="0" />
+      <LineId Id="381" Count="0" />
+      <LineId Id="308" Count="4" />
+      <LineId Id="355" Count="0" />
+      <LineId Id="313" Count="4" />
+      <LineId Id="382" Count="0" />
+      <LineId Id="318" Count="3" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="339" Count="2" />
+      <LineId Id="375" Count="0" />
+      <LineId Id="342" Count="2" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="191" Count="0" />
+      <LineId Id="251" Count="0" />
       <LineId Id="97" Count="0" />
       <LineId Id="150" Count="0" />
       <LineId Id="50" Count="0" />
@@ -107,10 +260,11 @@ END_CASE;
       <LineId Id="165" Count="0" />
       <LineId Id="159" Count="1" />
       <LineId Id="166" Count="0" />
-      <LineId Id="162" Count="2" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="325" Count="0" />
+      <LineId Id="324" Count="0" />
+      <LineId Id="327" Count="2" />
       <LineId Id="48" Count="0" />
-      <LineId Id="168" Count="0" />
-      <LineId Id="170" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

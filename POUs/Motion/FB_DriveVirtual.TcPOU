@@ -47,8 +47,6 @@ VAR_INPUT
 	fHomePosition:LREAL;
 	nHomeRevOffset: UINT;
 	MasterAxis: AXIS_REF;
-	nMotionAxisID:UDINT:=0;  //Axis id in Motion (NC)
-	bChanChangingDirection: INT;
 END_VAR
 VAR_OUTPUT
 	EnO: BOOL;
@@ -58,6 +56,7 @@ VAR_OUTPUT
 	bError: BOOL;
 	bHomed: BOOL;
 	nErrorId: UDINT;
+	nMotionAxisID:UDINT:=0;  //Axis id in Motion (NC)
 	Status: ST_AxisStatus;
 	fActVelocity: LREAL;
 	fActPosition: LREAL;
@@ -78,17 +77,16 @@ VAR
 	fbMoveVelocity: MC_MoveVelocity;
 	fbMoveRelative: MC_MoveRelative;
 	fbMoveAbsolute: MC_MoveAbsolute;
-	fbMoveModulo: MC_MoveModulo;
-	fbHome: MC_Home;
+	fbMoveModulo: MC_MoveModulo;	
+	fbHomeVirtual:FB_HomeVirtual;
 	fbGearInDyn: MC_GearInDyn;
 	fbGearOut: MC_GearOut;
-	stAxisStatus: DUT_AxisStatus_v0_01;
-	fbHomeVirtual:FB_HomeVirtual;
+	stAxisStatus: DUT_AxisStatus_v0_01;	
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-bHomed:=Axis.Status.Homed; //Add in DUT_AxisStatus later
+bHomed:=fbHomeVirtual.bHomed; //Add in DUT_AxisStatus later
 bDone:=FALSE;
 
 (*Reset*)
@@ -103,9 +101,9 @@ fbReset(
 (*Power*)
 fbPower(
 	Axis:=Axis,
-	Enable:=bEnable,
-	Enable_Positive:=bLimitFwd,
-	Enable_Negative:=bLimitBwd,
+	Enable:=bEnable,	
+	Enable_Positive:=bEnable AND (bLimitFwd OR (nCommand=10 AND (nCmdData=2 OR nCmdData=4))),	
+	Enable_Negative:=bEnable AND (bLimitBwd OR (nCommand=10 AND (nCmdData=1 OR nCmdData=3))),	
 	Override:=fOverride,
 	BufferMode:= ,
 	Status=> ,
@@ -116,7 +114,7 @@ fbPower(
 
 (*Halt*)
 fbHalt(
-	Execute:=NOT bExecute  AND (((fbMoveVelocity.Busy OR fbPower.Busy) AND (nCommand=1)) OR (fbMoveRelative.Busy AND (nCommand=2)) OR (fbMoveAbsolute.Busy AND (nCommand=3)) OR (fbMoveModulo.Busy AND (nCommand=4)) OR (fbhome.Busy AND (nCommand=50))),
+	Execute:=NOT bExecute  AND (((fbMoveVelocity.Busy OR fbPower.Busy) AND (nCommand=1)) OR (fbMoveRelative.Busy AND (nCommand=2)) OR (fbMoveAbsolute.Busy AND (nCommand=3)) OR (fbMoveModulo.Busy AND (nCommand=4)) OR (fbHomeVirtual.bBusy AND (nCommand=10))),
 	Deceleration:=fDeceleration,
 	Jerk:=0,
 	BufferMode:= ,
@@ -246,7 +244,11 @@ fbHomeVirtual(
 	nHomeRevOffset:=nHomeRevOffset,
 	Axis:=Axis
 	);
-
+	
+IF nCommand=10 THEN
+	bDone:=fbHomeVirtual.bDone;
+END_IF
+	
 (*Gear (Command = 30)*)
 fbGearInDyn(
 	Enable:=bExecute  AND (nCommand=30),
@@ -308,9 +310,9 @@ ELSIF fbMoveAbsolute.Error AND nCommand=3 (*fbMoveAbsolute.Active*) THEN
 ELSIF fbMoveModulo.Error AND nCOmmand=4 (*fbMoveModulo.Active*) THEN
 	bError:=fbMoveModulo.Execute;
 	nErrorId:=fbMoveModulo.ErrorID;
-ELSIF fbHome.Error AND nCommand=50 (*fbHome.Active*) THEN
-	bError:=fbHome.Execute;
-	nErrorId:=fbHome.ErrorID;
+ELSIF fbHomeVirtual.bError AND nCommand=10 (*fbHome.Active*) THEN
+	bError:=fbHomeVirtual.bError;
+	nErrorId:=fbHomeVirtual.nErrorID;
 ELSIF fbGearInDyn.Error AND nCommand=30 (*fbGearInDyn.Active*) THEN
 	bError:=fbGearInDyn.Enable;
 	nErrorId:=fbGearInDyn.ErrorID;
@@ -381,12 +383,17 @@ IF bFirstScan THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_DriveVirtual">
-      <LineId Id="3" Count="151" />
+      <LineId Id="3" Count="14" />
+      <LineId Id="1029" Count="25" />
+      <LineId Id="44" Count="110" />
       <LineId Id="939" Count="1" />
       <LineId Id="156" Count="1" />
       <LineId Id="941" Count="1" />
       <LineId Id="159" Count="0" />
       <LineId Id="165" Count="0" />
+      <LineId Id="1061" Count="0" />
+      <LineId Id="1059" Count="1" />
+      <LineId Id="1058" Count="0" />
       <LineId Id="552" Count="73" />
       <LineId Id="944" Count="2" />
       <LineId Id="696" Count="54" />
