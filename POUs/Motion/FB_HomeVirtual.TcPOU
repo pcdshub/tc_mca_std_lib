@@ -38,6 +38,7 @@ VAR
 	bExecuteReadNCVelocities: BOOL:=FALSE;
 	bExecuteRestoreNCVelocities: BOOL:=FALSE;
 	bNCVelocitiesReadOnce:BOOL:=FALSE;
+	bRestoreNCVelocitiesDone: BOOL:=FALSE;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -46,18 +47,18 @@ END_VAR
 IF bReset THEN	
 	bError:=FALSE;
 	nErrorId:=0;
-	nHomingState:=0;
-	bSequenceReady:=FALSE;
 END_IF
 
 // Reset nHomingState when bExecute is low
 IF NOT bExecute THEN
   nHomingState:=0;
+  bSequenceReady:=TRUE;
 END_IF
 
 //Start preparation of NC if rising edge on bExecute
 fbExecuteRiseEdge(CLK:=bExecute);
 IF fbExecuteRiseEdge.Q THEN
+  bRestoreNCVelocitiesDone:=FALSE;
   bSequenceReady:=FALSE;
   bExecuteReadNCVelocities:=TRUE;
   bExecuteRestoreNCVelocities:=FALSE;
@@ -80,25 +81,6 @@ IF fbHomeReadNCVelocities.bDone THEN
     fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam;
 	bNCVelocitiesReadOnce:=TRUE;  //Allow write back of homing velocities
 	bExecuteReadNCVelocities:=FALSE;
-END_IF
-
-// Restore NC homing velocities at bExecute falling edge or at finished homing sequence
-fbExecuteFallEdge(CLK:=bExecute);
-IF fbExecuteFallEdge.Q AND bNCVelocitiesReadOnce THEN //Ensure that velocities are read atleast once before write
-  bExecuteRestoreNCVelocities:=TRUE;
-  bExecuteReadNCVelocities:=FALSE;	
-END_IF
-
-fbHomeRestoreNCVelocities(
-  En:=En,
-  bExecute:=bExecuteRestoreNCVelocities OR (bSequenceReady AND bExecute),
-  bReset:=bReset,
-  fVelocityFromCam:=fVelocityFromCamNC,
-  fVelocityToCam:=fVelocityToCamNC,
-  Axis:=Axis);
-  
-IF fbHomeRestoreNCVelocities.bDone THEN
-  bExecuteRestoreNCVelocities:=FALSE;
 END_IF
 
 //Homing Sequences
@@ -229,6 +211,28 @@ fbHomeToSwitch(
 	Axis:=Axis
 );
 
+// Restore NC homing velocities at bExecute falling edge or at finished homing sequence (if sequence is aborted during motion)
+fbExecuteFallEdge(CLK:=bExecute);
+IF fbExecuteFallEdge.Q THEN
+  IF NOT bRestoreNCVelocitiesDone THEN //Ensure that velocities are read atleast once before restore
+    bExecuteRestoreNCVelocities:=TRUE;
+  END_IF
+  bExecuteReadNCVelocities:=FALSE;	
+END_IF
+
+fbHomeRestoreNCVelocities(
+  En:=En,
+  bExecute:=bNCVelocitiesReadOnce AND (bExecuteRestoreNCVelocities OR (bSequenceReady AND bExecute)),
+  bReset:=bReset,
+  fVelocityFromCam:=fVelocityFromCamNC,
+  fVelocityToCam:=fVelocityToCamNC,
+  Axis:=Axis);
+  
+IF fbHomeRestoreNCVelocities.bDone THEN
+  bExecuteRestoreNCVelocities:=FALSE;
+  bRestoreNCVelocitiesDone:=TRUE;
+END_IF
+
 // Error handling
 IF NOT bError THEN
   IF fbHomeToSwitch.bError THEN 
@@ -253,14 +257,15 @@ RETURN;]]></ST>
       <LineId Id="184" Count="0" />
       <LineId Id="179" Count="0" />
       <LineId Id="181" Count="1" />
-      <LineId Id="267" Count="0" />
-      <LineId Id="305" Count="0" />
       <LineId Id="95" Count="0" />
-      <LineId Id="505" Count="4" />
+      <LineId Id="505" Count="3" />
+      <LineId Id="573" Count="0" />
+      <LineId Id="509" Count="0" />
       <LineId Id="183" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="98" Count="0" />
+      <LineId Id="595" Count="0" />
       <LineId Id="549" Count="0" />
       <LineId Id="460" Count="0" />
       <LineId Id="492" Count="0" />
@@ -276,15 +281,6 @@ RETURN;]]></ST>
       <LineId Id="495" Count="4" />
       <LineId Id="543" Count="0" />
       <LineId Id="500" Count="0" />
-      <LineId Id="456" Count="0" />
-      <LineId Id="455" Count="0" />
-      <LineId Id="486" Count="2" />
-      <LineId Id="491" Count="0" />
-      <LineId Id="489" Count="0" />
-      <LineId Id="502" Count="1" />
-      <LineId Id="510" Count="4" />
-      <LineId Id="451" Count="0" />
-      <LineId Id="544" Count="3" />
       <LineId Id="535" Count="0" />
       <LineId Id="149" Count="0" />
       <LineId Id="138" Count="0" />
@@ -376,7 +372,14 @@ RETURN;]]></ST>
       <LineId Id="150" Count="0" />
       <LineId Id="50" Count="0" />
       <LineId Id="151" Count="4" />
+      <LineId Id="574" Count="3" />
+      <LineId Id="596" Count="0" />
+      <LineId Id="578" Count="0" />
+      <LineId Id="598" Count="0" />
+      <LineId Id="579" Count="12" />
+      <LineId Id="594" Count="0" />
       <LineId Id="536" Count="0" />
+      <LineId Id="592" Count="0" />
       <LineId Id="171" Count="1" />
       <LineId Id="524" Count="0" />
       <LineId Id="173" Count="0" />

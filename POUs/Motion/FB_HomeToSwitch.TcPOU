@@ -10,8 +10,8 @@ VAR_INPUT
 	bSearchDirTwoardsCam: BOOL; // 0=backward 1=forward
 	bSearchDirOffCam: BOOL; // 0=backward 1=forward
 	fHomePosition:LREAL;	
-	fVelocityToCamNC: LREAL;
-	fVelocityFromCamNC: LREAL;
+	fVelocityToCamNC: LREAL; //Velcoity when searching for cam
+	fVelocityFromCamNC: LREAL; // Velocity after found cam (searching for next signal transition)
 END_VAR
 VAR_IN_OUT
 	Axis: AXIS_REF;
@@ -95,9 +95,10 @@ IF (NOT bConfigNCDone) AND fbWriteHomeDirCamToNC.bDone AND fbWriteHomeDirSyncToN
   bConfigNCDone:=TRUE;
 END_IF
 
-bError:=fbHome.Error OR fbWriteHomeDirCamToNC.bError OR fbWriteHomeDirSyncToNC.bError OR fbWriteHomeModeToNC.bError OR fbWriteHomeVelocitiesToNC.bError;
+//For some reason MC_HOME gives an Error for one cycle of NC-Task 1 SVB (10ms default..) so filter with bExecute
+bError:=(fbHome.Error AND bExecute) OR fbWriteHomeDirCamToNC.bError OR fbWriteHomeDirSyncToNC.bError OR fbWriteHomeModeToNC.bError OR fbWriteHomeVelocitiesToNC.bError;
 
-IF fbHome.Error THEN
+IF (fbHome.Error AND bExecute) THEN
   nErrorId:=fbHome.ErrorID;
 ELSIF fbWriteHomeDirCamToNC.bError THEN
   nErrorId:=fbWriteHomeDirCamToNC.nErrorId;
@@ -144,6 +145,7 @@ END_IF]]></ST>
       <LineId Id="284" Count="0" />
       <LineId Id="251" Count="1" />
       <LineId Id="171" Count="0" />
+      <LineId Id="328" Count="0" />
       <LineId Id="254" Count="0" />
       <LineId Id="146" Count="0" />
       <LineId Id="234" Count="0" />
