@@ -26,7 +26,7 @@ VAR_OUTPUT
 END_VAR
 VAR
 	fbHomeToSwitch: FB_HomeToSwitch;
-	fbRTrigg: R_TRIG;
+	fbExecuteRiseEdge: R_TRIG;
 	nHomingState:INT:=0;
 	bExecuteLocal:BOOL:=FALSE;
 	bSequenceReady:BOOL:=FALSE;
@@ -43,8 +43,8 @@ IF bReset THEN
 END_IF
 
 //Start preparation of NC if rising edge on bExecute
-fbRTrigg(CLK:=bExecute);
-IF fbRTrigg.Q THEN
+fbExecuteRiseEdge(CLK:=bExecute);
+IF fbExecuteRiseEdge.Q THEN
   nHomingState:=0;
   bSequenceReady:=FALSE;
   IF nCmdData > 4 THEN
@@ -66,15 +66,17 @@ CASE nCmdData OF
       fbHomeToSwitch.bCamSensor:=NOT bLimitFwd;
       bExecuteLocal:=bExecute;  
 	  bHomed:=Axis.Status.Homed;	
-   3:
+   3:  // Home on bHomeSensor via bLimitBwd
       CASE nHomingState OF
-		  0:  // Home to bLimitBwd switch
+		  0:
 		    bHomed:=Axis.Status.Homed;
-		    IF bLimitBwd THEN
-			  nHomingState:=1;
-			ELSE  //Standing on limit switch go directlly to state 2
-			  nHomingState:=2;
-			END_IF		  
+			IF fbExecuteRiseEdge.Q THEN
+		      IF bLimitBwd THEN
+			    nHomingState:=1;
+			  ELSE  //Standing on limit switch go directlly to state 2
+			    nHomingState:=2;
+			  END_IF
+            END_IF		  
 		  1:  // Home to bLimitBwd switch
             bHomed:=FALSE;		  
 		    fbHomeToSwitch.bSearchDirTwoardsCam:=0;
@@ -96,22 +98,23 @@ CASE nCmdData OF
 			bSequenceReady:=FALSE;
 			bHomed:=FALSE;
             IF fbHomeToSwitch.bDone THEN
-				nHomingState:=3;
+				nHomingState:=0;
 				bExecuteLocal:=FALSE;
 				bHomed:=Axis.Status.Homed;
+				bSequenceReady:=TRUE;	
             END_IF
-	  	  3: //Homing done
-		    bSequenceReady:=TRUE;	  
 	  END_CASE
-   4:
+   4: // Home on bHomeSensor via bLimitFwd
        CASE nHomingState OF		   
-		  0:  // Home to bLimitBwd switch
+		  0:
 		    bHomed:=Axis.Status.Homed;
-		    IF bLimitBwd THEN
-			  nHomingState:=1;
-			ELSE  //Standing on limit switch go directlly to state 2
-			  nHomingState:=2;
-			END_IF
+		   IF fbExecuteRiseEdge.Q THEN
+		      IF bLimitFwd THEN
+			    nHomingState:=1;
+			  ELSE  //Standing on limit switch go directlly to state 2
+			    nHomingState:=2;
+			  END_IF
+            END_IF		  
 		  1:  // Home to bLimitFwd switch
 		    bHomed:=FALSE;
 		    fbHomeToSwitch.bSearchDirTwoardsCam:=1;
@@ -132,20 +135,19 @@ CASE nCmdData OF
 		    bExecuteLocal:=bExecute;	
 			bSequenceReady:=FALSE;
 			bHomed:=FALSE;
-            IF fbHomeToSwitch.bDone THEN
-				nHomingState:=3;
+            IF fbHomeToSwitch.bDone THEN  //Homing ready
+				nHomingState:=0;
 				bExecuteLocal:=FALSE;
-				bHomed:=Axis.Status.Homed;	
+				bHomed:=Axis.Status.Homed;
+                bSequenceReady:=TRUE;	
             END_IF
-	  	  3: //Homing done
-		    bSequenceReady:=TRUE;              
 	  END_CASE
 ELSE
 	  fbHomeToSwitch.bCamSensor:=FALSE;
 END_CASE;
 
 fbHomeToSwitch(
-	bExecute:=bExecuteLocal AND NOT bError,
+	bExecute:=bExecuteLocal AND bExecute AND NOT bError,
  	bReset:=bReset,
 	fHomePosition:=fHomePosition,
 	Axis:=Axis
@@ -203,9 +205,11 @@ END_CASE;]]></ST>
       <LineId Id="280" Count="0" />
       <LineId Id="359" Count="0" />
       <LineId Id="378" Count="0" />
+      <LineId Id="383" Count="0" />
       <LineId Id="361" Count="1" />
       <LineId Id="364" Count="1" />
       <LineId Id="363" Count="0" />
+      <LineId Id="384" Count="0" />
       <LineId Id="281" Count="0" />
       <LineId Id="379" Count="0" />
       <LineId Id="287" Count="1" />
@@ -224,15 +228,15 @@ END_CASE;]]></ST>
       <LineId Id="330" Count="0" />
       <LineId Id="333" Count="1" />
       <LineId Id="377" Count="0" />
+      <LineId Id="392" Count="0" />
       <LineId Id="331" Count="0" />
-      <LineId Id="299" Count="0" />
-      <LineId Id="335" Count="0" />
       <LineId Id="282" Count="0" />
       <LineId Id="233" Count="0" />
       <LineId Id="306" Count="0" />
       <LineId Id="369" Count="0" />
       <LineId Id="376" Count="0" />
-      <LineId Id="370" Count="4" />
+      <LineId Id="385" Count="5" />
+      <LineId Id="374" Count="0" />
       <LineId Id="368" Count="0" />
       <LineId Id="381" Count="0" />
       <LineId Id="308" Count="4" />
@@ -244,7 +248,8 @@ END_CASE;]]></ST>
       <LineId Id="354" Count="0" />
       <LineId Id="339" Count="2" />
       <LineId Id="375" Count="0" />
-      <LineId Id="342" Count="2" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="342" Count="0" />
       <LineId Id="249" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="251" Count="0" />
