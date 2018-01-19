@@ -26,10 +26,11 @@ VAR_OUTPUT
 END_VAR
 VAR
 	fbHomeToSwitch: FB_HomeToSwitch;
+    fbHomeDirect: FB_HomeDirect; //Only used for direct homing (set of position)	
 	fbExecuteRiseEdge: R_TRIG;
 	fbExecuteFallEdge: F_TRIG;
 	nHomingState:INT:=0;
-	bExecuteLocal:BOOL:=FALSE;
+	bExecuteHomeToSwitch:BOOL:=FALSE;
 	bSequenceReady:BOOL:=TRUE;
 	fVelocityToCamNC: LREAL;
 	fVelocityFromCamNC: LREAL;
@@ -39,6 +40,8 @@ VAR
 	bExecuteRestoreNCVelocities: BOOL:=FALSE;
 	bNCVelocitiesReadOnce:BOOL:=FALSE;
 	bRestoreNCVelocitiesDone: BOOL:=FALSE;
+	bExecuteHomeDirect: BOOL;
+	bNCVelocitiesCorrupted:BOOL:=FALSE;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -49,23 +52,33 @@ IF bReset THEN
 	nErrorId:=0;
 END_IF
 
-// Reset nHomingState when bExecute is low
+// Reset when bExecute is low
 IF NOT bExecute THEN
   nHomingState:=0;
   bSequenceReady:=TRUE;
+  bExecuteHomeToSwitch:=FALSE;
+  bExecuteHomeDirect:=FALSE;
 END_IF
 
 //Start preparation of NC if rising edge on bExecute
 fbExecuteRiseEdge(CLK:=bExecute);
 IF fbExecuteRiseEdge.Q THEN
   bRestoreNCVelocitiesDone:=FALSE;
+  bNCVelocitiesCorrupted:=FALSE;
   bSequenceReady:=FALSE;
-  bExecuteReadNCVelocities:=TRUE;
+  bExecuteReadNCVelocities:=NOT(nCmdData=15);  // Not needed for sequence 15 (set position only, no movement))
   bExecuteRestoreNCVelocities:=FALSE;
-  IF nCmdData > 4 THEN  //Invalid sequence number
+  //Check if valid nCmdData
+  CASE nCmdData OF  	
+    1:
+    2:
+    3:
+    4:
+    15:
+    ELSE	
      bError:=TRUE;
-     nErrorId:=16#4FFF;
-  END_IF
+     nErrorId:=16#4FFF;   
+  END_CASE
 END_IF
 
 // Read NC homing velocities at bExecute rising edge
@@ -95,11 +108,11 @@ CASE nCmdData OF
 	  bHomed:=Axis.Status.Homed;
       // Wait for read of velocities from NC
 	  IF fbHomeReadNCVelocities.bDone THEN
-	    bExecuteLocal:=bExecute;  // Execute MC_HOME		  
+	    bExecuteHomeToSwitch:=bExecute;  // Execute MC_HOME		  
 	  END_IF
 	  IF fbHomeToSwitch.bDone THEN
 	    bSequenceReady:=TRUE;
-	  END_IF;
+	  END_IF;	  
 	  
    2:  // Home to high limit switch
       fbHomeToSwitch.bSearchDirTwoardsCam:=1;
@@ -109,11 +122,12 @@ CASE nCmdData OF
   	  fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed	  
 	  bHomed:=Axis.Status.Homed;
 	  IF fbHomeReadNCVelocities.bDone THEN
-	    bExecuteLocal:=bExecute;  // Execute MC_HOME		  
+	    bExecuteHomeToSwitch:=bExecute;  // Execute MC_HOME		  
 	  END_IF
 	  IF fbHomeToSwitch.bDone THEN
 	    bSequenceReady:=TRUE;
 	  END_IF;	
+	  
    3:  // Home on bHomeSensor via bLimitBwd
       CASE nHomingState OF
 		  0:
@@ -131,13 +145,14 @@ CASE nCmdData OF
       		fbHomeToSwitch.bSearchDirOffCam:=1;	 
       		fbHomeToSwitch.bCamSensor:=NOT bLimitBwd;
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; //High speed            
-            fbHomeToSwitch.fVelocityFromCamNC:=fVelocityToCamNC; //High speed	        
-		    bExecuteLocal:=bExecute;
+            fbHomeToSwitch.fVelocityFromCamNC:=fVelocityToCamNC; //High speed	 
+            bNCVelocitiesCorrupted:=TRUE; //Only high speed since accurate homing is in next state (needs restore if sequence is interrupted)       
+		    bExecuteHomeToSwitch:=bExecute;
 			bSequenceReady:=FALSE;
 			bHomed:=FALSE;	
 			IF fbHomeToSwitch.bDone THEN
 				nHomingState:=2;
-				bExecuteLocal:=FALSE;
+				bExecuteHomeToSwitch:=FALSE;
 			END_IF
 		  2: // Home to bHomeSensor switch
 		    bHomed:=FALSE;
@@ -146,17 +161,17 @@ CASE nCmdData OF
       		fbHomeToSwitch.bCamSensor:=bHomeSensor;
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
   	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed	  
-		    bExecuteLocal:=bExecute;
+		    bExecuteHomeToSwitch:=bExecute;
 			bSequenceReady:=FALSE;
 			bHomed:=FALSE;
             IF fbHomeToSwitch.bDone THEN
+				bNCVelocitiesCorrupted:=FALSE;  //Corerct velocities in NC
 				nHomingState:=0;
-				bExecuteLocal:=FALSE;
+				bExecuteHomeToSwitch:=FALSE;
 				bHomed:=Axis.Status.Homed;
 				bSequenceReady:=TRUE;	
             END_IF
-	  END_CASE
-	  
+	  END_CASE	  
    4: // Home on bHomeSensor via bLimitFwd
        CASE nHomingState OF		   
 		  0:
@@ -175,12 +190,13 @@ CASE nCmdData OF
       		fbHomeToSwitch.bCamSensor:=NOT bLimitFwd;
 		    fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; //High speed
             fbHomeToSwitch.fVelocityFromCamNC:=fVelocityToCamNC; //High speed
-		    bExecuteLocal:=bExecute;
+			bNCVelocitiesCorrupted:=TRUE; //Only high speed since accurate homing is in next state (needs restore if sequence is interrupted)
+		    bExecuteHomeToSwitch:=bExecute;
 			bSequenceReady:=FALSE;
 			bHomed:=FALSE;
 			IF fbHomeToSwitch.bDone THEN
 				nHomingState:=2;
-				bExecuteLocal:=FALSE;
+				bExecuteHomeToSwitch:=FALSE;
 			END_IF
 		  2: // Home to bHomeSensor switch
 		    bHomed:=FALSE;
@@ -189,23 +205,42 @@ CASE nCmdData OF
       		fbHomeToSwitch.bCamSensor:=bHomeSensor;
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
   	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed	  
-		    bExecuteLocal:=bExecute;	
+		    bExecuteHomeToSwitch:=bExecute;	
 			bSequenceReady:=FALSE;
 			bHomed:=FALSE;
             IF fbHomeToSwitch.bDone THEN  //Homing ready
+				bNCVelocitiesCorrupted:=FALSE;  //Corerct velocities in NC
 				nHomingState:=0;
-				bExecuteLocal:=FALSE;
+				bExecuteHomeToSwitch:=FALSE;
 				bHomed:=Axis.Status.Homed;
                 bSequenceReady:=TRUE;	
             END_IF
-	  END_CASE
+	  END_CASE	  
+	  
+   15: //Set current position (simplest homing sequence)
+     bExecuteHomeDirect:=bExecute;
+	 bHomed:=Axis.Status.Homed;
+     IF fbHomeDirect.bDone THEN  //Homing ready				
+	   bExecuteHomeDirect:=FALSE;				
+       bSequenceReady:=TRUE;	
+     END_IF
+	 bNCVelocitiesCorrupted:=FALSE; // no changes of NC velocities (no restore needed)
+	 
 ELSE
   fbHomeToSwitch.bCamSensor:=FALSE;
   bHomed:=Axis.Status.Homed;
 END_CASE;
 
 fbHomeToSwitch(
-	bExecute:=bExecuteLocal AND bExecute AND NOT bError,
+	bExecute:=bExecuteHomeToSwitch AND bExecute AND NOT bError,
+ 	bReset:=bReset,
+	fHomePosition:=fHomePosition,
+	Axis:=Axis
+);
+
+// No sequence, just set position value
+fbHomeDirect(
+	bExecute:=bExecuteHomeDirect AND bExecute AND NOT bError,
  	bReset:=bReset,
 	fHomePosition:=fHomePosition,
 	Axis:=Axis
@@ -220,9 +255,11 @@ IF fbExecuteFallEdge.Q THEN
   bExecuteReadNCVelocities:=FALSE;	
 END_IF
 
+// Only restore NC home velocities if the velocities have been successfully read (bNCVelocitiesReadOnce) and are corrupted (bNCVelocitiesCorrupted).
+// The velocities should only be corrupted if a homing sequence is interrupted  by a falling edge on bExecute and in that case a restore is needed.
 fbHomeRestoreNCVelocities(
   En:=En,
-  bExecute:=bNCVelocitiesReadOnce AND (bExecuteRestoreNCVelocities OR (bSequenceReady AND bExecute)),
+  bExecute:=bNCVelocitiesReadOnce AND bNCVelocitiesCorrupted AND (bExecuteRestoreNCVelocities OR (bSequenceReady AND bExecute)),
   bReset:=bReset,
   fVelocityFromCam:=fVelocityFromCamNC,
   fVelocityToCam:=fVelocityToCamNC,
@@ -243,13 +280,17 @@ IF NOT bError THEN
 	nErrorId:=fbHomeReadNCVelocities.nErrorId;
   ELSIF fbHomeRestoreNCVelocities.bError THEN
 	bError:=fbHomeRestoreNCVelocities.bError;
-	nErrorId:=fbHomeRestoreNCVelocities.nErrorId;		
+	nErrorId:=fbHomeRestoreNCVelocities.nErrorId;
+  ELSIF fbHomeDirect.bError THEN
+	bError:=fbHomeDirect.bError;
+	nErrorId:=fbHomeDirect.nErrorId;    		
   END_IF;	
 END_IF
 
 // Done and busy bit
-bDone:=bSequenceReady AND bExecute AND fbHomeRestoreNCVelocities.bDone;
+bDone:=bSequenceReady AND bExecute AND (fbHomeRestoreNCVelocities.bDone OR NOT bNCVelocitiesCorrupted);
 bBusy:=NOT bSequenceReady OR fbHomeRestoreNCVelocities.bBusy;	 
+
 RETURN;]]></ST>
     </Implementation>
     <LineIds Name="FB_HomeVirtual">
@@ -260,18 +301,24 @@ RETURN;]]></ST>
       <LineId Id="95" Count="0" />
       <LineId Id="505" Count="3" />
       <LineId Id="573" Count="0" />
+      <LineId Id="665" Count="1" />
       <LineId Id="509" Count="0" />
       <LineId Id="183" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="98" Count="0" />
       <LineId Id="595" Count="0" />
+      <LineId Id="625" Count="0" />
       <LineId Id="549" Count="0" />
       <LineId Id="460" Count="0" />
       <LineId Id="492" Count="0" />
-      <LineId Id="245" Count="0" />
-      <LineId Id="229" Count="1" />
-      <LineId Id="99" Count="1" />
+      <LineId Id="646" Count="0" />
+      <LineId Id="648" Count="0" />
+      <LineId Id="647" Count="0" />
+      <LineId Id="651" Count="4" />
+      <LineId Id="658" Count="1" />
+      <LineId Id="650" Count="0" />
+      <LineId Id="100" Count="0" />
       <LineId Id="485" Count="0" />
       <LineId Id="438" Count="0" />
       <LineId Id="427" Count="0" />
@@ -305,6 +352,7 @@ RETURN;]]></ST>
       <LineId Id="470" Count="0" />
       <LineId Id="520" Count="1" />
       <LineId Id="519" Count="0" />
+      <LineId Id="633" Count="0" />
       <LineId Id="231" Count="0" />
       <LineId Id="280" Count="0" />
       <LineId Id="359" Count="0" />
@@ -320,6 +368,7 @@ RETURN;]]></ST>
       <LineId Id="286" Count="0" />
       <LineId Id="556" Count="0" />
       <LineId Id="565" Count="0" />
+      <LineId Id="634" Count="0" />
       <LineId Id="285" Count="0" />
       <LineId Id="300" Count="0" />
       <LineId Id="352" Count="0" />
@@ -334,12 +383,12 @@ RETURN;]]></ST>
       <LineId Id="336" Count="0" />
       <LineId Id="353" Count="0" />
       <LineId Id="330" Count="0" />
+      <LineId Id="635" Count="0" />
       <LineId Id="333" Count="1" />
       <LineId Id="377" Count="0" />
       <LineId Id="392" Count="0" />
       <LineId Id="331" Count="0" />
       <LineId Id="282" Count="0" />
-      <LineId Id="430" Count="0" />
       <LineId Id="233" Count="0" />
       <LineId Id="306" Count="0" />
       <LineId Id="369" Count="0" />
@@ -351,6 +400,7 @@ RETURN;]]></ST>
       <LineId Id="308" Count="2" />
       <LineId Id="566" Count="0" />
       <LineId Id="559" Count="0" />
+      <LineId Id="637" Count="0" />
       <LineId Id="311" Count="1" />
       <LineId Id="355" Count="0" />
       <LineId Id="313" Count="4" />
@@ -360,11 +410,23 @@ RETURN;]]></ST>
       <LineId Id="321" Count="0" />
       <LineId Id="338" Count="0" />
       <LineId Id="354" Count="0" />
-      <LineId Id="339" Count="2" />
+      <LineId Id="339" Count="0" />
+      <LineId Id="636" Count="0" />
+      <LineId Id="340" Count="1" />
       <LineId Id="375" Count="0" />
       <LineId Id="391" Count="0" />
       <LineId Id="342" Count="0" />
       <LineId Id="249" Count="0" />
+      <LineId Id="630" Count="0" />
+      <LineId Id="602" Count="0" />
+      <LineId Id="605" Count="0" />
+      <LineId Id="623" Count="0" />
+      <LineId Id="618" Count="0" />
+      <LineId Id="620" Count="0" />
+      <LineId Id="622" Count="0" />
+      <LineId Id="604" Count="0" />
+      <LineId Id="631" Count="0" />
+      <LineId Id="645" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="251" Count="0" />
       <LineId Id="477" Count="0" />
@@ -372,11 +434,22 @@ RETURN;]]></ST>
       <LineId Id="150" Count="0" />
       <LineId Id="50" Count="0" />
       <LineId Id="151" Count="4" />
-      <LineId Id="574" Count="3" />
-      <LineId Id="596" Count="0" />
+      <LineId Id="667" Count="0" />
+      <LineId Id="609" Count="0" />
+      <LineId Id="608" Count="0" />
+      <LineId Id="611" Count="2" />
+      <LineId Id="610" Count="0" />
+      <LineId Id="614" Count="0" />
+      <LineId Id="574" Count="2" />
+      <LineId Id="661" Count="0" />
+      <LineId Id="664" Count="0" />
       <LineId Id="578" Count="0" />
       <LineId Id="598" Count="0" />
-      <LineId Id="579" Count="12" />
+      <LineId Id="579" Count="1" />
+      <LineId Id="632" Count="0" />
+      <LineId Id="581" Count="0" />
+      <LineId Id="638" Count="0" />
+      <LineId Id="582" Count="9" />
       <LineId Id="594" Count="0" />
       <LineId Id="536" Count="0" />
       <LineId Id="592" Count="0" />
@@ -386,11 +459,13 @@ RETURN;]]></ST>
       <LineId Id="185" Count="0" />
       <LineId Id="526" Count="0" />
       <LineId Id="528" Count="4" />
+      <LineId Id="642" Count="2" />
       <LineId Id="522" Count="0" />
       <LineId Id="75" Count="0" />
       <LineId Id="538" Count="0" />
       <LineId Id="174" Count="0" />
       <LineId Id="540" Count="1" />
+      <LineId Id="670" Count="0" />
       <LineId Id="539" Count="0" />
     </LineIds>
   </POU>
