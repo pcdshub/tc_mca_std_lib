@@ -10,6 +10,8 @@ VAR_INPUT
 	bSearchDirTwoardsCam: BOOL; // 0=backward 1=forward
 	bSearchDirOffCam: BOOL; // 0=backward 1=forward
 	fHomePosition:LREAL;	
+	fVelocityToCamNC: LREAL;
+	fVelocityFromCamNC: LREAL;
 END_VAR
 VAR_IN_OUT
 	Axis: AXIS_REF;
@@ -27,6 +29,7 @@ VAR
 	fbWriteHomeDirCamToNC:FB_WriteParameterInNc_v1_00;
 	fbWriteHomeDirSyncToNC:FB_WriteParameterInNc_v1_00;
 	fbWriteHomeModeToNC:FB_WriteParameterInNc_v1_00;
+	fbWriteHomeVelocitiesToNC: FB_HomeWriteNcVelocities;
 	bConfigNCDone:BOOL:=FALSE;
 	fbRTrigg: R_TRIG;
 END_VAR
@@ -67,6 +70,14 @@ fbWriteHomeModeToNC(
 	nIndexOffset:=16#107,  //Reference Mode
 	nData:=1,
 	Axis:=axis);
+	
+fbWriteHomeVelocitiesToNC(
+  En:=En,
+  bExecute:=bExecute AND NOT bConfigNCDone,
+  bReset:=bReset,
+  fVelocityFromCam:=fVelocityFromCamNC,
+  fVelocityToCam:=fVelocityToCamNC,
+  Axis:=Axis);
 
 fbHome.bCalibrationCam:=bCamSensor;
 
@@ -80,11 +91,11 @@ bBusy:=(fbHome.Busy OR (NOT bConfigNCDone AND bExecute));
 bDone:=fbHome.Done AND bConfigNCDone;
 bHomed:=Axis.Status.Homed;
 
-IF (NOT bConfigNCDone) AND fbWriteHomeDirCamToNC.bDone AND fbWriteHomeDirSyncToNC.bDone AND fbWriteHomeModeToNC.bDone THEN
+IF (NOT bConfigNCDone) AND fbWriteHomeDirCamToNC.bDone AND fbWriteHomeDirSyncToNC.bDone AND fbWriteHomeModeToNC.bDone AND fbWriteHomeVelocitiesToNC.bDone THEN
   bConfigNCDone:=TRUE;
 END_IF
 
-bError:=fbHome.Error OR fbWriteHomeDirCamToNC.bError OR fbWriteHomeDirSyncToNC.bError OR fbWriteHomeModeToNC.bError;
+bError:=fbHome.Error OR fbWriteHomeDirCamToNC.bError OR fbWriteHomeDirSyncToNC.bError OR fbWriteHomeModeToNC.bError OR fbWriteHomeVelocitiesToNC.bError;
 
 IF fbHome.Error THEN
   nErrorId:=fbHome.ErrorID;
@@ -93,7 +104,9 @@ ELSIF fbWriteHomeDirCamToNC.bError THEN
 ELSIF fbWriteHomeDirSyncToNC.bError THEN
   nErrorId:=fbWriteHomeDirSyncToNC.nErrorId;
 ELSIF fbWriteHomeModeToNC.bError THEN
-  nErrorId:=fbWriteHomeModeToNC.nErrorId;  
+  nErrorId:=fbWriteHomeModeToNC.nErrorId;
+ELSIF fbWriteHomeVelocitiesToNC.bError THEN
+  nErrorId:=fbWriteHomeVelocitiesToNC.nErrorId;  
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_HomeToSwitch">
@@ -116,7 +129,11 @@ END_IF]]></ST>
       <LineId Id="225" Count="0" />
       <LineId Id="216" Count="3" />
       <LineId Id="227" Count="0" />
-      <LineId Id="135" Count="1" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="317" Count="0" />
+      <LineId Id="319" Count="5" />
+      <LineId Id="318" Count="0" />
+      <LineId Id="136" Count="0" />
       <LineId Id="267" Count="0" />
       <LineId Id="279" Count="0" />
       <LineId Id="269" Count="4" />
@@ -134,6 +151,8 @@ END_IF]]></ST>
       <LineId Id="148" Count="2" />
       <LineId Id="166" Count="1" />
       <LineId Id="231" Count="1" />
+      <LineId Id="326" Count="0" />
+      <LineId Id="325" Count="0" />
       <LineId Id="151" Count="0" />
     </LineIds>
   </POU>
