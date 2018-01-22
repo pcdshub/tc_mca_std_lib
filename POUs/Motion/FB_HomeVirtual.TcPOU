@@ -92,8 +92,7 @@ fbHomeReadNCVelocities(
 
 IF fbHomeReadNCVelocities.bDone THEN
   	fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;
-    fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam;
-	bExecuteReadNCVelocities:=FALSE;
+    fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam;	
 END_IF
 
 //Homing Sequences
@@ -350,7 +349,6 @@ RETURN;]]></ST>
       <LineId Id="440" Count="2" />
       <LineId Id="439" Count="0" />
       <LineId Id="495" Count="3" />
-      <LineId Id="543" Count="0" />
       <LineId Id="500" Count="0" />
       <LineId Id="535" Count="0" />
       <LineId Id="149" Count="0" />
