@@ -102,8 +102,8 @@ fbReset(
 fbPower(
 	Axis:=Axis,
 	Enable:=bEnable,	
-	Enable_Positive:=bEnable AND (bLimitFwd OR (nCommand=10 AND (nCmdData=2 OR nCmdData=4))),	
-	Enable_Negative:=bEnable AND (bLimitBwd OR (nCommand=10 AND (nCmdData=1 OR nCmdData=3))),	
+	Enable_Positive:=bEnable AND bLimitFwd, //OR (nCommand=10 AND (nCmdData=2 OR nCmdData=4))),	
+	Enable_Negative:=bEnable AND bLimitBwd, //OR (nCommand=10 AND (nCmdData=1 OR nCmdData=3))),	
 	Override:=fOverride,
 	BufferMode:= ,
 	Status=> ,

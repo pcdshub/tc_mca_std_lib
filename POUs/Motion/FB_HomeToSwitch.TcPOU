@@ -7,8 +7,8 @@ VAR_INPUT
 	bReset: BOOL;
     bExecute: BOOL;	
     bCamSensor:BOOL;	
-	bSearchDirTwoardsCam: BOOL; // 0=backward 1=forward
-	bSearchDirOffCam: BOOL; // 0=backward 1=forward
+	nSearchDirTwoardsCam: MC_Direction;
+	nSearchDirOffCam: MC_Direction;
 	fHomePosition:LREAL;	
 	fVelocityToCamNC: LREAL; //Velcoity when searching for cam
 	fVelocityFromCamNC: LREAL; // Velocity after found cam (searching for next signal transition)
@@ -48,11 +48,12 @@ IF fbRTrigg.Q THEN
 	bConfigNCDone:=FALSE;
 END_IF
 
+ 
 fbWriteHomeDirCamToNC(
 	bExecute:=bExecute AND NOT bConfigNCDone,
 	nDeviceGroup:=16#5000,
 	nIndexOffset:=16#101,	//Direction for Calibration Cam Search	
-	nData:=BOOL_TO_DWORD(NOT bSearchDirTwoardsCam),
+	nData:=BOOL_TO_DWORD(nSearchDirTwoardsCam=MC_Negative_Direction),//BOOL_TO_DWORD(NOT bSearchDirTwoardsCam),
 	Axis:=Axis
 );
 
@@ -60,7 +61,7 @@ fbWriteHomeDirSyncToNC(
 	bExecute:= bExecute AND NOT bConfigNCDone,
 	nDeviceGroup:=16#5000 ,
 	nIndexOffset:=16#102 , //Direction for Sync Impuls Search
-	nData:=BOOL_TO_DWORD(NOT bSearchDirOffCam),
+	nData:=BOOL_TO_DWORD(nSearchDirOffCam=MC_Negative_Direction),//BOOL_TO_DWORD(NOT bSearchDirOffCam),
 	Axis:= Axis 
 );
 
@@ -119,6 +120,7 @@ END_IF]]></ST>
       <LineId Id="96" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="98" Count="2" />
+      <LineId Id="361" Count="0" />
       <LineId Id="255" Count="0" />
       <LineId Id="102" Count="3" />
       <LineId Id="128" Count="0" />
