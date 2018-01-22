@@ -69,9 +69,6 @@ VAR
 	nCommandLocal: UINT;
 	nCmdDataLocal: UINT;
 	bFirstScan: BOOL := TRUE;
-	bMovingRelOrAbs: BOOL;
-	iCounter: INT := 0;
-	fOldVelocity: LREAL;
 	fbReset: MC_Reset;
 	fbPower: MC_Power;
 	fbHalt: MC_Halt;
@@ -112,8 +109,8 @@ fbReset(
 fbPower(
 	Axis:=Axis,
 	Enable:=bEnable,	
-	Enable_Positive:=bEnable AND bLimitFwd, //OR (nCommandLocal=10 AND (nCmdDataLocal=2 OR nCmdDataLocal=4))),	
-	Enable_Negative:=bEnable AND bLimitBwd, //OR (nCommandLocal=10 AND (nCmdDataLocal=1 OR nCmdDataLocal=3))),	
+	Enable_Positive:=bEnable AND bLimitFwd,	
+	Enable_Negative:=bEnable AND bLimitBwd,	
 	Override:=fOverride,
 	BufferMode:= ,
 	Status=> ,
@@ -155,11 +152,9 @@ fbJog(
 	Error=> ,
 	ErrorID=> );
 
-	;
-	iCounter:=iCounter+1;
 (*MoveVelocity (Command = 1)*)
 fbMoveVelocity(
-	Execute:=bExecute (*AND (fOldVelocity=fVelocity)*) AND (nCommandLocal=1),
+	Execute:=bExecute AND (nCommandLocal=1),
 	Velocity:=ABS(fVelocity),
 	Acceleration:=fAcceleration,
 	Deceleration:=fDeceleration,
@@ -289,10 +284,7 @@ IF nCommandLocal=30 THEN
 	bDone:=Axis.Status.Coupled;
 END_IF
 
-fOldVelocity:=fVelocity;
-
 (*Busy*)
-bMovingRelOrAbs := (nCommandLocal = 2 OR nCommandLocal = 3) AND NOT axis.Status.InTargetPosition;
 bBusy:=Axis.Status.HasJob OR Axis.Status.HomingBusy OR fbHomeVirtual.bBusy;
 
 (*Enabled*)
@@ -403,7 +395,8 @@ END_IF]]></ST>
       <LineId Id="1153" Count="0" />
       <LineId Id="5" Count="12" />
       <LineId Id="1029" Count="25" />
-      <LineId Id="44" Count="110" />
+      <LineId Id="44" Count="19" />
+      <LineId Id="66" Count="88" />
       <LineId Id="939" Count="1" />
       <LineId Id="156" Count="1" />
       <LineId Id="941" Count="1" />
@@ -412,7 +405,9 @@ END_IF]]></ST>
       <LineId Id="1061" Count="0" />
       <LineId Id="1059" Count="1" />
       <LineId Id="1058" Count="0" />
-      <LineId Id="552" Count="73" />
+      <LineId Id="552" Count="29" />
+      <LineId Id="584" Count="1" />
+      <LineId Id="587" Count="38" />
       <LineId Id="944" Count="2" />
       <LineId Id="696" Count="54" />
       <LineId Id="2" Count="0" />
