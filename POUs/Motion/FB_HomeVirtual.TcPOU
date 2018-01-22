@@ -206,7 +206,6 @@ CASE nCmdDataLocal OF
 			fbHomeToSwitch.bCamSensor:=bHomeSensor;
 			fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Positive_Direction;
       		fbHomeToSwitch.nSearchDirOffCam:=MC_Positive_Direction;	 
-      		fbHomeToSwitch.bCamSensor:=bHomeSensor;
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
   	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored) 
             IF fbHomeToSwitch.bDone THEN
@@ -240,21 +239,21 @@ CASE nCmdDataLocal OF
 		    END_IF
 		  2: // Home to bHomeSensor switch
 		    bHomed:=FALSE;
-		    fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Negative_Direction;
+			bSequenceReady:=FALSE;
+			bExecuteMoveVelocity:=FALSE;			
+            bExecuteHomeToSwitch:=TRUE; 			
+			fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Negative_Direction;
       		fbHomeToSwitch.nSearchDirOffCam:=MC_Negative_Direction;	 
       		fbHomeToSwitch.bCamSensor:=bHomeSensor;
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored)	  
-		    bExecuteHomeToSwitch:=bExecute;	
-			bSequenceReady:=FALSE;
-			bHomed:=FALSE;
-            IF fbHomeToSwitch.bDone THEN  //Homing ready
-				bNCVelocitiesCorrupted:=FALSE;  //Corerct velocities in NC
-				nHomingState:=0;
-				bExecuteHomeToSwitch:=FALSE;
-				bHomed:=Axis.Status.Homed;
-                bSequenceReady:=TRUE;	
-            END_IF
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored) 
+            IF fbHomeToSwitch.bDone THEN
+  			  bNCVelocitiesCorrupted:=FALSE;  //Correct velocities in NC
+			  nHomingState:=0;
+			  bExecuteHomeToSwitch:=FALSE;
+			  bHomed:=Axis.Status.Homed;
+			  bSequenceReady:=TRUE;	
+            END_IF		  		  
 	  END_CASE	  
 	  
    15: //Set current position (simplest homing sequence)
@@ -295,7 +294,7 @@ fbHomeDirect(
 // Restore NC homing velocities at bExecute falling edge (if sequence is aborted during motion)
 fbExecuteFallEdge(CLK:=bExecute);
 IF fbExecuteFallEdge.Q THEN
-  IF bNCVelocitiesCorrupted THEN //Ensure that velocities are read atleast once before restore
+  IF bNCVelocitiesCorrupted AND bNCVelocitiesReadOnce THEN //Ensure that velocities are read atleast once before restore
     bExecuteRestoreNCVelocities:=TRUE;
   END_IF
   bExecuteReadNCVelocities:=FALSE;	
@@ -419,7 +418,8 @@ RETURN;]]></ST>
       <LineId Id="336" Count="0" />
       <LineId Id="855" Count="1" />
       <LineId Id="842" Count="0" />
-      <LineId Id="851" Count="3" />
+      <LineId Id="851" Count="1" />
+      <LineId Id="854" Count="0" />
       <LineId Id="850" Count="0" />
       <LineId Id="330" Count="0" />
       <LineId Id="635" Count="0" />
@@ -432,18 +432,9 @@ RETURN;]]></ST>
       <LineId Id="306" Count="0" />
       <LineId Id="1075" Count="17" />
       <LineId Id="316" Count="1" />
-      <LineId Id="382" Count="0" />
-      <LineId Id="318" Count="2" />
-      <LineId Id="568" Count="1" />
-      <LineId Id="321" Count="0" />
-      <LineId Id="338" Count="0" />
-      <LineId Id="354" Count="0" />
-      <LineId Id="339" Count="0" />
-      <LineId Id="636" Count="0" />
-      <LineId Id="340" Count="1" />
-      <LineId Id="375" Count="0" />
-      <LineId Id="391" Count="0" />
-      <LineId Id="342" Count="0" />
+      <LineId Id="1095" Count="3" />
+      <LineId Id="1100" Count="10" />
+      <LineId Id="1093" Count="0" />
       <LineId Id="249" Count="0" />
       <LineId Id="630" Count="0" />
       <LineId Id="602" Count="0" />
