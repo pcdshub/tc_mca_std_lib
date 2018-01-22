@@ -279,6 +279,7 @@ fbHomeToSwitch(
 	Axis:=Axis
 );
 
+// Approach limit switch (error if MC_Home is used)
 fbMoveVelocity(
     Execute:= bExecuteMoveVelocity AND bExecute AND NOT bError AND NOT bExecuteHomeToSwitch AND NOT bExecuteHomeDirect,
     Axis:=Axis
@@ -429,6 +430,7 @@ RETURN;]]></ST>
       <LineId Id="150" Count="0" />
       <LineId Id="50" Count="0" />
       <LineId Id="151" Count="4" />
+      <LineId Id="1214" Count="0" />
       <LineId Id="1160" Count="0" />
       <LineId Id="720" Count="0" />
       <LineId Id="722" Count="0" />
