@@ -31,16 +31,14 @@ VAR
 	fbHomeReadNCVelocities: FB_HomeReadNcVelocities;	
     fbHomeReset:MC_Home;   //Only used for reset of calibration flag		
 	fbExecuteRiseEdge: R_TRIG;
-	nHomingState:INT:=0;
+    nHomingState:INT:=0;
 	bExecuteHomeToSwitch:BOOL:=FALSE;
 	bExecuteMoveVelocity:BOOL:=FALSE;
 	bExecuteReadNCVelocities: BOOL:=FALSE;
-	bSequenceReady:BOOL:=TRUE;
-	fVelocityToCamNC: LREAL;
-	fVelocityFromCamNC: LREAL;	
 	bExecuteMCHome:BOOL:=FALSE;	
 	bExecuteHomeDirect: BOOL;
 	nCmdDataLocal: UINT;  //Ensure that nCmdData is not changed during sequence
+	bSequenceReady:BOOL:=TRUE;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -90,11 +88,6 @@ fbHomeReadNCVelocities(
   Axis:=Axis,
 );
 
-IF fbHomeReadNCVelocities.bDone THEN
-  	fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;
-    fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam;	
-END_IF
-
 //Homing Sequences
 CASE nCmdDataLocal OF  
 	
@@ -113,7 +106,7 @@ CASE nCmdDataLocal OF
 		  1: // wait for reach low limit then trigger fbHomeToSwitch
 		    bHomed:=FALSE;
 			bSequenceReady:=FALSE;
-			fbMoveVelocity.Velocity:=ABS(fVelocityToCamNC);
+			fbMoveVelocity.Velocity:=ABS(fbHomeReadNCVelocities.fVelocityToCam);
             fbMoveVelocity.Direction:=MC_Negative_Direction;
 	        bExecuteMoveVelocity:=bExecute;  // Execute MC_MoveVelocity
 		    IF NOT bLimitBwd AND NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN //MC_MoveVelocity.Busy goes down when ramp down initiates (not ends).
@@ -126,8 +119,8 @@ CASE nCmdDataLocal OF
             bExecuteHomeToSwitch:=TRUE;	
             fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Positive_Direction;
             fbHomeToSwitch.nSearchDirOffCam:=MC_Positive_Direction;	             
-	        fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed              		
+	        fbHomeToSwitch.fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam; // High speed
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;  // Low speed              		
 		    fbHomeToSwitch.bCamSensor:=NOT bLimitBwd;            	 		    
 	        IF fbHomeToSwitch.bDone THEN
 	          bSequenceReady:=TRUE;
@@ -151,7 +144,7 @@ CASE nCmdDataLocal OF
 		  1: // wait for reach low limit then trigger fbHomeToSwitch
 		    bHomed:=FALSE;
 			bSequenceReady:=FALSE;
-			fbMoveVelocity.Velocity:=ABS(fVelocityToCamNC);
+			fbMoveVelocity.Velocity:=ABS(fbHomeReadNCVelocities.fVelocityToCam);
             fbMoveVelocity.Direction:=MC_Positive_Direction;
 	        bExecuteMoveVelocity:=bExecute;  // Execute MC_MoveVelocity
 		    IF NOT bLimitFwd AND NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN //MC_MoveVelocity.Busy goes down when ramp down initiates (not ends).
@@ -164,8 +157,8 @@ CASE nCmdDataLocal OF
             bExecuteHomeToSwitch:=TRUE;	
             fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Negative_Direction;
             fbHomeToSwitch.nSearchDirOffCam:=MC_Negative_Direction;	             
-	        fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed              		
+	        fbHomeToSwitch.fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam; // High speed
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;  // Low speed              		
 		    fbHomeToSwitch.bCamSensor:=NOT bLimitFwd;            	 		    
 	        IF fbHomeToSwitch.bDone THEN
 	          bSequenceReady:=TRUE;
@@ -189,7 +182,7 @@ CASE nCmdDataLocal OF
 		  1: // wait for reach low limit then trigger fbHomeToSwitch
 		    bHomed:=FALSE;
 			bSequenceReady:=FALSE;
-			fbMoveVelocity.Velocity:=ABS(fVelocityToCamNC);
+			fbMoveVelocity.Velocity:=ABS(fbHomeReadNCVelocities.fVelocityToCam);
             fbMoveVelocity.Direction:=MC_Negative_Direction;
 	        bExecuteMoveVelocity:=bExecute;  // Execute MC_MoveVelocity
 		    IF NOT bLimitBwd AND NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN //MC_MoveVelocity.Busy goes down when ramp down initiates (not ends).
@@ -203,8 +196,8 @@ CASE nCmdDataLocal OF
 			fbHomeToSwitch.bCamSensor:=bHomeSensor;
 			fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Positive_Direction;
       		fbHomeToSwitch.nSearchDirOffCam:=MC_Positive_Direction;	 
-            fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored) 
+            fbHomeToSwitch.fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam; // High speed
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;  // Low speed (restored) 
             IF fbHomeToSwitch.bDone THEN
 			  nHomingState:=0;
 			  bExecuteHomeToSwitch:=FALSE;
@@ -212,6 +205,7 @@ CASE nCmdDataLocal OF
 			  bSequenceReady:=TRUE;	
             END_IF
 	  END_CASE	  
+	  
    4: // Home on bHomeSensor via bLimitFwd
        CASE nHomingState OF		   
 		  0:
@@ -227,7 +221,7 @@ CASE nCmdDataLocal OF
 		  1: // wait for reach low limit then trigger fbHomeToSwitch
 		    bHomed:=FALSE;
 			bSequenceReady:=FALSE;
-			fbMoveVelocity.Velocity:=ABS(fVelocityToCamNC);
+			fbMoveVelocity.Velocity:=ABS(fbHomeReadNCVelocities.fVelocityToCam);
             fbMoveVelocity.Direction:=MC_Positive_Direction;
 	        bExecuteMoveVelocity:=bExecute;  // Execute MC_MoveVelocity
 		    IF NOT bLimitFwd AND NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN //MC_MoveVelocity.Busy goes down when ramp down initiates (not ends).
@@ -241,8 +235,8 @@ CASE nCmdDataLocal OF
 			fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Negative_Direction;
       		fbHomeToSwitch.nSearchDirOffCam:=MC_Negative_Direction;	 
       		fbHomeToSwitch.bCamSensor:=bHomeSensor;
-            fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored) 
+            fbHomeToSwitch.fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam; // High speed
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;  // Low speed (restored) 
             IF fbHomeToSwitch.bDone THEN
 			  nHomingState:=0;
 			  bExecuteHomeToSwitch:=FALSE;
@@ -349,8 +343,6 @@ RETURN;]]></ST>
       <LineId Id="445" Count="0" />
       <LineId Id="440" Count="2" />
       <LineId Id="439" Count="0" />
-      <LineId Id="495" Count="3" />
-      <LineId Id="500" Count="0" />
       <LineId Id="535" Count="0" />
       <LineId Id="149" Count="0" />
       <LineId Id="138" Count="0" />
@@ -402,6 +394,7 @@ RETURN;]]></ST>
       <LineId Id="392" Count="0" />
       <LineId Id="331" Count="0" />
       <LineId Id="282" Count="0" />
+      <LineId Id="1215" Count="0" />
       <LineId Id="233" Count="0" />
       <LineId Id="306" Count="0" />
       <LineId Id="1075" Count="17" />
