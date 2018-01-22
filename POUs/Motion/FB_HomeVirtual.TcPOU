@@ -28,8 +28,8 @@ VAR
 	fbHomeToSwitch: FB_HomeToSwitch;
     fbHomeDirect: FB_HomeDirect; //Only used for direct homing (set of position)
     fbMoveVelocity:MC_MoveVelocity;
-	fbHomeReadNCVelocities: FB_HomeReadNcVelocities;
-	fbHomeRestoreNCVelocities: FB_HomeWriteNcVelocities;		
+	fbHomeReadNCVelocities: FB_HomeReadNcVelocities;	
+    fbHomeReset:MC_Home;   //Only used for reset of calibration flag		
 	fbExecuteRiseEdge: R_TRIG;
 	fbExecuteFallEdge: F_TRIG;
 	nHomingState:INT:=0;
@@ -38,8 +38,8 @@ VAR
 	bExecuteReadNCVelocities: BOOL:=FALSE;
 	bSequenceReady:BOOL:=TRUE;
 	fVelocityToCamNC: LREAL;
-	fVelocityFromCamNC: LREAL;
-	bExecuteRestoreNCVelocities: BOOL:=FALSE;
+	fVelocityFromCamNC: LREAL;	
+	bExecuteMCHome:BOOL:=FALSE;
 	bNCVelocitiesReadOnce:BOOL:=FALSE;	
 	bExecuteHomeDirect: BOOL;
 	bNCVelocitiesCorrupted:BOOL:=FALSE;
@@ -60,6 +60,9 @@ IF NOT bExecute THEN
   bSequenceReady:=TRUE;
   bExecuteHomeToSwitch:=FALSE;
   bExecuteHomeDirect:=FALSE;
+  bExecuteMCHome:=FALSE;
+  bExecuteMoveVelocity:=FALSE;
+  bExecuteReadNCVelocities:=FALSE;
 END_IF
 
 //Reset at rinsing edge of bExecute
@@ -68,8 +71,8 @@ IF fbExecuteRiseEdge.Q THEN
   nCmdDataLocal:=nCmdData; //Ensure that nCmdData is not changed during sequence (nCmdData will only be read at a rising edge of bExecute)
   bNCVelocitiesCorrupted:=FALSE;
   bSequenceReady:=FALSE;
-  bExecuteReadNCVelocities:=NOT(nCmdDataLocal=15);  // Not needed for sequence 15 (set position only, no movement))
-  bExecuteRestoreNCVelocities:=FALSE;
+  bExecuteReadNCVelocities:=NOT(nCmdDataLocal=15);  // Not needed for sequence 15 (set position only, no movement))  
+  bExecuteMCHome:=TRUE;
   //Check if valid nCmdDataLocal
   CASE nCmdDataLocal OF  	
     1:
@@ -106,7 +109,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC
-	        IF fbHomeReadNCVelocities.bDone AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitBwd THEN
                 nHomingState:=1;
               ELSE
@@ -144,7 +147,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC
-	        IF fbHomeReadNCVelocities.bDone AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitFwd THEN
                 nHomingState:=1;
               ELSE
@@ -182,7 +185,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC
-	        IF fbHomeReadNCVelocities.bDone AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitBwd THEN
                 nHomingState:=1;
               ELSE
@@ -221,7 +224,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC
-	        IF fbHomeReadNCVelocities.bDone AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitFwd THEN
                 nHomingState:=1;
               ELSE
@@ -270,6 +273,13 @@ ELSE
   bHomed:=Axis.Status.Homed;
 END_CASE;
 
+//Reset calibration flag
+fbHomeReset(
+ Execute:=bExecuteMCHome AND bExecute AND NOT bError,
+ HomingMode:=MC_ResetCalibration,
+ Axis:=Axis
+);
+
 // Main homing block
 fbHomeToSwitch(
 	bExecute:=bExecuteHomeToSwitch AND bExecute AND NOT bError AND NOT bExecuteHomeDirect AND NOT bExecuteMoveVelocity,
@@ -291,30 +301,6 @@ fbHomeDirect(
 	Axis:=Axis
 );
 
-// Restore NC homing velocities at bExecute falling edge (if sequence is aborted during motion)
-fbExecuteFallEdge(CLK:=bExecute);
-IF fbExecuteFallEdge.Q THEN
-  IF bNCVelocitiesCorrupted AND bNCVelocitiesReadOnce THEN //Ensure that velocities are read atleast once before restore
-    bExecuteRestoreNCVelocities:=TRUE;
-  END_IF
-  bExecuteReadNCVelocities:=FALSE;	
-END_IF
-
-// Only restore NC home velocities if the velocities have been successfully read (bNCVelocitiesReadOnce) and are corrupted (bNCVelocitiesCorrupted).
-// The velocities should only be corrupted if a homing sequence is interrupted  by a falling edge on bExecute and in that case the below restore is executed.
-fbHomeRestoreNCVelocities(
-  En:=En,
-  bExecute:=bNCVelocitiesReadOnce AND bExecuteRestoreNCVelocities,
-  bReset:=bReset,
-  fVelocityFromCam:=fVelocityFromCamNC,
-  fVelocityToCam:=fVelocityToCamNC,
-  Axis:=Axis);
-  
-IF fbHomeRestoreNCVelocities.bDone THEN // NC Velocities successfully restored
-  bExecuteRestoreNCVelocities:=FALSE;
-  bNCVelocitiesCorrupted:=FALSE;
-END_IF
-
 // Error handling
 IF NOT bError THEN
   IF fbHomeToSwitch.bError THEN 
@@ -323,9 +309,6 @@ IF NOT bError THEN
   ELSIF fbHomeReadNCVelocities.bError THEN
 	bError:=fbHomeReadNCVelocities.bError;
 	nErrorId:=fbHomeReadNCVelocities.nErrorId;
-  ELSIF fbHomeRestoreNCVelocities.bError THEN
-	bError:=fbHomeRestoreNCVelocities.bError;
-	nErrorId:=fbHomeRestoreNCVelocities.nErrorId;
   ELSIF fbHomeDirect.bError THEN
 	bError:=fbHomeDirect.bError;
 	nErrorId:=fbHomeDirect.nErrorId;
@@ -336,8 +319,8 @@ IF NOT bError THEN
 END_IF
 
 // Done and busy bit
-bDone:=bSequenceReady AND bExecute AND (fbHomeRestoreNCVelocities.bDone OR NOT bNCVelocitiesCorrupted);
-bBusy:=NOT bSequenceReady OR fbHomeRestoreNCVelocities.bBusy;	 
+bDone:=bSequenceReady AND bExecute;
+bBusy:=NOT bSequenceReady;	 
 
 RETURN;]]></ST>
     </Implementation>
@@ -350,6 +333,8 @@ RETURN;]]></ST>
       <LineId Id="505" Count="3" />
       <LineId Id="573" Count="0" />
       <LineId Id="665" Count="1" />
+      <LineId Id="1157" Count="1" />
+      <LineId Id="1172" Count="0" />
       <LineId Id="509" Count="0" />
       <LineId Id="183" Count="0" />
       <LineId Id="96" Count="0" />
@@ -359,7 +344,7 @@ RETURN;]]></ST>
       <LineId Id="625" Count="0" />
       <LineId Id="549" Count="0" />
       <LineId Id="460" Count="0" />
-      <LineId Id="492" Count="0" />
+      <LineId Id="1159" Count="0" />
       <LineId Id="646" Count="0" />
       <LineId Id="648" Count="0" />
       <LineId Id="647" Count="0" />
@@ -450,11 +435,14 @@ RETURN;]]></ST>
       <LineId Id="251" Count="0" />
       <LineId Id="477" Count="0" />
       <LineId Id="97" Count="0" />
+      <LineId Id="1171" Count="0" />
+      <LineId Id="1165" Count="5" />
       <LineId Id="673" Count="0" />
       <LineId Id="150" Count="0" />
       <LineId Id="50" Count="0" />
       <LineId Id="151" Count="4" />
-      <LineId Id="719" Count="1" />
+      <LineId Id="1160" Count="0" />
+      <LineId Id="720" Count="0" />
       <LineId Id="722" Count="0" />
       <LineId Id="726" Count="0" />
       <LineId Id="721" Count="0" />
@@ -464,25 +452,13 @@ RETURN;]]></ST>
       <LineId Id="611" Count="2" />
       <LineId Id="610" Count="0" />
       <LineId Id="614" Count="0" />
-      <LineId Id="574" Count="2" />
-      <LineId Id="661" Count="0" />
-      <LineId Id="664" Count="0" />
-      <LineId Id="578" Count="0" />
-      <LineId Id="598" Count="0" />
-      <LineId Id="579" Count="1" />
-      <LineId Id="632" Count="0" />
-      <LineId Id="581" Count="0" />
-      <LineId Id="638" Count="0" />
-      <LineId Id="582" Count="9" />
-      <LineId Id="672" Count="0" />
-      <LineId Id="536" Count="0" />
       <LineId Id="592" Count="0" />
       <LineId Id="171" Count="1" />
       <LineId Id="524" Count="0" />
       <LineId Id="173" Count="0" />
       <LineId Id="185" Count="0" />
       <LineId Id="526" Count="0" />
-      <LineId Id="528" Count="4" />
+      <LineId Id="528" Count="1" />
       <LineId Id="642" Count="2" />
       <LineId Id="776" Count="2" />
       <LineId Id="522" Count="0" />
