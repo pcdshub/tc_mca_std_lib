@@ -31,7 +31,6 @@ VAR
 	fbHomeReadNCVelocities: FB_HomeReadNcVelocities;	
     fbHomeReset:MC_Home;   //Only used for reset of calibration flag		
 	fbExecuteRiseEdge: R_TRIG;
-	fbExecuteFallEdge: F_TRIG;
 	nHomingState:INT:=0;
 	bExecuteHomeToSwitch:BOOL:=FALSE;
 	bExecuteMoveVelocity:BOOL:=FALSE;
@@ -39,10 +38,8 @@ VAR
 	bSequenceReady:BOOL:=TRUE;
 	fVelocityToCamNC: LREAL;
 	fVelocityFromCamNC: LREAL;	
-	bExecuteMCHome:BOOL:=FALSE;
-	bNCVelocitiesReadOnce:BOOL:=FALSE;	
+	bExecuteMCHome:BOOL:=FALSE;	
 	bExecuteHomeDirect: BOOL;
-	bNCVelocitiesCorrupted:BOOL:=FALSE;
 	nCmdDataLocal: UINT;  //Ensure that nCmdData is not changed during sequence
 END_VAR
 ]]></Declaration>
@@ -69,7 +66,6 @@ END_IF
 fbExecuteRiseEdge(CLK:=bExecute);
 IF fbExecuteRiseEdge.Q THEN
   nCmdDataLocal:=nCmdData; //Ensure that nCmdData is not changed during sequence (nCmdData will only be read at a rising edge of bExecute)
-  bNCVelocitiesCorrupted:=FALSE;
   bSequenceReady:=FALSE;
   bExecuteReadNCVelocities:=NOT(nCmdDataLocal=15);  // Not needed for sequence 15 (set position only, no movement))  
   bExecuteMCHome:=TRUE;
@@ -97,7 +93,6 @@ fbHomeReadNCVelocities(
 IF fbHomeReadNCVelocities.bDone THEN
   	fVelocityFromCamNC:=fbHomeReadNCVelocities.fVelocityFromCam;
     fVelocityToCamNC:=fbHomeReadNCVelocities.fVelocityToCam;
-	bNCVelocitiesReadOnce:=TRUE;  //Allow write back of homing velocities
 	bExecuteReadNCVelocities:=FALSE;
 END_IF
 
@@ -108,7 +103,7 @@ CASE nCmdDataLocal OF
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
-            // Wait for read of velocities from NC
+            // Wait for read of velocities from NC and reset of calibration flag
 	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitBwd THEN
                 nHomingState:=1;
@@ -146,7 +141,7 @@ CASE nCmdDataLocal OF
        CASE nHomingState OF      	   
 		  0:
 		    bHomed:=Axis.Status.Homed;
-            // Wait for read of velocities from NC
+            // Wait for read of velocities from NC and reset of calibration flag
 	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitFwd THEN
                 nHomingState:=1;
@@ -180,7 +175,7 @@ CASE nCmdDataLocal OF
 	        END_IF;	  			  
 	   END_CASE;
 	  
-   3:  // Home on bHomeSensor via bLimitBwd
+   3: // Wait for read of velocities from NC and reset of calibration flag
       CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -212,7 +207,6 @@ CASE nCmdDataLocal OF
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
   	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored) 
             IF fbHomeToSwitch.bDone THEN
-  			  bNCVelocitiesCorrupted:=FALSE;  //Correct velocities in NC
 			  nHomingState:=0;
 			  bExecuteHomeToSwitch:=FALSE;
 			  bHomed:=Axis.Status.Homed;
@@ -223,7 +217,7 @@ CASE nCmdDataLocal OF
        CASE nHomingState OF		   
 		  0:
 		    bHomed:=Axis.Status.Homed;
-            // Wait for read of velocities from NC
+            // Wait for read of velocities from NC and reset of calibration flag
 	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitFwd THEN
                 nHomingState:=1;
@@ -251,7 +245,6 @@ CASE nCmdDataLocal OF
             fbHomeToSwitch.fVelocityToCamNC:=fVelocityToCamNC; // High speed
   	        fbHomeToSwitch.fVelocityFromCamNC:=fVelocityFromCamNC;  // Low speed (restored) 
             IF fbHomeToSwitch.bDone THEN
-  			  bNCVelocitiesCorrupted:=FALSE;  //Correct velocities in NC
 			  nHomingState:=0;
 			  bExecuteHomeToSwitch:=FALSE;
 			  bHomed:=Axis.Status.Homed;
@@ -265,8 +258,7 @@ CASE nCmdDataLocal OF
      IF fbHomeDirect.bDone THEN  //Homing ready				
 	   bExecuteHomeDirect:=FALSE;				
        bSequenceReady:=TRUE;	
-     END_IF
-	 bNCVelocitiesCorrupted:=FALSE; // no changes of NC velocities (no restore needed)
+     END_IF	 
 	 
 ELSE
   fbHomeToSwitch.bCamSensor:=FALSE;
@@ -341,7 +333,6 @@ RETURN;]]></ST>
       <LineId Id="49" Count="0" />
       <LineId Id="98" Count="0" />
       <LineId Id="675" Count="0" />
-      <LineId Id="625" Count="0" />
       <LineId Id="549" Count="0" />
       <LineId Id="460" Count="0" />
       <LineId Id="1159" Count="0" />
@@ -358,7 +349,7 @@ RETURN;]]></ST>
       <LineId Id="445" Count="0" />
       <LineId Id="440" Count="2" />
       <LineId Id="439" Count="0" />
-      <LineId Id="495" Count="4" />
+      <LineId Id="495" Count="3" />
       <LineId Id="543" Count="0" />
       <LineId Id="500" Count="0" />
       <LineId Id="535" Count="0" />
@@ -407,7 +398,6 @@ RETURN;]]></ST>
       <LineId Id="854" Count="0" />
       <LineId Id="850" Count="0" />
       <LineId Id="330" Count="0" />
-      <LineId Id="635" Count="0" />
       <LineId Id="333" Count="1" />
       <LineId Id="377" Count="0" />
       <LineId Id="392" Count="0" />
@@ -418,7 +408,8 @@ RETURN;]]></ST>
       <LineId Id="1075" Count="17" />
       <LineId Id="316" Count="1" />
       <LineId Id="1095" Count="3" />
-      <LineId Id="1100" Count="10" />
+      <LineId Id="1100" Count="5" />
+      <LineId Id="1107" Count="3" />
       <LineId Id="1093" Count="0" />
       <LineId Id="249" Count="0" />
       <LineId Id="630" Count="0" />
@@ -429,7 +420,6 @@ RETURN;]]></ST>
       <LineId Id="620" Count="0" />
       <LineId Id="622" Count="0" />
       <LineId Id="604" Count="0" />
-      <LineId Id="631" Count="0" />
       <LineId Id="645" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="251" Count="0" />
