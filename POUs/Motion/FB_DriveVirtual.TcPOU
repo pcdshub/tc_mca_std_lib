@@ -15,15 +15,14 @@
 ///###########################################################
 FUNCTION_BLOCK FB_DriveVirtual
 VAR
-	sVersion: STRING:='1.0.2';
-	bMovingRelOrAbs: BOOL;	
+	sVersion: STRING:='1.0.3';	
 END_VAR
 VAR_INPUT
 	En: BOOL;
 	bEnable: BOOL;
 	bReset: BOOL;
 	bExecute: BOOL;
-	/////	nCommand...
+	/////	nCommandLocal...
 	/////	0 = Jog
 	/////	1 = MoveVelocity
 	/////	2 = MoveRelative
@@ -67,7 +66,10 @@ VAR_IN_OUT
 	Axis: AXIS_REF;
 END_VAR
 VAR	
+	nCommandLocal: UINT;
+	nCmdDataLocal: UINT;
 	bFirstScan: BOOL := TRUE;
+	bMovingRelOrAbs: BOOL;
 	iCounter: INT := 0;
 	fOldVelocity: LREAL;
 	fbReset: MC_Reset;
@@ -81,10 +83,18 @@ VAR
 	fbHomeVirtual:FB_HomeVirtual;
 	fbGearInDyn: MC_GearInDyn;
 	fbGearOut: MC_GearOut;
+	fbExecuteRiseEdge: R_TRIG;
 	stAxisStatus: DUT_AxisStatus_v0_01;	
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
+
+// Transfer nCommand and nCmdData to local copies at rising edge of bExecute (avoid issues if nCommand or nCmdData are changed during a command) 
+fbExecuteRiseEdge(CLK:=bExecute);
+IF fbExecuteRiseEdge.Q THEN
+  nCmdDataLocal:=nCmdData;
+  nCommandLocal:=nCommand;
+END_IF
 
 bHomed:=fbHomeVirtual.bHomed; //Add in DUT_AxisStatus later
 bDone:=FALSE;
@@ -102,8 +112,8 @@ fbReset(
 fbPower(
 	Axis:=Axis,
 	Enable:=bEnable,	
-	Enable_Positive:=bEnable AND bLimitFwd, //OR (nCommand=10 AND (nCmdData=2 OR nCmdData=4))),	
-	Enable_Negative:=bEnable AND bLimitBwd, //OR (nCommand=10 AND (nCmdData=1 OR nCmdData=3))),	
+	Enable_Positive:=bEnable AND bLimitFwd, //OR (nCommandLocal=10 AND (nCmdDataLocal=2 OR nCmdDataLocal=4))),	
+	Enable_Negative:=bEnable AND bLimitBwd, //OR (nCommandLocal=10 AND (nCmdDataLocal=1 OR nCmdDataLocal=3))),	
 	Override:=fOverride,
 	BufferMode:= ,
 	Status=> ,
@@ -114,7 +124,7 @@ fbPower(
 
 (*Halt*)
 fbHalt(
-	Execute:=NOT bExecute  AND (((fbMoveVelocity.Busy OR fbPower.Busy) AND (nCommand=1)) OR (fbMoveRelative.Busy AND (nCommand=2)) OR (fbMoveAbsolute.Busy AND (nCommand=3)) OR (fbMoveModulo.Busy AND (nCommand=4)) OR (fbHomeVirtual.bBusy AND (nCommand=10))),
+	Execute:=NOT bExecute  AND (((fbMoveVelocity.Busy OR fbPower.Busy) AND (nCommandLocal=1)) OR (fbMoveRelative.Busy AND (nCommandLocal=2)) OR (fbMoveAbsolute.Busy AND (nCommandLocal=3)) OR (fbMoveModulo.Busy AND (nCommandLocal=4)) OR (fbHomeVirtual.bBusy AND (nCommandLocal=10))),
 	Deceleration:=fDeceleration,
 	Jerk:=0,
 	BufferMode:= ,
@@ -129,9 +139,9 @@ fbHalt(
 
 (*Jog (Command = 0)*)
 fbJog(
-	JogForward:=bJogFwd AND (nCommand=0) ,
-	JogBackwards:=bJogBwd AND (nCommand=0) ,
-	Mode:=nCmdData,
+	JogForward:=bJogFwd AND (nCommandLocal=0) ,
+	JogBackwards:=bJogBwd AND (nCommandLocal=0) ,
+	Mode:=nCmdDataLocal,
 	Position:= ,
 	Velocity:=fVelocity,
 	Acceleration:=fAcceleration,
@@ -149,7 +159,7 @@ fbJog(
 	iCounter:=iCounter+1;
 (*MoveVelocity (Command = 1)*)
 fbMoveVelocity(
-	Execute:=bExecute (*AND (fOldVelocity=fVelocity)*) AND (nCommand=1),
+	Execute:=bExecute (*AND (fOldVelocity=fVelocity)*) AND (nCommandLocal=1),
 	Velocity:=ABS(fVelocity),
 	Acceleration:=fAcceleration,
 	Deceleration:=fDeceleration,
@@ -167,7 +177,7 @@ fbMoveVelocity(
 
 (*MoveRelative (Command = 2)*)
 fbMoveRelative(
-	Execute:=bExecute AND (nCommand=2), 
+	Execute:=bExecute AND (nCommandLocal=2), 
 	Distance:=fPosition, 
 	Velocity:=ABS(fVelocity), 
 	Acceleration:=fAcceleration,
@@ -183,13 +193,13 @@ fbMoveRelative(
 	Error=> , 
 	ErrorID=> );
 	
-IF nCommand=2 THEN
+IF nCommandLocal=2 THEN
 	bDone:=fbMoveRelative.Done;
 END_IF
 	
 (*MoveAbsolute (Command = 3)*)
 fbMoveAbsolute(
-	Execute:=bExecute AND (nCommand=3),
+	Execute:=bExecute AND (nCommandLocal=3),
 	Position:=fPosition,
 	Velocity:=ABS(fVelocity),
 	Acceleration:=fAcceleration,
@@ -205,19 +215,19 @@ fbMoveAbsolute(
 	Error=> ,
 	ErrorID=> );
 
-IF nCommand=3 THEN
+IF nCommandLocal=3 THEN
 	bDone:=fbMoveAbsolute.Done;
 END_IF
 
 (*MoveModulo (Command = 4)*)
 fbMoveModulo(
-	Execute:=bExecute AND (nCommand=4), 
+	Execute:=bExecute AND (nCommandLocal=4), 
 	Position:=fPosition, 
 	Velocity:=ABS(fVelocity), 
 	Acceleration:=fAcceleration, 
 	Deceleration:=fDeceleration, 
 	Jerk:=0, 
-	Direction:=nCmdData, 
+	Direction:=nCmdDataLocal, 
 	BufferMode:= , 
 	Options:= , 
 	Axis:=Axis, 
@@ -228,31 +238,31 @@ fbMoveModulo(
 	Error=> , 
 	ErrorID=> );
 
-IF nCommand=4 THEN
+IF nCommandLocal=4 THEN
 	bDone:=fbMoveModulo.Done;
 END_IF
 	
 (*Home (Command = 10)*)
 fbHomeVirtual(	
-	bExecute:= nCommand=10 AND bExecute,
+	bExecute:= nCommandLocal=10 AND bExecute,
 	fHomePosition:=fHomePosition,
 	bHomeSensor:=bHomeSensor,
 	bLimitBwd:=bLimitBwd,
 	bLimitFwd:=bLimitFwd,
-	nCmdData:=nCmdData,
+	nCmdData:=nCmdDataLocal,
 	bReset:=bReset,
 	nHomeRevOffset:=nHomeRevOffset,
 	Axis:=Axis
 	);
 	
-IF nCommand=10 THEN
+IF nCommandLocal=10 THEN
 	bDone:=fbHomeVirtual.bDone;
 END_IF
 	
 (*Gear (Command = 30)*)
 fbGearInDyn(
-	Enable:=bExecute  AND (nCommand=30),
-	GearRatio:=SEL(nCmdData>0, 1,fVelocity),
+	Enable:=bExecute  AND (nCommandLocal=30),
+	GearRatio:=SEL(nCmdDataLocal>0, 1,fVelocity),
 	Acceleration:=fAcceleration,
 	Deceleration:=fDeceleration,
 	Jerk:=0.0,
@@ -268,21 +278,21 @@ fbGearInDyn(
 	ErrorID=> );
 	
 fbGearOut(
-	Execute:=NOT bExecute AND Axis.Status.NotMoving AND (nCommand=30),
+	Execute:=NOT bExecute AND Axis.Status.NotMoving AND (nCommandLocal=30),
 	Slave:=Axis,
 	Error=>,
 	Done=>,
 	ErrorID=>);
 
 
-IF nCommand=30 THEN
+IF nCommandLocal=30 THEN
 	bDone:=Axis.Status.Coupled;
 END_IF
 
 fOldVelocity:=fVelocity;
 
 (*Busy*)
-bMovingRelOrAbs := (nCommand = 2 OR nCommand = 3) AND NOT axis.Status.InTargetPosition;
+bMovingRelOrAbs := (nCommandLocal = 2 OR nCommandLocal = 3) AND NOT axis.Status.InTargetPosition;
 bBusy:=Axis.Status.HasJob OR Axis.Status.HomingBusy OR fbHomeVirtual.bBusy;
 
 (*Enabled*)
@@ -295,28 +305,28 @@ IF fbPower.Error AND fbPower.Active THEN
 ELSIF fbHalt.Error AND fbHalt.Active THEN
 	bError:=fbHalt.Execute;
 	nErrorId:=fbHalt.ErrorID;
-ELSIF fbJog.Error AND nCommand=0 (*fbJog.Active*) THEN
+ELSIF fbJog.Error AND nCommandLocal=0 (*fbJog.Active*) THEN
 	bError:=fbJog.JogForward OR fbJog.JogBackwards;
 	nErrorId:=fbJog.ErrorID;
-ELSIF fbMoveVelocity.Error AND nCommand=1(*fbMoveVelocity.Active*) THEN
+ELSIF fbMoveVelocity.Error AND nCommandLocal=1(*fbMoveVelocity.Active*) THEN
 	bError:=fbMoveVelocity.Execute;
 	nErrorId:=fbMoveVelocity.ErrorID;
-ELSIF fbMoveRelative.Error AND nCommand=2 (*fbMoveRelative.Active*) THEN
+ELSIF fbMoveRelative.Error AND nCommandLocal=2 (*fbMoveRelative.Active*) THEN
 	bError:=fbMoveRelative.Execute;
 	nErrorId:=fbMoveRelative.ErrorID;
-ELSIF fbMoveAbsolute.Error AND nCommand=3 (*fbMoveAbsolute.Active*) THEN
+ELSIF fbMoveAbsolute.Error AND nCommandLocal=3 (*fbMoveAbsolute.Active*) THEN
 	bError:=fbMoveAbsolute.Execute;
 	nErrorId:=fbMoveAbsolute.ErrorID;
-ELSIF fbMoveModulo.Error AND nCOmmand=4 (*fbMoveModulo.Active*) THEN
+ELSIF fbMoveModulo.Error AND nCommandLocal=4 (*fbMoveModulo.Active*) THEN
 	bError:=fbMoveModulo.Execute;
 	nErrorId:=fbMoveModulo.ErrorID;
-ELSIF fbHomeVirtual.bError AND nCommand=10 (*fbHome.Active*) THEN
+ELSIF fbHomeVirtual.bError AND nCommandLocal=10 (*fbHome.Active*) THEN
 	bError:=fbHomeVirtual.bError;
 	nErrorId:=fbHomeVirtual.nErrorID;
-ELSIF fbGearInDyn.Error AND nCommand=30 (*fbGearInDyn.Active*) THEN
+ELSIF fbGearInDyn.Error AND nCommandLocal=30 (*fbGearInDyn.Active*) THEN
 	bError:=fbGearInDyn.Enable;
 	nErrorId:=fbGearInDyn.ErrorID;
-ELSIF fbGearOut.Error AND nCommand=30 AND Axis.Status.Coupled THEN
+ELSIF fbGearOut.Error AND nCommandLocal=30 AND Axis.Status.Coupled THEN
 	bError:=fbGearOut.Execute;
 	nErrorId:=fbGearOut.ErrorID;
 ELSIF Axis.Status.Error  THEN
@@ -372,8 +382,8 @@ stAxisStatus.fDeceleration:=fDeceleration;
 stAxisStatus.fOverride:=fOverride;
 stAxisStatus.fPosition:=fPosition;
 stAxisStatus.fVelocity:=fVelocity;
-stAxisStatus.nCmdData:=nCmdData;
-stAxisStatus.nCommand:=nCommand;
+stAxisStatus.nCmdData:=nCmdDataLocal;
+stAxisStatus.nCommand:=nCommandLocal;
 stAxisStatus.nErrorId:=nErrorId;
 stAxisStatus.bBusy:=bBusy;
 stAxisStatus.bHomed:=bHomed;
@@ -383,7 +393,15 @@ IF bFirstScan THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_DriveVirtual">
-      <LineId Id="3" Count="14" />
+      <LineId Id="3" Count="0" />
+      <LineId Id="1152" Count="0" />
+      <LineId Id="1147" Count="0" />
+      <LineId Id="1150" Count="1" />
+      <LineId Id="4" Count="0" />
+      <LineId Id="1154" Count="0" />
+      <LineId Id="1148" Count="0" />
+      <LineId Id="1153" Count="0" />
+      <LineId Id="5" Count="12" />
       <LineId Id="1029" Count="25" />
       <LineId Id="44" Count="110" />
       <LineId Id="939" Count="1" />
