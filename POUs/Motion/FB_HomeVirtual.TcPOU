@@ -29,13 +29,13 @@ VAR
     fbHomeDirect: FB_HomeDirect; //Only used for direct homing (set of position)
     fbMoveVelocity:MC_MoveVelocity;
 	fbHomeReadNCVelocities: FB_HomeReadNcVelocities;	
-    fbHomeReset:MC_Home;   //Only used for reset of calibration flag		
+    fbHomeResetCalibrationFlag:MC_Home;   //Only used for reset of calibration flag		
 	fbExecuteRiseEdge: R_TRIG;
     nHomingState:INT:=0;
 	bExecuteHomeToSwitch:BOOL:=FALSE;
 	bExecuteMoveVelocity:BOOL:=FALSE;
 	bExecuteReadNCVelocities: BOOL:=FALSE;
-	bExecuteMCHome:BOOL:=FALSE;	
+	bExecuteResetCalibrationFlag:BOOL:=FALSE;	
 	bExecuteHomeDirect: BOOL;
 	nCmdDataLocal: UINT;  //Ensure that nCmdData is not changed during sequence
 	bSequenceReady:BOOL:=TRUE;
@@ -55,7 +55,7 @@ IF NOT bExecute THEN
   bSequenceReady:=TRUE;
   bExecuteHomeToSwitch:=FALSE;
   bExecuteHomeDirect:=FALSE;
-  bExecuteMCHome:=FALSE;
+  bExecuteResetCalibrationFlag:=FALSE;
   bExecuteMoveVelocity:=FALSE;
   bExecuteReadNCVelocities:=FALSE;
 END_IF
@@ -66,7 +66,7 @@ IF fbExecuteRiseEdge.Q THEN
   nCmdDataLocal:=nCmdData; //Ensure that nCmdData is not changed during sequence (nCmdData will only be read at a rising edge of bExecute)
   bSequenceReady:=FALSE;
   bExecuteReadNCVelocities:=NOT(nCmdDataLocal=15);  // Not needed for sequence 15 (set position only, no movement))  
-  bExecuteMCHome:=TRUE;
+  bExecuteResetCalibrationFlag:=TRUE;
   //Check if valid nCmdDataLocal
   CASE nCmdDataLocal OF  	
     1:
@@ -96,7 +96,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC and reset of calibration flag
-	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeResetCalibrationFlag.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitBwd THEN
                 nHomingState:=1;
               ELSE
@@ -134,7 +134,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC and reset of calibration flag
-	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeResetCalibrationFlag.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitFwd THEN
                 nHomingState:=1;
               ELSE
@@ -172,7 +172,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC
-	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeResetCalibrationFlag.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitBwd THEN
                 nHomingState:=1;
               ELSE
@@ -211,7 +211,7 @@ CASE nCmdDataLocal OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
             // Wait for read of velocities from NC and reset of calibration flag
-	        IF fbHomeReadNCVelocities.bDone AND fbHomeReset.Done AND bExecute AND NOT bSequenceReady THEN
+	        IF fbHomeReadNCVelocities.bDone AND fbHomeResetCalibrationFlag.Done AND bExecute AND NOT bSequenceReady THEN
 			  IF bLimitFwd THEN
                 nHomingState:=1;
               ELSE
@@ -259,8 +259,8 @@ ELSE
 END_CASE;
 
 //Reset calibration flag
-fbHomeReset(
- Execute:=bExecuteMCHome AND bExecute AND NOT bError,
+fbHomeResetCalibrationFlag(
+ Execute:=bExecuteResetCalibrationFlag AND bExecute AND NOT bError,
  HomingMode:=MC_ResetCalibration,
  Axis:=Axis
 );
