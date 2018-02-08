@@ -167,7 +167,7 @@ CASE nCmdDataLocal OF
 	        END_IF;	  			  
 	   END_CASE;
 	  
-   3: // Wait for read of velocities from NC and reset of calibration flag
+   3: // Home on bHomeSensor via bLimitBwd
       CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
