@@ -20,7 +20,7 @@ VAR_OUTPUT
 	bSofLimEnableLowOriginal: BOOL:=TRUE;
 	bSofLimEnableHighOriginal: BOOL:=TRUE;	
 	fVelocityToCam: LREAL:=0;
-	fVelocityFromCam: LREAL:=0;
+	fVelocityFromCam: LREAL:=0;		
 END_VAR
 VAR
 	fbHomeReadSoftLimEnable:FB_HomeReadSoftLimEnable;	
@@ -142,8 +142,9 @@ END_IF]]></ST>
       <LineId Id="467" Count="5" />
       <LineId Id="409" Count="0" />
       <LineId Id="473" Count="0" />
-      <LineId Id="326" Count="1" />
-      <LineId Id="355" Count="0" />
+      <LineId Id="326" Count="0" />
+      <LineId Id="509" Count="0" />
+      <LineId Id="508" Count="0" />
       <LineId Id="351" Count="0" />
       <LineId Id="324" Count="0" />
       <LineId Id="353" Count="0" />
