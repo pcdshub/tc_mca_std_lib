@@ -9,11 +9,7 @@ VAR_IN_OUT
 	GapAxis: AXIS_REF;
 END_VAR
 VAR_INPUT
-	bEnable: BOOL;
-	bExecute: BOOL;
 	bCouple: BOOL;
-	fCenter: LREAL;
-	fGap: LREAL;
 END_VAR
 VAR_OUTPUT
 	bError: BOOL;
@@ -21,17 +17,18 @@ END_VAR
 VAR
 	fbGearInMultiMaster_1: MC_GearInMultiMaster;
 	fbGearInMultiMaster_2: MC_GearInMultiMaster;
-	EmptyLink1:FB_NcAxis; // Needed for master axis 3 in MC_GearInMultiMaster
-	EmptyLink2:FB_NcAxis; // Needed for master axis 4 in MC_GearInMultiMaster
+	EmptyAxis1: AXIS_REF; // Needed for master axis 3 in MC_GearInMultiMaster
+	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
+	Test: AXIS_REF;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[fbGearInMultiMaster_1(
 	Master1:= CenterAxis, 
 	Master2:= GapAxis, 
-	Master3:= EmptyLink1.axis, 
-	Master4:= EmptyLink2.axis, 
+	Master3:= EmptyAxis1, 
+	Master4:= EmptyAxis2, 
 	Slave:= SlitBladeAxis1, 
 	Enable:= bCouple, 
 	GearRatio1:= 1, 
@@ -49,16 +46,16 @@ END_VAR]]></Declaration>
 	CommandAborted=> , 
 	Error=> , 
 	ErrorID=> );
-	
+
 fbGearInMultiMaster_2(
 	Master1:= CenterAxis, 
 	Master2:= GapAxis, 
-	Master3:= EmptyLink1.axis, 
-	Master4:= EmptyLink2.axis, 
+	Master3:= EmptyAxis1, 
+	Master4:= EmptyAxis2, 
 	Slave:= SlitBladeAxis2, 
 	Enable:= bCouple, 
-	GearRatio1:= 1, 
-	GearRatio2:= -0.5, 
+	GearRatio1:= -1, 
+	GearRatio2:= 0.5, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -75,7 +72,7 @@ fbGearInMultiMaster_2(
 	
 fbGearOut1(
 	Slave:= CenterAxis, 
-	Execute:= bCouple, 
+	Execute:= NOT(bCouple), 
 	Options:= , 
 	Done=> , 
 	Busy=> , 
@@ -84,7 +81,7 @@ fbGearOut1(
 	
 fbGearOut2(
 	Slave:= GapAxis, 
-	Execute:= bCouple, 
+	Execute:= NOT(bCouple), 
 	Options:= , 
 	Done=> , 
 	Busy=> , 
@@ -94,10 +91,9 @@ fbGearOut2(
     <LineIds Name="FB_Slit">
       <LineId Id="31" Count="20" />
       <LineId Id="9" Count="0" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="56" Count="20" />
-      <LineId Id="55" Count="0" />
+      <LineId Id="123" Count="21" />
       <LineId Id="96" Count="0" />
+      <LineId Id="145" Count="0" />
       <LineId Id="99" Count="6" />
       <LineId Id="97" Count="0" />
       <LineId Id="106" Count="0" />
