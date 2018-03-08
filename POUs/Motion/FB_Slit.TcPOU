@@ -25,8 +25,8 @@ VAR
 	fCalculatedOffset: LREAL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fCalculatedGap:=BladeAxis2.NcToPlc.ActPos+BladeAxis1.NcToPlc.ActPos; // Gap
-fCalculatedOffset:=BladeAxis2.NcToPlc.ActPos-(BladeAxis2.NcToPlc.ActPos+BladeAxis1.NcToPlc.ActPos); // Gap
+      <ST><![CDATA[fCalculatedGap:=BladeAxis1.NcToPlc.ActPos+BladeAxis2.NcToPlc.ActPos; // Gap
+fCalculatedOffset:=(BladeAxis1.NcToPlc.ActPos-BladeAxis2.NcToPlc.ActPos)/2; // Gap
 
 fbGearInMultiMaster_1(
 	Master1:= OffsetAxis, 
