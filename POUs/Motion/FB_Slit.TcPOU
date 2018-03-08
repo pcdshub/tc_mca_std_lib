@@ -21,7 +21,6 @@ VAR
 	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
-	Test: AXIS_REF;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[fbGearInMultiMaster_1(
