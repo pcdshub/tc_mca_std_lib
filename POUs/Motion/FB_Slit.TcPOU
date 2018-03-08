@@ -33,9 +33,9 @@ END_VAR]]></Declaration>
 	Master3:= EmptyLink1.axis, 
 	Master4:= EmptyLink2.axis, 
 	Slave:= SlitBladeAxis1, 
-	Enable:= , 
-	GearRatio1:= , 
-	GearRatio2:= , 
+	Enable:= bCouple, 
+	GearRatio1:= 1, 
+	GearRatio2:= 0.5, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -56,9 +56,9 @@ fbGearInMultiMaster_2(
 	Master3:= EmptyLink1.axis, 
 	Master4:= EmptyLink2.axis, 
 	Slave:= SlitBladeAxis2, 
-	Enable:= , 
-	GearRatio1:= , 
-	GearRatio2:= , 
+	Enable:= bCouple, 
+	GearRatio1:= 1, 
+	GearRatio2:= -0.5, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -75,7 +75,7 @@ fbGearInMultiMaster_2(
 	
 fbGearOut1(
 	Slave:= CenterAxis, 
-	Execute:= , 
+	Execute:= bCouple, 
 	Options:= , 
 	Done=> , 
 	Busy=> , 
@@ -84,7 +84,7 @@ fbGearOut1(
 	
 fbGearOut2(
 	Slave:= GapAxis, 
-	Execute:= , 
+	Execute:= bCouple, 
 	Options:= , 
 	Done=> , 
 	Busy=> , 
