@@ -6,6 +6,10 @@ VAR_INPUT
 END_VAR
 VAR_OUTPUT
 END_VAR
+VAR_IN_OUT
+	CenterAxis: AXIS_REF;
+	GapAxis: AXIS_REF;
+END_VAR
 VAR
 END_VAR
 ]]></Declaration>
