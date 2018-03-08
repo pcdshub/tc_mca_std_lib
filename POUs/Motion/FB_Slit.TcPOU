@@ -3,9 +3,9 @@
   <POU Name="FB_Slit" Id="{3eb3d957-c386-489e-b130-2f4e56938046}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Slit
 VAR_IN_OUT
-	SlitBladeAxis1: AXIS_REF;
-	SlitBladeAxis2: AXIS_REF;
-	CenterAxis: AXIS_REF;
+	BladeAxis1: AXIS_REF;
+	BladeAxis2: AXIS_REF;
+	OffsetAxis: AXIS_REF;
 	GapAxis: AXIS_REF;
 END_VAR
 VAR_INPUT
@@ -21,17 +21,22 @@ VAR
 	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
+	fCalculatedGap: LREAL;
+	fCalculatedOffset: LREAL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbGearInMultiMaster_1(
-	Master1:= CenterAxis, 
+      <ST><![CDATA[fCalculatedGap:=BladeAxis2.NcToPlc.ActPos+BladeAxis1.NcToPlc.ActPos; // Gap
+fCalculatedOffset:=BladeAxis2.NcToPlc.ActPos-(BladeAxis2.NcToPlc.ActPos+BladeAxis1.NcToPlc.ActPos); // Gap
+
+fbGearInMultiMaster_1(
+	Master1:= OffsetAxis, 
 	Master2:= GapAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
-	Slave:= SlitBladeAxis1, 
+	Slave:= BladeAxis1, 
 	Enable:= bCouple, 
-	GearRatio1:= 1, 
-	GearRatio2:= 0.5, 
+	GearRatio1:= 0.5, 
+	GearRatio2:= 1, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -47,14 +52,14 @@ END_VAR]]></Declaration>
 	ErrorID=> );
 
 fbGearInMultiMaster_2(
-	Master1:= CenterAxis, 
+	Master1:= OffsetAxis, 
 	Master2:= GapAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
-	Slave:= SlitBladeAxis2, 
+	Slave:= BladeAxis2, 
 	Enable:= bCouple, 
-	GearRatio1:= -1, 
-	GearRatio2:= 0.5, 
+	GearRatio1:= 0.5, 
+	GearRatio2:= -1, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -70,7 +75,7 @@ fbGearInMultiMaster_2(
 	ErrorID=> );
 	
 fbGearOut1(
-	Slave:= CenterAxis, 
+	Slave:= GapAxis, 
 	Execute:= NOT(bCouple), 
 	Options:= , 
 	Done=> , 
@@ -79,7 +84,7 @@ fbGearOut1(
 	ErrorID=> );
 	
 fbGearOut2(
-	Slave:= GapAxis, 
+	Slave:= OffsetAxis, 
 	Execute:= NOT(bCouple), 
 	Options:= , 
 	Done=> , 
@@ -88,6 +93,9 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
+      <LineId Id="153" Count="0" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="150" Count="0" />
       <LineId Id="31" Count="20" />
       <LineId Id="9" Count="0" />
       <LineId Id="123" Count="21" />
