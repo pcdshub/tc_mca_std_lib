@@ -5,11 +5,12 @@
 VAR_IN_OUT
 	BladeAxis1: AXIS_REF;
 	BladeAxis2: AXIS_REF;
-	OffsetAxis: AXIS_REF;
 	GapAxis: AXIS_REF;
+	OffsetAxis: AXIS_REF;
 END_VAR
 VAR_INPUT
 	bCouple: BOOL;
+	bReset: BOOL;
 END_VAR
 VAR_OUTPUT
 	bError: BOOL;
@@ -19,22 +20,43 @@ VAR
 	fbGearInMultiMaster_2: MC_GearInMultiMaster;
 	EmptyAxis1: AXIS_REF; // Needed for master axis 3 in MC_GearInMultiMaster
 	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
+	fbHomeDirect1: FB_HomeDirect;
+	fbHomeDirect2: FB_HomeDirect;
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
-	fCalculatedGap: LREAL;
-	fCalculatedOffset: LREAL;
+	nSlitState: INT := 0;
+	bReverseCalc: BOOL:=FALSE;
+	bEnableCouple: BOOL:=FALSE;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fCalculatedGap:=BladeAxis1.NcToPlc.ActPos+BladeAxis2.NcToPlc.ActPos; // Gap
-fCalculatedOffset:=(BladeAxis1.NcToPlc.ActPos-BladeAxis2.NcToPlc.ActPos)/2; // Gap
+      <ST><![CDATA[CASE nSlitState OF
+	0: // Initial State
+		nSlitState:=nSlitState+1;
+	1: // Couple bit set so reverse calculate (fbDirectHome) virtual axes positions
+		IF bCouple THEN
+			bReverseCalc:=TRUE;
+			nSlitState:=nSlitState+1;	
+		END_IF
+	2: // Turn off reverse calculate (fbDirectHome)
+		bReverseCalc:=FALSE;
+		nSlitState:=nSlitState+1;
+	3: // Start GearInMultiMaster function blocks
+		bEnableCouple:=TRUE;
+	4: // Uncouple
+		IF NOT(bCouple) THEN
+			bEnableCouple:=FALSE;
+			nSlitState:=0;		
+		END_IF
+END_CASE
+
 
 fbGearInMultiMaster_1(
-	Master1:= OffsetAxis, 
-	Master2:= GapAxis, 
+	Master1:= GapAxis, 
+	Master2:= OffsetAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= BladeAxis1, 
-	Enable:= bCouple, 
+	Enable:= bEnableCouple, 
 	GearRatio1:= 0.5, 
 	GearRatio2:= 1, 
 	GearRatio3:= , 
@@ -52,12 +74,12 @@ fbGearInMultiMaster_1(
 	ErrorID=> );
 
 fbGearInMultiMaster_2(
-	Master1:= OffsetAxis, 
-	Master2:= GapAxis, 
+	Master1:= GapAxis, 
+	Master2:= OffsetAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= BladeAxis2, 
-	Enable:= bCouple, 
+	Enable:= bEnableCouple, 
 	GearRatio1:= 0.5, 
 	GearRatio2:= -1, 
 	GearRatio3:= , 
@@ -73,7 +95,33 @@ fbGearInMultiMaster_2(
 	CommandAborted=> , 
 	Error=> , 
 	ErrorID=> );
+
+fbHomeDirect1(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc AND NOT GapAxis.Status.Disabled, // Add motor power here 
+	fHomePosition:= BladeAxis1.NcToPlc.ActPos+BladeAxis2.NcToPlc.ActPos, // Gap 
+	Axis:= GapAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
 	
+fbHomeDirect2(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc AND NOT OffsetAxis.Status.Disabled, 
+	fHomePosition:= (BladeAxis1.NcToPlc.ActPos-BladeAxis2.NcToPlc.ActPos)/2, // Offset 
+	Axis:= OffsetAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+
 fbGearOut1(
 	Slave:= GapAxis, 
 	Execute:= NOT(bCouple), 
@@ -93,14 +141,30 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
-      <LineId Id="153" Count="0" />
-      <LineId Id="152" Count="0" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="215" Count="1" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="361" Count="0" />
+      <LineId Id="607" Count="0" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="496" Count="0" />
+      <LineId Id="612" Count="3" />
+      <LineId Id="624" Count="0" />
+      <LineId Id="623" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="626" Count="0" />
+      <LineId Id="199" Count="1" />
+      <LineId Id="177" Count="0" />
       <LineId Id="150" Count="0" />
+      <LineId Id="620" Count="0" />
       <LineId Id="31" Count="20" />
       <LineId Id="9" Count="0" />
       <LineId Id="123" Count="21" />
       <LineId Id="96" Count="0" />
-      <LineId Id="145" Count="0" />
+      <LineId Id="581" Count="0" />
+      <LineId Id="583" Count="23" />
+      <LineId Id="582" Count="0" />
+      <LineId Id="617" Count="0" />
       <LineId Id="99" Count="6" />
       <LineId Id="97" Count="0" />
       <LineId Id="106" Count="0" />
