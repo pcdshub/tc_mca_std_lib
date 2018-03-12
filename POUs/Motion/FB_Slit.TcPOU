@@ -6,7 +6,7 @@ VAR_IN_OUT
 	BladeAxis1: AXIS_REF;
 	BladeAxis2: AXIS_REF;
 	GapAxis: AXIS_REF;
-	OffsetAxis: AXIS_REF;
+	CenterAxis: AXIS_REF;
 END_VAR
 VAR_INPUT
 	bCouple: BOOL;
@@ -59,7 +59,7 @@ END_CASE
 
 fbGearInMultiMaster_1(
 	Master1:= GapAxis, 
-	Master2:= OffsetAxis, 
+	Master2:= CenterAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= BladeAxis1, 
@@ -82,7 +82,7 @@ fbGearInMultiMaster_1(
 
 fbGearInMultiMaster_2(
 	Master1:= GapAxis, 
-	Master2:= OffsetAxis, 
+	Master2:= CenterAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= BladeAxis2, 
@@ -121,7 +121,7 @@ fbHomeDirect2(
 	bReset:= bReset, 
 	bExecute:= bReverseCalc, // Add motor power here 
 	fHomePosition:= (BladeAxis1.NcToPlc.ActPos-BladeAxis2.NcToPlc.ActPos)/2, // Offset 
-	Axis:= OffsetAxis, 
+	Axis:= CenterAxis, 
 	EnO=> , 
 	bBusy=> , 
 	bDone=> , 
@@ -139,7 +139,7 @@ fbGearOut1(
 	ErrorID=> );
 	
 fbGearOut2(
-	Slave:= OffsetAxis, 
+	Slave:= CenterAxis, 
 	Execute:= bDecouple, 
 	Options:= , 
 	Done=> , 
