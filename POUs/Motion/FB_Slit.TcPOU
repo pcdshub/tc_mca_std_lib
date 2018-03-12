@@ -3,8 +3,8 @@
   <POU Name="FB_Slit" Id="{3eb3d957-c386-489e-b130-2f4e56938046}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Slit
 VAR_IN_OUT
-	BladeAxis1: AXIS_REF;
-	BladeAxis2: AXIS_REF;
+	BladeAxis1: AXIS_REF; 	// Right/Lower
+	BladeAxis2: AXIS_REF;	// Left/Upper
 	GapAxis: AXIS_REF;
 	CenterAxis: AXIS_REF;
 END_VAR
