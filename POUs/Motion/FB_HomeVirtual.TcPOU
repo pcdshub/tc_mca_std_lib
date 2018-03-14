@@ -10,7 +10,6 @@ VAR_INPUT
 	bLimitFwd: BOOL;
 	bLimitBwd: BOOL;	
 	bHomeSensor: BOOL;	
-	fHomePosition:LREAL;
 	nHomeRevOffset: UINT;
 END_VAR
 VAR_IN_OUT
@@ -304,7 +303,7 @@ END_CASE;
 fbHomeToSwitch(
 	bExecute:=bExecuteHomeToSwitch AND bExecute AND NOT bError AND NOT bExecuteHomeDirect AND NOT bExecuteMoveVelocity,
  	bReset:=bReset,
-	fHomePosition:=fHomePosition,
+	fHomePosition:=fbHomePrepare.fHomePosition,
 	Axis:=Axis
 );
 
@@ -318,7 +317,7 @@ fbMoveVelocity(
 fbHomeDirect(
 	bExecute:=bExecuteHomeDirect AND bExecute AND NOT bError  AND NOT bExecuteHomeToSwitch AND NOT bExecuteMoveVelocity,
  	bReset:=bReset,
-	fHomePosition:=fHomePosition,
+	fHomePosition:=fbHomePrepare.fHomePosition,
 	Axis:=Axis
 );
 

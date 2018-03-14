@@ -21,11 +21,13 @@ VAR_OUTPUT
 	bSofLimEnableHighOriginal: BOOL:=TRUE;	
 	fVelocityToCam: LREAL:=0;
 	fVelocityFromCam: LREAL:=0;		
+	fHomePosition:LREAL:=0;
 END_VAR
 VAR
 	fbHomeReadSoftLimEnable:FB_HomeReadSoftLimEnable;	
 	fbHomeDisableSoftLimEnable:FB_HomeWriteSoftLimEnable;
 	fbHomeReadNCVelocities: FB_HomeReadNcVelocities;
+	fbHomeReadCalibrationValue: FB_ReadFloatParameter;
 	fbHomeResetCalibrationFlag:MC_Home;   //Only used for reset of calibration flag
 	fbExecuteRiseEdge: R_TRIG;
 	bExecuteReadNC:BOOL:=FALSE;
@@ -58,11 +60,20 @@ fbHomeReadNCVelocities(
   Axis:=Axis,
 );
 
+// Read "fHomePosition"
+fbHomeReadCalibrationValue(
+  bExecute:=bExecuteReadNC,
+  nDeviceGroup:=16#5000,
+  nIndexOffset:=16#103,
+  Axis:=Axis
+);
+
+// Read soft limits enable
 fbHomeReadSoftLimEnable(
 	En:=En,
 	bExecute:=bExecuteReadNC AND bExecute,
 	Axis:=Axis,
-	bReset:=bReset,	
+	bReset:=bReset
 );
 
 // Reset calibration flag
@@ -74,6 +85,7 @@ fbHomeResetCalibrationFlag(
 
 bSofLimEnableLowOriginal:=fbHomeReadSoftLimEnable.bSofLimEnableLow;
 bSofLimEnableHighOriginal:=fbHomeReadSoftLimEnable.bSofLimEnableHigh;	
+fHomePosition:=fbHomeReadCalibrationValue.nData;
 
 fVelocityToCam:=fbHomeReadNCVelocities.fVelocityToCam;
 fVelocityFromCam:=fbHomeReadNCVelocities.fVelocityFromCam;
@@ -92,17 +104,20 @@ fbHomeDisableSoftLimEnable(
 	bReset:=bReset,	
 );
 
-bBusy:=fbHomeReadSoftLimEnable.bBusy OR fbHomeDisableSoftLimEnable.bBusy OR fbHomeReadNCVelocities.bBusy OR fbHomeResetCalibrationFlag.Busy;
-bDone:=fbHomeReadSoftLimEnable.bDone AND fbHomeDisableSoftLimEnable.bDone AND fbHomeReadNCVelocities.bDone AND fbHomeResetCalibrationFlag.Done AND bExecute;
+bBusy:=fbHomeReadCalibrationValue.bBusy OR fbHomeReadSoftLimEnable.bBusy OR fbHomeDisableSoftLimEnable.bBusy OR fbHomeReadNCVelocities.bBusy OR fbHomeResetCalibrationFlag.Busy;
+bDone:=fbHomeReadCalibrationValue.bDone AND fbHomeReadSoftLimEnable.bDone AND fbHomeDisableSoftLimEnable.bDone AND fbHomeReadNCVelocities.bDone AND fbHomeResetCalibrationFlag.Done AND bExecute;
 
-bError:=fbHomeReadSoftLimEnable.bError OR fbHomeDisableSoftLimEnable.bError OR fbHomeReadNCVelocities.bError OR fbHomeResetCalibrationFlag.Error;
+bError:=fbHomeReadCalibrationValue.bError OR fbHomeReadSoftLimEnable.bError OR fbHomeDisableSoftLimEnable.bError OR fbHomeReadNCVelocities.bError OR fbHomeResetCalibrationFlag.Error;
 IF fbHomeReadSoftLimEnable.bError THEN
   nErrorId:=fbHomeReadSoftLimEnable.nErrorId;
 ELSIF fbHomeDisableSoftLimEnable.bError THEN
   nErrorId:=fbHomeDisableSoftLimEnable.nErrorId;
 ELSIF fbHomeResetCalibrationFlag.Error THEN
   nErrorId:=fbHomeResetCalibrationFlag.ErrorId;
-END_IF]]></ST>
+ELSIF fbHomeReadCalibrationValue.bError THEN
+  nErrorId:=fbHomeReadCalibrationValue.nErrorId;
+END_IF
+]]></ST>
     </Implementation>
     <LineIds Name="FB_HomePrepare">
       <LineId Id="9" Count="0" />
@@ -122,6 +137,9 @@ END_IF]]></ST>
       <LineId Id="475" Count="0" />
       <LineId Id="461" Count="5" />
       <LineId Id="460" Count="0" />
+      <LineId Id="569" Count="0" />
+      <LineId Id="562" Count="6" />
+      <LineId Id="570" Count="0" />
       <LineId Id="431" Count="0" />
       <LineId Id="430" Count="0" />
       <LineId Id="432" Count="0" />
@@ -130,6 +148,7 @@ END_IF]]></ST>
       <LineId Id="482" Count="6" />
       <LineId Id="441" Count="0" />
       <LineId Id="422" Count="1" />
+      <LineId Id="571" Count="0" />
       <LineId Id="479" Count="0" />
       <LineId Id="418" Count="0" />
       <LineId Id="481" Count="0" />
@@ -144,13 +163,15 @@ END_IF]]></ST>
       <LineId Id="473" Count="0" />
       <LineId Id="326" Count="0" />
       <LineId Id="509" Count="0" />
-      <LineId Id="508" Count="0" />
+      <LineId Id="553" Count="0" />
       <LineId Id="351" Count="0" />
       <LineId Id="324" Count="0" />
       <LineId Id="353" Count="0" />
       <LineId Id="356" Count="1" />
       <LineId Id="491" Count="1" />
+      <LineId Id="551" Count="1" />
       <LineId Id="354" Count="0" />
+      <LineId Id="549" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
