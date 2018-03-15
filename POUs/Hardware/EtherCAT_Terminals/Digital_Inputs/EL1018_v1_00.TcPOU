@@ -3,9 +3,13 @@
   <POU Name="EL1018_v1_00" Id="{d997c582-de09-42d6-b127-017e8c8eface}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1018 | 8-channel digital input terminal 24 V DC, 10 µs
 FUNCTION_BLOCK EL1018_v1_00
+
 VAR_INPUT
 	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
+
 VAR_OUTPUT
 	EnO: BOOL;
 	bDi_1: BOOL;
@@ -16,8 +20,9 @@ VAR_OUTPUT
 	bDi_6: BOOL;
 	bDi_7: BOOL;
 	bDi_8: BOOL;
-	bError: BOOL;
+	bError : BOOL := FALSE;
 END_VAR
+
 VAR
 	Channel_1_Input AT %I*: BOOL;
 	Channel_2_Input AT %I*: BOOL;
@@ -28,18 +33,29 @@ VAR
 	Channel_7_Input AT %I*: BOOL;
 	Channel_8_Input AT %I*: BOOL;
 	WcState_WcState AT %I*: BOOL;
-	InfoData_State AT %I*: UINT;
+	InfoData_State  AT %I*: UINT;
+	
+	//For testing
+	fakeState : UINT := 8;
+
+	//FB-s
+	EL1018_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-IF En AND (WcState_WcState OR InfoData_State<>16#8) THEN
-	bError:=TRUE;
-ELSE
-	bError:=FALSE;
-END_IF
+//Error FB instance
+EL1018_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
 
+//normal operation
 IF En THEN
 	IF bError=FALSE THEN
 		bDi_1:=Channel_1_Input;
@@ -50,7 +66,7 @@ IF En THEN
 		bDi_6:=Channel_6_Input;
 		bDi_7:=Channel_7_Input;
 		bDi_8:=Channel_8_Input;
-	ELSE
+	ELSE										//In case of error the outputs are cleared
 		bDi_1:=FALSE;
 		bDi_2:=FALSE;
 		bDi_3:=FALSE;
@@ -63,7 +79,7 @@ IF En THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="EL1018_v1_00">
-      <LineId Id="3" Count="27" />
+      <LineId Id="60" Count="32" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

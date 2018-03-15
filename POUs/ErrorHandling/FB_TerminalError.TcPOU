@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+  <POU Name="FB_TerminalError" Id="{6e32501c-a694-4982-bd95-e665204ef271}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TerminalError
+
+VAR_INPUT
+	En					: BOOL;
+	iTerminal_ID		: INT;
+	bWcState			: BOOL;
+	uiInfoData_State	: UINT;
+	pErrorSystem		: POINTER TO ST_ErrorSystem;					//Pointer to the error system
+END_VAR
+
+VAR_OUTPUT
+	EnO : BOOL;
+	bError : BOOL := FALSE;
+END_VAR
+
+VAR
+	r_trigError : BOOL;
+	f_trigError : BOOL;
+	iStateError : UINT;
+	iOtherError : UINT;
+	ErrorData	: DUT_TerminalError;
+	nErrSysCNT	: UINT;
+	
+	//FB-s
+	myR_Trig : R_TRIG;
+	myF_Trig : F_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+Currently:
+This system now works mostly like the original FBs from Beckhoff with an extension of error evaluation.
+
+Problem:
+With this mechanism only the first error state is captured. It means that, if the terminal is going through different error states, we will not know it.
+Also if mulitple, but not connected errors occure we will not know it neither.
+
+TODO:
+solve the problem XD
+*)
+
+//Connect EN to EnO
+EnO:=En;
+
+//Check if pointer is OK
+IF pErrorSystem=0 THEN RETURN; END_IF
+
+//Any difference from normal state creates an error
+IF En AND (bWcState OR uiInfoData_State<>16#8) THEN
+	bError:=TRUE;
+ELSE
+	bError:=FALSE;
+END_IF
+
+//Triggers
+//rising edge detection of bError
+myR_Trig(
+CLK := bError,
+Q => r_trigError
+);
+
+//falling edge detection of bError
+myF_Trig (
+CLK := bError,
+Q => f_trigError
+);
+
+//Fill Error struct on the rising edge of bError
+IF r_trigError THEN
+	ErrorData.Error_State.bActive := TRUE;														//Set Error State
+	ErrorData.nDateTimeOn := Tc2_EtherCAT.F_GetActualDcTime64();								//Get system time
+	ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOn);			//Convert to string
+	ErrorData.iTerminalID := iTerminal_ID;														//Terminal_ID
+	ErrorData.bWcState := bWcState;																//WcState bit
+	ErrorData.uiInfoDataState := uiInfoData_State;												//uiInfoData_State
+	
+	//Error message according to uiInfoData_State and WcState
+	iStateError := (uiInfoData_State AND 16#000F);												//Mask for operation state 
+	iOtherError := (uiInfoData_State AND 16#00F0);												//Mask for the other 3 kind of errors
+		//Error messages according to the least significant digit
+		CASE iStateError OF
+			16#0001 : ErrorData.sErrorMessage := 'Slave in INIT state;   ';
+			16#0002 : ErrorData.sErrorMessage := 'Slave in PREOP state;   ';
+			16#0003 : ErrorData.sErrorMessage := 'Slave in BOOT state;   ';
+			16#0004 : ErrorData.sErrorMessage := 'Slave in SAFEOP state;   ';
+			16#0008 : ;																			//Normal operation state
+		ELSE
+			ErrorData.sErrorMessage := 'Undefined State of operation;   ';						//I hope we will never see this message
+			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, UINT_TO_STRING(iStateError));
+			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, '   ');
+		END_CASE
+		
+		//Error messages according to the second least significant digit
+		CASE iOtherError OF
+			16#0000 : ;																			//No error case
+			16#0010 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Slave signals error;   ');
+			16#0020 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Invalid vendorID/productCode read;   ');
+			16#0040 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Initialisation error occured;   ');
+		ELSE
+			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Undefined Error ID: ');
+			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, UINT_TO_STRING(iOtherError));
+			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, '   ');
+		END_CASE
+	
+		//Errormessage according to WcState bit
+		IF bWcState THEN
+			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Invalid Data;');
+		END_IF
+	
+	//Check for overflow
+	IF pErrorSystem^.nNoErrors = GVL_ErrorSystem.cSizeOfErrorData THEN
+		pErrorSystem^.nNoOverflows := pErrorSystem^.nNoOverflows+1;
+	END_IF
+	
+	//Write Error Data into Error System
+	ErrorData.Error_ID := pErrorSystem^.lNextErrorID ;
+	MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (GVL_ErrorSystem.cSizeOfErrorData-1) * SIZEOF(DUT_TerminalError));
+	pErrorSystem^.aErrorData[0] := ErrorData;
+	pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
+	
+END_IF
+
+//When the Error goes off
+IF f_trigError THEN
+	//Read system time
+	ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
+	ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
+	ErrorData.Error_State.bInactive := TRUE;
+	
+	//Write Off time to Error System
+	FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
+		IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
+			pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
+			pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
+			pErrorSystem^.aErrorData[nErrSysCNT].Error_State.bInactive := TRUE;
+			EXIT;
+		END_IF
+	END_FOR
+		
+	//Clear ErrorData
+	MEMSET(ADR(ErrorData), 0, SIZEOF(ErrorData));
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_TerminalError">
+      <LineId Id="162" Count="0" />
+      <LineId Id="169" Count="0" />
+      <LineId Id="171" Count="0" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="173" Count="2" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="165" Count="0" />
+      <LineId Id="62" Count="72" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="135" Count="26" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
