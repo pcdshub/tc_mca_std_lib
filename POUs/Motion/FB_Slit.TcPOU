@@ -26,33 +26,46 @@ VAR
 	fbGearOut2: MC_GearOut;
 	nSlitState: INT := 0;
 	bReverseCalc: BOOL:=FALSE;
-	bEnableCouple: BOOL:=FALSE;
+	bEnableGearing: BOOL:=FALSE;
 	bDecouple: BOOL:=FALSE;
+	bCoupleToggleOn1: BOOL;
+	bCoupleToggleOn2: BOOL;
+	fbCoupleToggleOn1: R_TRIG;
+	fbCoupleToggleOn2: R_TRIG;	
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[CASE nSlitState OF
-	0: // Initial State
-		nSlitState:=nSlitState+1;
-	1: // Couple bit set so reverse calculate (fbDirectHome) virtual axes positions
-		IF bCouple THEN
+      <ST><![CDATA[//fbCoupleToggleOn(CLK:= GapAxis.Status.HasJob OR CenterAxis.Status.HasJob , Q=> bCoupleToggleOn);
+fbCoupleToggleOn1(CLK:= MAIN.M3.bExecute, Q=> bCoupleToggleOn1);
+fbCoupleToggleOn2(CLK:= MAIN.M4.bExecute, Q=> bCoupleToggleOn2);
+
+CASE nSlitState OF
+	0: // Wait for user to request coupling turned on
+		IF bCouple THEN	
+			nSlitState:=nSlitState+1;
 			bReverseCalc:=TRUE;
-			nSlitState:=nSlitState+1;	
+		END_IF
+	1: // One of the virtual axis has a command so reverse calculate (fbDirectHome) virtual axes positions
+		IF (fbHomeDirect1.bDone AND fbHomeDirect2.bDone)= TRUE THEN
+			nSlitState:=0;
+			bReverseCalc:=FALSE;				
+		END_IF
+		IF bCoupleToggleOn1 OR bCoupleToggleOn2 THEN
+			nSlitState:=2;	
 		END_IF
 	2: // Turn off reverse calculate (fbDirectHome)
 		bReverseCalc:=FALSE;
+		bEnableGearing:=TRUE;
 		nSlitState:=nSlitState+1;
 	3: // Start GearInMultiMaster function blocks
-		bEnableCouple:=TRUE;
-		IF NOT bCouple THEN
-			nSlitState:=nSlitState+1;
-		END_IF
-	4: // Uncouple
-		IF NOT bCouple THEN
-			bEnableCouple:=FALSE;
+		bEnableGearing:=FALSE;
+		nSlitState:=nSlitState+1;
+	4: // Wait until movement is finished and then uncouple
+		IF NOT (GapAxis.Status.HasJob AND CenterAxis.Status.HasJob AND BladeAxis1.Status.HasJob AND BladeAxis2.Status.HasJob)  THEN
+			bEnableGearing:=FALSE;
 			bDecouple:=TRUE;
 			nSlitState:=nSlitState+1;		
 		END_IF
-	5: // 
+	5: // Finish decoupling and return to start
 		bDecouple:=FALSE;
 		nSlitState:=0;
 END_CASE
@@ -63,7 +76,7 @@ fbGearInMultiMaster_1(
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= BladeAxis1, 
-	Enable:= bEnableCouple, 
+	Enable:= bEnableGearing, 
 	GearRatio1:= 0.5, 
 	GearRatio2:= 1, 
 	GearRatio3:= , 
@@ -86,7 +99,7 @@ fbGearInMultiMaster_2(
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= BladeAxis2, 
-	Enable:= bEnableCouple, 
+	Enable:= bEnableGearing, 
 	GearRatio1:= 0.5, 
 	GearRatio2:= -1, 
 	GearRatio3:= , 
@@ -106,7 +119,7 @@ fbGearInMultiMaster_2(
 fbHomeDirect1(
 	En:= TRUE, 
 	bReset:= bReset, 
-	bExecute:= bReverseCalc, // Add motor power here 
+	bExecute:= bReverseCalc, // Won't work without motor power
 	fHomePosition:= BladeAxis1.NcToPlc.ActPos+BladeAxis2.NcToPlc.ActPos, // Gap 
 	Axis:= GapAxis, 
 	EnO=> , 
@@ -119,7 +132,7 @@ fbHomeDirect1(
 fbHomeDirect2(
 	En:= TRUE, 
 	bReset:= bReset, 
-	bExecute:= bReverseCalc, // Add motor power here 
+	bExecute:= bReverseCalc, // Won't work without motor power
 	fHomePosition:= (BladeAxis1.NcToPlc.ActPos-BladeAxis2.NcToPlc.ActPos)/2, // Offset 
 	Axis:= CenterAxis, 
 	EnO=> , 
@@ -148,16 +161,26 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
+      <LineId Id="670" Count="0" />
+      <LineId Id="682" Count="1" />
+      <LineId Id="667" Count="0" />
       <LineId Id="441" Count="0" />
-      <LineId Id="215" Count="1" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="672" Count="0" />
+      <LineId Id="662" Count="0" />
+      <LineId Id="696" Count="0" />
+      <LineId Id="673" Count="0" />
       <LineId Id="184" Count="0" />
       <LineId Id="361" Count="0" />
-      <LineId Id="607" Count="0" />
+      <LineId Id="701" Count="1" />
+      <LineId Id="700" Count="0" />
+      <LineId Id="698" Count="0" />
       <LineId Id="551" Count="0" />
       <LineId Id="496" Count="0" />
-      <LineId Id="612" Count="3" />
-      <LineId Id="624" Count="0" />
-      <LineId Id="627" Count="2" />
+      <LineId Id="676" Count="1" />
+      <LineId Id="681" Count="0" />
+      <LineId Id="614" Count="1" />
+      <LineId Id="627" Count="1" />
       <LineId Id="623" Count="0" />
       <LineId Id="198" Count="0" />
       <LineId Id="626" Count="0" />
@@ -173,7 +196,9 @@ fbGearOut2(
       <LineId Id="123" Count="21" />
       <LineId Id="96" Count="0" />
       <LineId Id="581" Count="0" />
-      <LineId Id="583" Count="23" />
+      <LineId Id="583" Count="16" />
+      <LineId Id="703" Count="0" />
+      <LineId Id="601" Count="5" />
       <LineId Id="582" Count="0" />
       <LineId Id="617" Count="0" />
       <LineId Id="99" Count="6" />
