@@ -31,12 +31,19 @@ VAR
 	bCoupleToggleOn1: BOOL;
 	bCoupleToggleOn2: BOOL;
 	fbCoupleToggleOn1: R_TRIG;
-	fbCoupleToggleOn2: R_TRIG;	
+	fbCoupleToggleOn2: R_TRIG;
+	bFeedEnableMinusAxis1: BOOL;
+	bFeedEnableMinusAxis2: BOOL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[//fbCoupleToggleOn(CLK:= GapAxis.Status.HasJob OR CenterAxis.Status.HasJob , Q=> bCoupleToggleOn);
-fbCoupleToggleOn1(CLK:= MAIN.M3.bExecute, Q=> bCoupleToggleOn1);
+      <ST><![CDATA[fbCoupleToggleOn1(CLK:= MAIN.M3.bExecute, Q=> bCoupleToggleOn1);
 fbCoupleToggleOn2(CLK:= MAIN.M4.bExecute, Q=> bCoupleToggleOn2);
+
+//IF BladeAxis1.Nctoplc.SetPos <= (-BladeAxis2.NcToPlc.ActPos) THEN
+	//bFeedEnableMinusAxis1:=FALSE;
+//ELSE
+	//bFeedEnableMinusAxis1:=TRUE;
+//END_IF
 
 CASE nSlitState OF
 	0: // Wait for user to request coupling turned on
@@ -161,8 +168,11 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
-      <LineId Id="670" Count="0" />
       <LineId Id="682" Count="1" />
+      <LineId Id="735" Count="1" />
+      <LineId Id="744" Count="0" />
+      <LineId Id="772" Count="1" />
+      <LineId Id="754" Count="0" />
       <LineId Id="667" Count="0" />
       <LineId Id="441" Count="0" />
       <LineId Id="215" Count="0" />
