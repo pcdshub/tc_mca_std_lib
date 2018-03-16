@@ -1,18 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <DUT Name="DUT_ErrorState" Id="{3059ffe5-a262-449c-b5f3-1c3cd77bc38b}">
-    <Declaration><![CDATA[TYPE DUT_ErrorState :
-STRUCT
-	(*Meaning:
-	bActive := FALSE,	bInactive := FALSE,		bAcknoledged := FALSE		- No error
-	bActive := TRUE,	bInactive := FALSE,		bAcknoledged := FALSE		- Active Error
-	bActive := TRUE,	bInactive := TRUE,		bAcknoledged := FALSE		- There was an Error
-	bActive := TRUE,	bInactive := TRUE,		bAcknoledged := TRUE,		- The error is acknoldeged by the user. It is going to be deleted from the List.
-	*)
-	bActive : BOOL := FALSE;
-	bInactive : BOOL := FALSE;
-	bAcknoledged : BOOL := FALSE;
-END_STRUCT
+  <DUT Name="DUT_ErrorState" Id="{2803a21e-b5ef-48fc-a5fd-18043e60c6af}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE DUT_ErrorState :
+(
+	None,
+	Active,
+	Inactive,
+	Acknoledged
+);
 END_TYPE
 ]]></Declaration>
   </DUT>

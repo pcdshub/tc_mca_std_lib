@@ -4,27 +4,30 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorList
 
 VAR_INPUT
-	En : BOOL;
+	En : BOOL;											//Enable input
 	bReset : BOOL;										//Delete all Error entry
 	lErrorID : ULINT;									//ErrorID to be acknoledged
 	bACK : BOOL;										//Acknoledge the given error and delete it from the list
 END_VAR
 	
 VAR_OUTPUT
-	EnO : BOOL;
+	EnO : BOOL;											//Enable output
 	nNoError: UINT;										//Number of Errors
-	nNoOverflow : INT;									//Number of overflows
-	pErrorSystem : POINTER TO ST_ErrorSystem;			//Pointer to the ErrorSystem
+	nNoOverflow : INT;									//Number of Overflows
+	pErrorSystem : POINTER TO ST_ErrorSystem;			//Pointer to ErrorSystem
 END_VAR
 
 VAR
 	nFreePos : UINT;									//Number of free position in the list
-	nListCnt1 : UINT;
+	nListCnt1 : UINT;									//work variable
 	ErrorSystem : ST_ErrorSystem;						//Data structure of the Error list
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[EnO := En;
+      <ST><![CDATA[(*
+
+*)
+EnO := En;
 
 //Ponter to ErrorSystem
 pErrorSystem := ADR(ErrorSystem);
@@ -49,18 +52,18 @@ ErrorSystem.nNoErrors := nNoError;
 //Number of free position in the list
 nFreePos := GVL_ErrorSystem.cSizeOfErrorData - nNoError;
 
-
+//Acknoledge specified Error entry
 IF bACK THEN
 	FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
 		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = lErrorID THEN
-			ErrorSystem.aErrorData[nListCnt1].Error_State.bAcknoledged := TRUE;
+			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknoledged;
 		END_IF
 	END_FOR
 END_IF
 
 //Deleting acknoledged errors
 FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
-	IF ErrorSystem.aErrorData[nListCnt1].Error_State.bAcknoledged THEN
+	IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Acknoledged THEN
 		MEMMOVE (ADR(ErrorSystem.aErrorData[nListCnt1]), ADR(ErrorSystem.aErrorData[nListCnt1+1]), (GVL_ErrorSystem.cSizeOfErrorData - 1 - nListCnt1) * SIZEOF(DUT_TerminalError));
 		MEMSET(ADR(ErrorSystem.aErrorData[GVL_ErrorSystem.cSizeOfErrorData - 1]), 0, SIZEOF(DUT_TerminalError));
 	END_IF
@@ -68,6 +71,7 @@ END_FOR
 ]]></ST>
     </Implementation>
     <LineIds Name="FB_ErrorList">
+      <LineId Id="94" Count="2" />
       <LineId Id="30" Count="39" />
       <LineId Id="9" Count="0" />
       <LineId Id="72" Count="0" />

@@ -4,9 +4,9 @@
     <Declaration><![CDATA[TYPE DUT_TerminalError :
 STRUCT
 	//Error system related
-	iTerminalID : INT;					//The ID of the terminal
-	Error_ID : ULINT := 0;				//Id for the Error entry
-	Error_State : DUT_ErrorState;		//The state of the error
+	iTerminalID : INT;					//ID of the terminal
+	Error_ID : ULINT := 0;				//ID for the Error entry
+	ErrorState : DUT_ErrorState;		//State of the error
 	
 	//Error related
 	nDateTimeOn : ULINT;				//Date and time when the error occured. Raw data

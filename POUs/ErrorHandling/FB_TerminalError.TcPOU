@@ -70,7 +70,7 @@ Q => f_trigError
 
 //Fill Error struct on the rising edge of bError
 IF r_trigError THEN
-	ErrorData.Error_State.bActive := TRUE;														//Set Error State
+	ErrorData.ErrorState := DUT_ErrorState.Active;												//Set Error State
 	ErrorData.nDateTimeOn := Tc2_EtherCAT.F_GetActualDcTime64();								//Get system time
 	ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOn);			//Convert to string
 	ErrorData.iTerminalID := iTerminal_ID;														//Terminal_ID
@@ -128,14 +128,14 @@ IF f_trigError THEN
 	//Read system time
 	ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
 	ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
-	ErrorData.Error_State.bInactive := TRUE;
+	ErrorData.ErrorState := DUT_ErrorState.Inactive;
 	
 	//Write Off time to Error System
 	FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
 		IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
 			pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
 			pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
-			pErrorSystem^.aErrorData[nErrSysCNT].Error_State.bInactive := TRUE;
+			pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
 			EXIT;
 		END_IF
 	END_FOR
