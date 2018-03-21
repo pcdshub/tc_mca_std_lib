@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <DUT Name="DUT_TerminalError" Id="{2ccffcb8-5781-4ee4-ba1b-3de4aaf3a3ab}">
+  <DUT Name="DUT_TerminalError" Id="{8f84cc80-708c-4401-8591-6bfbf208dfab}">
     <Declaration><![CDATA[TYPE DUT_TerminalError :
 STRUCT
 	//Error system related

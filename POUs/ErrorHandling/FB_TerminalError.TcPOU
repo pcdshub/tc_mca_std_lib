@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="FB_TerminalError" Id="{6e32501c-a694-4982-bd95-e665204ef271}" SpecialFunc="None">
+  <POU Name="FB_TerminalError" Id="{d77c0e9f-60d8-42e2-aa7d-91cf61b54d46}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TerminalError
 
 VAR_INPUT

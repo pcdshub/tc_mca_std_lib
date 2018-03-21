@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="FB_ErrorList" Id="{f2f3e14b-3273-4492-9572-31ad3d37086f}" SpecialFunc="None">
+  <POU Name="FB_ErrorList" Id="{978ea49f-a940-4b4e-9f45-8cdde4adcf37}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorList
 
 VAR_INPUT
@@ -25,7 +25,16 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-
+* ================================================================================
+*                                   DESCRIPTION
+* ================================================================================
+* This Function Block implements the core structure of the Error/Warning Handling
+* system. It realizes the datastructure containing every Error Entry, collect
+* statistics about the usage and manage the Error Entries.
+* Note: The system is under development, most of the functionalities are not
+* implemented or existing functionalities may change with the advance of the
+* development.
+* ================================================================================
 *)
 EnO := En;
 
@@ -71,7 +80,15 @@ END_FOR
 ]]></ST>
     </Implementation>
     <LineIds Name="FB_ErrorList">
-      <LineId Id="94" Count="2" />
+      <LineId Id="94" Count="1" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="146" Count="0" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="150" Count="2" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="149" Count="0" />
+      <LineId Id="96" Count="0" />
       <LineId Id="30" Count="39" />
       <LineId Id="9" Count="0" />
       <LineId Id="72" Count="0" />
