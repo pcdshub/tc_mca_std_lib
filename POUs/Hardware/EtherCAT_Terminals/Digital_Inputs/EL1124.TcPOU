@@ -1,11 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="EL1004_v1_00" Id="{5a4e1f84-de8d-46cd-ae4a-1a6cc399557a}" SpecialFunc="None">
-    <Declaration><![CDATA[///EL1004 | 4-channel digital input terminal 24 V DC, 3 ms
-FUNCTION_BLOCK EL1004_v1_00
+  <POU Name="EL1124" Id="{1cce4fae-4253-470a-a8ca-41d3f9659adf}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL1124 | 4-channel digital input terminal 5 V DC, 0.5 µs
+FUNCTION_BLOCK EL1124
+
 VAR_INPUT
 	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
+
 VAR_OUTPUT
 	EnO: BOOL;
 	bDi_1: BOOL;
@@ -14,6 +18,7 @@ VAR_OUTPUT
 	bDi_4: BOOL;
 	bError: BOOL;
 END_VAR
+
 VAR
 	Channel_1_Input AT %I*: BOOL;
 	Channel_2_Input AT %I*: BOOL;
@@ -21,16 +26,23 @@ VAR
 	Channel_4_Input AT %I*: BOOL;
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL1124_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-IF En AND (WcState_WcState OR InfoData_State<>16#8) THEN
-	bError:=TRUE;
-ELSE
-	bError:=FALSE;
-END_IF
+//Error FB instance
+EL1124_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
 
 IF En THEN
 	IF bError=FALSE THEN
@@ -46,8 +58,10 @@ IF En THEN
 	END_IF
 END_IF]]></ST>
     </Implementation>
-    <LineIds Name="EL1004_v1_00">
-      <LineId Id="3" Count="19" />
+    <LineIds Name="EL1124">
+      <LineId Id="3" Count="1" />
+      <LineId Id="52" Count="7" />
+      <LineId Id="9" Count="13" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

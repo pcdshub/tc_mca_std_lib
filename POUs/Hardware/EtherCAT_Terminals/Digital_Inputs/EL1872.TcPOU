@@ -1,11 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="EL1862_v1_00" Id="{c41830d3-25c5-44f5-b6e9-cfe185ecd7af}" SpecialFunc="None">
-    <Declaration><![CDATA[///EL1862 | 16-channel digital input terminals 24 V DC, 3 ms, type 3, flat-ribbon cable connection
-FUNCTION_BLOCK EL1862_v1_00
+  <POU Name="EL1872" Id="{3ace7b69-1cfb-4a8d-9c7c-e39ec6dce330}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL1872 | 16-channel digital input terminals 24 V DC, 10 µs, type 3, flat-ribbon cable connection
+FUNCTION_BLOCK EL1872
+
 VAR_INPUT
 	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
+
 VAR_OUTPUT
 	EnO: BOOL;
 	bDi_1: BOOL;
@@ -26,6 +30,7 @@ VAR_OUTPUT
 	bDi_16: BOOL;
 	bError: BOOL;
 END_VAR
+
 VAR
 	Channel_1_Input AT %I*: BOOL;
 	Channel_2_Input AT %I*: BOOL;
@@ -45,16 +50,23 @@ VAR
 	Channel_16_Input AT %I*: BOOL;
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL1872_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-IF En AND (WcState_WcState OR InfoData_State<>16#8) THEN
-	bError:=TRUE;
-ELSE
-	bError:=FALSE;
-END_IF
+//Error FB instance
+EL1872_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
 
 IF En THEN
 	IF bError=FALSE THEN
@@ -94,8 +106,10 @@ IF En THEN
 	END_IF
 END_IF]]></ST>
     </Implementation>
-    <LineIds Name="EL1862_v1_00">
-      <LineId Id="3" Count="43" />
+    <LineIds Name="EL1872">
+      <LineId Id="3" Count="1" />
+      <LineId Id="100" Count="7" />
+      <LineId Id="9" Count="37" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
