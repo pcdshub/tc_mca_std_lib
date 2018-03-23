@@ -1,32 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="EL2022_v1_00" Id="{ceebfe89-939b-47f4-b800-142b985d24a2}" SpecialFunc="None">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL2022" Id="{ceebfe89-939b-47f4-b800-142b985d24a2}" SpecialFunc="None">
     <Declaration><![CDATA[///EL2022 | 2-channel digital output terminal 24 V DC, 2 A
-FUNCTION_BLOCK EL2022_v1_00
+FUNCTION_BLOCK EL2022
+
 VAR_INPUT
 	En: BOOL;
 	bDo_1: BOOL;
 	bDo_2: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
+
 VAR_OUTPUT
 	EnO: BOOL;
 	bError: BOOL;
 END_VAR
+
 VAR
 	Channel_1_Output AT %Q*: BOOL;
 	Channel_2_Output AT %Q*: BOOL;
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL2022_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-IF En AND (WcState_WcState OR InfoData_State<>16#8) THEN
-	bError:=TRUE;
-ELSE
-	bError:=FALSE;
-END_IF
+//Error FB instance
+EL2022_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
 
 IF En THEN
 	IF bError=FALSE THEN
@@ -35,8 +47,10 @@ IF En THEN
 	END_IF
 END_IF]]></ST>
     </Implementation>
-    <LineIds Name="EL2022_v1_00">
-      <LineId Id="3" Count="12" />
+    <LineIds Name="EL2022">
+      <LineId Id="3" Count="1" />
+      <LineId Id="41" Count="7" />
+      <LineId Id="9" Count="6" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

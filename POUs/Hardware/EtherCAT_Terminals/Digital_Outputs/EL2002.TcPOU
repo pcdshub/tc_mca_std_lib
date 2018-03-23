@@ -1,13 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="EL2002_v1_00" Id="{6345d9f9-17d1-44cc-b022-fb14daef2407}" SpecialFunc="None">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL2002" Id="{6345d9f9-17d1-44cc-b022-fb14daef2407}" SpecialFunc="None">
     <Declaration><![CDATA[///EL2002 | 2-channel digital output terminal 24 V DC, 0.5 A
-FUNCTION_BLOCK EL2002_v1_00
+FUNCTION_BLOCK EL2002
 
 VAR_INPUT
 	En: BOOL;
 	bDo_1: BOOL;
 	bDo_2: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
@@ -20,16 +22,23 @@ VAR
 	Channel_2_Output AT %Q*: BOOL;
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL2002_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-IF En AND (WcState_WcState OR InfoData_State<>16#8) THEN
-	bError:=TRUE;
-ELSE
-	bError:=FALSE;
-END_IF
+//Error FB instance
+EL2002_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
 
 IF En THEN
 	IF bError=FALSE THEN
@@ -38,8 +47,10 @@ IF En THEN
 	END_IF
 END_IF]]></ST>
     </Implementation>
-    <LineIds Name="EL2002_v1_00">
-      <LineId Id="3" Count="12" />
+    <LineIds Name="EL2002">
+      <LineId Id="3" Count="1" />
+      <LineId Id="42" Count="7" />
+      <LineId Id="9" Count="6" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

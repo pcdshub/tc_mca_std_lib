@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL3174_0002" Id="{d4261a4c-8c4d-44a0-931d-aac8fef66000}" SpecialFunc="None">
+    <Declaration><![CDATA[//EL3174-0002 | 4-channel analog input, -10/0...+10V, -20/0/+4...20mA, 16 bit, differential
+FUNCTION_BLOCK EL3174_0002
+
+VAR_INPUT
+	En: BOOL;
+	
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+	
+VAR_OUTPUT
+	EnO: BOOL;
+	
+	bError: BOOL;
+END_VAR
+
+VAR
+	AI_Std_Ch_1_Status AT %I* : Status_89134B68;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL2002_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[EnO := En;
+
+//Error FB instance
+EL2002_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF En THEN
+	IF bError = FALSE THEN
+		;
+	ELSE
+		;
+	END_IF
+END_IF
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="EL3174_0002">
+      <LineId Id="12" Count="0" />
+      <LineId Id="42" Count="8" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="57" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

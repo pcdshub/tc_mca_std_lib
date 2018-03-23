@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
-  <POU Name="EL2808_v1_00" Id="{b00ba5ad-3961-4dc4-af0e-c716ff06af07}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK EL2808_v1_00
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL2088" Id="{e8393d2e-b70b-42b8-a453-a029acf3fc5b}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL2088 | 8-channel digital output terminal 24 V DC, 0.5 A, negative switching
+FUNCTION_BLOCK EL2088
+
 VAR_INPUT
 	En: BOOL;
-	iTerminal_ID : INT; 
 	bDo_1: BOOL;
 	bDo_2: BOOL;
 	bDo_3: BOOL;
@@ -13,13 +14,15 @@ VAR_INPUT
 	bDo_6: BOOL;
 	bDo_7: BOOL;
 	bDo_8: BOOL;
+	iTerminal_ID : INT;
 	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO : BOOL;
-	bError : BOOL;
+	EnO: BOOL;
+	bError: BOOL;
 END_VAR
+
 VAR
 	Channel_1_Output AT %Q*: BOOL;
 	Channel_2_Output AT %Q*: BOOL;
@@ -33,13 +36,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL2808_Error : FB_TerminalError;
+	EL2088_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-EL2808_Error(
+//Error FB instance
+EL2088_Error(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,
@@ -48,7 +52,6 @@ EL2808_Error(
 	bError => bError,
 );
 
-//Normal operation
 IF En THEN
 	IF bError=FALSE THEN
 		Channel_1_Output:=bDo_1;
@@ -59,21 +62,14 @@ IF En THEN
 		Channel_6_Output:=bDo_6;
 		Channel_7_Output:=bDo_7;
 		Channel_8_Output:=bDo_8;
-	ELSE										//In case of error the outputs are cleared
-		Channel_1_Output:=FALSE;
-		Channel_2_Output:=FALSE;
-		Channel_3_Output:=FALSE;
-		Channel_4_Output:=FALSE;
-		Channel_5_Output:=FALSE;
-		Channel_6_Output:=FALSE;
-		Channel_7_Output:=FALSE;
-		Channel_8_Output:=FALSE;
 	END_IF
 END_IF]]></ST>
     </Implementation>
-    <LineIds Name="EL2808_v1_00">
-      <LineId Id="43" Count="31" />
-      <LineId Id="9" Count="0" />
+    <LineIds Name="EL2088">
+      <LineId Id="3" Count="1" />
+      <LineId Id="62" Count="7" />
+      <LineId Id="9" Count="12" />
+      <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
