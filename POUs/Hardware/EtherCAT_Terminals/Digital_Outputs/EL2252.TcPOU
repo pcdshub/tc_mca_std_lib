@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
-  <POU Name="EL2014" Id="{87ed0f35-77bb-4af3-abb4-bd4457e39e0b}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK EL2014
+  <POU Name="EL2252" Id="{1cc9bdce-6ea8-4421-a606-54f74ba031be}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL2252 | XFC, 2-channel digital output terminal with time stamp, tri-state
+FUNCTION_BLOCK EL2252
 VAR_INPUT
 	En: BOOL;
 	iTerminal_ID : INT; 
 	bDo_1: BOOL;
 	bDo_2: BOOL;
-	bDo_3: BOOL;
-	bDo_4: BOOL;
-	ErrorSystem : POINTER TO ST_ErrorSystem;
+ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
@@ -20,24 +19,20 @@ END_VAR
 VAR
 	Channel_1_Output AT %Q*: BOOL;
 	Channel_2_Output AT %Q*: BOOL;
-	Channel_3_Output AT %Q*: BOOL;
-	Channel_4_Output AT %Q*: BOOL;
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL2014_Error : FB_TerminalError;
+	EL2252_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
 * TODO:
-* Channel diagnostic variables and device diag variables
+* Add the DC sync variables
 *)
 
-EnO:=En;
-
-EL2014_Error(
+EL2252_Error(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,
@@ -50,24 +45,23 @@ IF En THEN
 	IF bError=FALSE THEN
 		Channel_1_Output:=bDo_1;
 		Channel_2_Output:=bDo_2;
-		Channel_3_Output:=bDo_3;
-		Channel_4_Output:=bDo_4;
 	ELSE
 		Channel_1_Output:=FALSE;
 		Channel_2_Output:=FALSE;
-		Channel_3_Output:=FALSE;
-		Channel_4_Output:=FALSE;
 	END_IF
 END_IF]]></ST>
     </Implementation>
-    <LineIds Name="EL2014">
-      <LineId Id="92" Count="2" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="41" Count="16" />
-      <LineId Id="40" Count="0" />
-      <LineId Id="59" Count="3" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="63" Count="1" />
+    <LineIds Name="EL2252">
+      <LineId Id="44" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="27" Count="11" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="40" Count="1" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="42" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>

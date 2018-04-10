@@ -3,20 +3,126 @@
   <POU Name="EL2819" Id="{f53f1521-ea95-4522-96ee-49d4e6c1f88a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK EL2819
 VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT; 
+	bDo_1: BOOL;
+	bDo_2: BOOL;
+	bDo_3: BOOL;
+	bDo_4: BOOL;
+	bDo_5: BOOL;
+	bDo_6: BOOL;
+	bDo_7: BOOL;
+	bDo_8: BOOL;
+	bDo_9: BOOL;
+	bDo_10: BOOL;
+	bDo_11: BOOL;
+	bDo_12: BOOL;
+	bDo_13: BOOL;
+	bDo_14: BOOL;
+	bDo_15: BOOL;
+	bDo_16: BOOL;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
+
 VAR_OUTPUT
+	EnO : BOOL;
+	bError : BOOL;
 END_VAR
+
 VAR
+	Channel_1_Output AT %Q*: BOOL;
+	Channel_2_Output AT %Q*: BOOL;
+	Channel_3_Output AT %Q*: BOOL;
+	Channel_4_Output AT %Q*: BOOL;
+	Channel_5_Output AT %Q*: BOOL;
+	Channel_6_Output AT %Q*: BOOL;
+	Channel_7_Output AT %Q*: BOOL;
+	Channel_8_Output AT %Q*: BOOL;
+	Channel_9_Output AT %Q*: BOOL;
+	Channel_10_Output AT %Q*: BOOL;
+	Channel_11_Output AT %Q*: BOOL;
+	Channel_12_Output AT %Q*: BOOL;
+	Channel_13_Output AT %Q*: BOOL;
+	Channel_14_Output AT %Q*: BOOL;
+	Channel_15_Output AT %Q*: BOOL;
+	Channel_16_Output AT %Q*: BOOL;
+	
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL2819_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-*
-*
-*)]]></ST>
+* TODO:
+* Channel diagnostic variables and device diag variables
+*)
+
+EnO:=En;
+
+EL2819_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF En THEN
+	IF bError=FALSE THEN
+		Channel_1_Output:=bDo_1;
+		Channel_2_Output:=bDo_2;
+		Channel_3_Output:=bDo_3;
+		Channel_4_Output:=bDo_4;
+		Channel_5_Output:=bDo_5;
+		Channel_6_Output:=bDo_6;
+		Channel_7_Output:=bDo_7;
+		Channel_8_Output:=bDo_8;
+		Channel_9_Output:=bDo_9;
+		Channel_10_Output:=bDo_10;
+		Channel_11_Output:=bDo_11;
+		Channel_12_Output:=bDo_12;
+		Channel_13_Output:=bDo_13;
+		Channel_14_Output:=bDo_14;
+		Channel_15_Output:=bDo_15;
+		Channel_16_Output:=bDo_16;
+	ELSE
+		Channel_1_Output:=FALSE;
+		Channel_2_Output:=FALSE;
+		Channel_3_Output:=FALSE;
+		Channel_4_Output:=FALSE;
+		Channel_5_Output:=FALSE;
+		Channel_6_Output:=FALSE;
+		Channel_7_Output:=FALSE;
+		Channel_8_Output:=FALSE;
+		Channel_9_Output:=FALSE;
+		Channel_10_Output:=FALSE;
+		Channel_11_Output:=FALSE;
+		Channel_12_Output:=FALSE;
+		Channel_13_Output:=FALSE;
+		Channel_14_Output:=FALSE;
+		Channel_15_Output:=FALSE;
+		Channel_16_Output:=FALSE;
+	END_IF
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="EL2819">
-      <LineId Id="9" Count="3" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="66" Count="20" />
+      <LineId Id="98" Count="6" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="87" Count="8" />
+      <LineId Id="106" Count="6" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="12" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

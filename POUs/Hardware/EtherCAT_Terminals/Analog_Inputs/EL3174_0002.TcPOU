@@ -6,31 +6,48 @@ FUNCTION_BLOCK EL3174_0002
 
 VAR_INPUT
 	En: BOOL;
-	
 	iTerminal_ID : INT;
 	ErrorSystem : POINTER TO ST_ErrorSystem;
 END_VAR
 	
 VAR_OUTPUT
 	EnO: BOOL;
-	
+	iAi_Ch1_Value : INT;
+	iAi_Ch2_Value : INT;
+	iAi_Ch3_Value : INT;
+	iAi_Ch4_Value : INT;
 	bError: BOOL;
 END_VAR
 
 VAR
-	AI_Std_Ch_1_Status AT %I* : Status_89134B68;
+	//Channels
+	AI_Std_Ch_1_Status	AT %I* : WORD;
+	AI_Std_Ch_1_Value 	AT %I* : INT;
+	AI_Std_Ch_2_Status 	AT %I* : WORD;
+	AI_Std_Ch_2_Value 	AT %I* : INT;
+	AI_Std_Ch_3_Status 	AT %I* : WORD;
+	AI_Std_Ch_3_Value 	AT %I* : INT;
+	AI_Std_Ch_4_Status 	AT %I* : WORD;
+	AI_Std_Ch_4_Value 	AT %I* : INT;
+	
+	//Terminal status
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL2002_Error : FB_TerminalError;
+	EL3174_0002_Error : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[EnO := En;
+      <ST><![CDATA[(*
+* TODO:
+* Status words of the channels
+*)
+
+EnO := En;
 
 //Error FB instance
-EL2002_Error(
+EL3174_0002_Error(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,
@@ -41,15 +58,25 @@ EL2002_Error(
 
 IF En THEN
 	IF bError = FALSE THEN
-		;
+		iAi_Ch1_Value := AI_Std_Ch_1_Value;
+		iAi_Ch2_Value := AI_Std_Ch_2_Value;
+		iAi_Ch3_Value := AI_Std_Ch_3_Value;
+		iAi_Ch4_Value := AI_Std_Ch_4_Value;
 	ELSE
-		;
+		iAi_Ch1_Value := 0;
+		iAi_Ch2_Value := 0;
+		iAi_Ch3_Value := 0;
+		iAi_Ch4_Value := 0;
 	END_IF
 END_IF
-
 ]]></ST>
     </Implementation>
     <LineIds Name="EL3174_0002">
+      <LineId Id="95" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="96" Count="0" />
       <LineId Id="12" Count="0" />
       <LineId Id="42" Count="8" />
       <LineId Id="41" Count="0" />
@@ -57,11 +84,10 @@ END_IF
       <LineId Id="52" Count="0" />
       <LineId Id="51" Count="0" />
       <LineId Id="53" Count="0" />
-      <LineId Id="59" Count="1" />
+      <LineId Id="105" Count="2" />
+      <LineId Id="144" Count="4" />
       <LineId Id="54" Count="0" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="57" Count="0" />
+      <LineId Id="56" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>

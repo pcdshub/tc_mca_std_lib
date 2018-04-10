@@ -2,6 +2,7 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="EL2808" Id="{b00ba5ad-3961-4dc4-af0e-c716ff06af07}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK EL2808
+
 VAR_INPUT
 	En: BOOL;
 	iTerminal_ID : INT; 
@@ -20,6 +21,7 @@ VAR_OUTPUT
 	EnO : BOOL;
 	bError : BOOL;
 END_VAR
+
 VAR
 	Channel_1_Output AT %Q*: BOOL;
 	Channel_2_Output AT %Q*: BOOL;
@@ -48,7 +50,6 @@ EL2808_Error(
 	bError => bError,
 );
 
-//Normal operation
 IF En THEN
 	IF bError=FALSE THEN
 		Channel_1_Output:=bDo_1;
@@ -72,7 +73,8 @@ IF En THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="EL2808">
-      <LineId Id="43" Count="31" />
+      <LineId Id="43" Count="10" />
+      <LineId Id="55" Count="19" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>
