@@ -53,7 +53,7 @@ EL2008_Error(
 );
 
 IF En THEN
-	IF bError=FALSE THEN
+	IF NOT bError THEN
 		Channel_1_Output:=bDo_1;
 		Channel_2_Output:=bDo_2;
 		Channel_3_Output:=bDo_3;
