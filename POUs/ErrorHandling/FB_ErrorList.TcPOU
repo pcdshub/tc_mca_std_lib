@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="FB_ErrorList" Id="{978ea49f-a940-4b4e-9f45-8cdde4adcf37}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorList
 
@@ -32,8 +32,7 @@ END_VAR
 * system. It realizes the datastructure containing every Error Entry, collect
 * statistics about the usage and manage the Error Entries.
 * Note: The system is under development, most of the functionalities are not
-* implemented or existing functionalities may change with the advance of the
-* development.
+* implemented or existing functionalities may change with time.
 * ================================================================================
 *)
 EnO := En;
@@ -86,7 +85,6 @@ END_FOR
       <LineId Id="148" Count="0" />
       <LineId Id="150" Count="2" />
       <LineId Id="156" Count="0" />
-      <LineId Id="158" Count="0" />
       <LineId Id="149" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="30" Count="39" />
