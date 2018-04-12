@@ -3,88 +3,306 @@
   <POU Name="FB_Slit" Id="{3eb3d957-c386-489e-b130-2f4e56938046}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Slit
 VAR_IN_OUT
-	BladeAxis1: AXIS_REF; 	// Right/Lower
-	BladeAxis2: AXIS_REF;	// Left/Upper
+	Axis1: AXIS_REF; 	// Right/Lower
+	Axis2: AXIS_REF;	// Left/Upper
 	GapAxis: AXIS_REF;
 	CenterAxis: AXIS_REF;
+	fbAxis1: FB_DriveVirtual;
+	fbAxis2: FB_DriveVirtual;
+	fbGapAxis:FB_DriveVirtual;
+	fbCenterAxis:FB_DriveVirtual;
+    stGap:DUT_FB_DriveVirtualIF;
+    stCenter:DUT_FB_DriveVirtualIF;
 END_VAR
 VAR_INPUT
-	bCouple: BOOL;
+	bLimitFwd1: BOOL;
+	bLimitBwd1: BOOL;
+	bLimitFwd2: BOOL;
+	bLimitBwd2: BOOL;	
+	bEnable: BOOL;
 	bReset: BOOL;
+	bOverlap: BOOL;	// True = Slits are allowed to overlap and cannot collide
+	fMinGap: LREAL;	// in mm
 END_VAR
 VAR_OUTPUT
 	bError: BOOL;
+	nErrorId: UDINT;
 END_VAR
 VAR
 	fbGearInMultiMaster_1: MC_GearInMultiMaster;
 	fbGearInMultiMaster_2: MC_GearInMultiMaster;
 	EmptyAxis1: AXIS_REF; // Needed for master axis 3 in MC_GearInMultiMaster
 	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
-	fbHomeDirect1: FB_HomeDirect;
-	fbHomeDirect2: FB_HomeDirect;
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
-	nSlitState: INT := 0;
+	fbHomeDirect1: FB_HomeDirect;
+	fbHomeDirect2: FB_HomeDirect;
+
+	nSlitState: INT := -2;
 	bReverseCalc: BOOL:=FALSE;
 	bEnableGearing: BOOL:=FALSE;
 	bDecouple: BOOL:=FALSE;
-	bCoupleToggleOn1: BOOL;
-	bCoupleToggleOn2: BOOL;
-	fbCoupleToggleOn1: R_TRIG;
-	fbCoupleToggleOn2: R_TRIG;
-	bFeedEnableMinusAxis1: BOOL;
-	bFeedEnableMinusAxis2: BOOL;
+	fbToggleOn1: R_TRIG;
+	fbToggleOn2: R_TRIG;
+	fbInitTimer: TON;		// Timer to give axes/encoders time to initialise before enabling
+	fbPower1: MC_Power;
+	fbPower2: MC_Power;
+	
+	bExtSetPtEnable: BOOL;
+	bExtSetPtDisable: BOOL;
+	fbExtSetPointGenEnable1: MC_ExtSetPointGenEnable;
+	fbExtSetPointGenDisable1: MC_ExtSetPointGenDisable;
+	fbExtSetPointGenEnable2: MC_ExtSetPointGenEnable;
+	fbExtSetPointGenDisable2: MC_ExtSetPointGenDisable;	
+	
+	fBlade1_SetPos: LREAL;
+	fBlade2_SetPos: LREAL;
+	fBlade1_ActPos: LREAL;
+	fBlade2_ActPos: LREAL;	
+	fGap_SetPos: LREAL;
+	fCenter_SetPos: LREAL;
+	fGap_ActPos: LREAL;
+	fCenter_ActPos: LREAL;
+	fGap_ActDiff: LREAL;
+	fCenter_ActDiff: LREAL;
+	
+	fStoppingTimeAxis1: LREAL;
+	fStoppingTimeAxis2: LREAL;
+	fStoppingDistance1: LREAL;
+	fStoppingDistance2: LREAL;
+	fStoppingZone1: LREAL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbCoupleToggleOn1(CLK:= MAIN.M3.bExecute, Q=> bCoupleToggleOn1);
-fbCoupleToggleOn2(CLK:= MAIN.M4.bExecute, Q=> bCoupleToggleOn2);
+      <ST><![CDATA[// Gap interface parameter transfer
+//fbGapAxis.En:=stGap.EN;
+fbGapAxis.bEnable:=stGap.bEnable;
+fbGapAxis.bReset:=stGap.bReset;	
+fbGapAxis.bExecute:=stGap.bExecute;	
+fbGapAxis.nCommand:=stGap.nCommand;
+fbGapAxis.nCmdData:=stGap.nCmdData;
+fbGapAxis.fVelocity:=stGap.fVelocity;	
+fbGapAxis.fPosition:=stGap.fPosition;
+fbGapAxis.fAcceleration:=stGap.fAcceleration;
+fbGapAxis.fDeceleration:=stGap.fDeceleration;
+fbGapAxis.bJogFwd:=stGap.bJogFwd;
+fbGapAxis.bJogBwd:=stGap.bJogBwd;	
+//fbGapAxis.bLimitFwd:=stGap.bLimitFwd;
+//fbGapAxis.bLimitFwd:=stGap.bLimitFwd;
+fbGapAxis.fOverride:=stGap.fOverride;
+//fbGapAxis.bHomeSensor:=stGap.bHomeSensor;
+fbGapAxis.fHomePosition:=stGap.fHomePosition;
+fbGapAxis.nHomeRevOffset:=stGap.nHomeRevOffset;
+fbGapAxis.MasterAxis:=stGap.MasterAxis;
 
-//IF BladeAxis1.Nctoplc.SetPos <= (-BladeAxis2.NcToPlc.ActPos) THEN
-	//bFeedEnableMinusAxis1:=FALSE;
-//ELSE
-	//bFeedEnableMinusAxis1:=TRUE;
-//END_IF
+stGap.EnO:=fbGapAxis.EnO;
+stGap.bEnabled:=fbGapAxis.bEnabled;
+//stGap.bBusy:=fbGapAxis.bBusy;
+stGap.bBusy:=fbGapAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
+stGap.bDone:=fbGapAxis.bDone AND fbAxis1.status.HasBeenStopped AND fbAxis2.status.HasBeenStopped;;
+stGap.bError:=fbGapAxis.bError;
+stGap.bHomed:=fbGapAxis.bHomed;
+stGap.nErrorId:=fbGapAxis.nErrorId;
+stGap.nMotionAxisID:=fbGapAxis.nMotionAxisID;
+stGap.Status:=fbGapAxis.Status;
+//stGap.fActPosition:=fbGapAxis.fActPosition;
+stGap.fActPosition:=Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos;
+stGap.fActVelocity:=fbGapAxis.fActVelocity;
+stGap.fActDiff:=fbGapAxis.fActDiff;
+stGap.sErrorMessage:=fbGapAxis.sErrorMessage;
+stGap.stAxisStatus:=fbGapAxis.stAxisStatus;
 
-CASE nSlitState OF
-	0: // Wait for user to request coupling turned on
-		IF bCouple THEN	
+//Status struct for EPICS communication
+(*stGap.stAxisStatus.bEnable:=bEnable;
+stGap.stAxisStatus.bEnabled:=bEnabled;
+stGap.stAxisStatus.bError:=bError;
+stGap.stAxisStatus.bExecute:=bExecute;
+stGap.stAxisStatus.bHomeSensor:=bHomeSensor;
+stGap.stAxisStatus.bJogBwd:=bJogBwd;
+stGap.stAxisStatus.bJogFwd:=bJogFwd;
+stGap.stAxisStatus.bLimitBwd:=bLimitBwd;
+stGap.stAxisStatus.bLimitFwd:=bLimitFwd;
+stGap.stAxisStatus.bReset:=bReset;
+stGap.stAxisStatus.fAcceleration:=fAcceleration;
+stGap.stAxisStatus.fActDiff:=fActDiff;*)
+//stGap.stAxisStatus.fActPosition:=fActPosition;
+stGap.stAxisStatus.fActPosition:=Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos;
+(*stGap.stAxisStatus.fActVelocity:=fActVelocity;
+stGap.stAxisStatus.fDeceleration:=fDeceleration;
+stGap.stAxisStatus.fOverride:=fOverride;
+stGap.stAxisStatus.fPosition:=fPosition;
+stGap.stAxisStatus.fVelocity:=fVelocity;
+stGap.stAxisStatus.nCmdData:=nCmdData;  //Or nCmdDataLocal
+stGap.stAxisStatus.nCommand:=nCommand;  //Or nCommandLocal
+stGap.stAxisStatus.nErrorId:=nErrorId;
+stGap.stAxisStatus.bBusy:=bBusy;
+stGap.stAxisStatus.bHomed:=bHomed;*)
+
+//**********************************************************************************//
+
+// Center interface parameter transfer
+//fbCenterAxis.En:=fbCenterAxis.En;
+fbCenterAxis.bEnable:=stCenter.bEnable;
+fbCenterAxis.bReset:=stCenter.bReset;	
+fbCenterAxis.bExecute:=stCenter.bExecute;	
+fbCenterAxis.nCommand:=stCenter.nCommand;
+fbCenterAxis.nCmdData:=stCenter.nCmdData;
+fbCenterAxis.fVelocity:=stCenter.fVelocity;	
+fbCenterAxis.fPosition:=stCenter.fPosition;
+fbCenterAxis.fAcceleration:=stCenter.fAcceleration;
+fbCenterAxis.fDeceleration:=stCenter.fDeceleration;
+fbCenterAxis.bJogFwd:=stCenter.bJogFwd;
+fbCenterAxis.bJogBwd:=stCenter.bJogBwd;
+//fbCenterAxis.bLimitFwd:=fbCenterAxis.bLimitFwd;
+//fbCenterAxis.bLimitFwd:=fbCenterAxis.bLimitFwd;
+fbCenterAxis.fOverride:=stCenter.fOverride;
+//fbCenterAxis.bHomeSensor:=stCenter.bHomeSensor;
+fbCenterAxis.fHomePosition:=stCenter.fHomePosition;
+fbCenterAxis.nHomeRevOffset:=stCenter.nHomeRevOffset;
+fbCenterAxis.MasterAxis:=stCenter.MasterAxis;
+
+stCenter.EnO:=fbCenterAxis.EnO;
+stCenter.bEnabled:=fbCenterAxis.bEnabled;
+//stCenter.bBusy:=fbCenterAxis.bBusy;
+stCenter.bBusy:=fbCenterAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
+stCenter.bDone:=fbCenterAxis.bDone AND fbAxis1.status.HasBeenStopped AND fbAxis2.status.HasBeenStopped;
+stCenter.bError:=fbCenterAxis.bError;
+stCenter.bHomed:=fbCenterAxis.bHomed;
+stCenter.nErrorId:=fbCenterAxis.nErrorId;
+stCenter.nMotionAxisID:=fbCenterAxis.nMotionAxisID;
+stCenter.Status:=fbCenterAxis.Status;
+//stCenter.fActPosition:=fbCenterAxis.fActPosition;
+stCenter.fActPosition:=(Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2;
+stCenter.fActVelocity:=fbCenterAxis.fActVelocity;
+stCenter.fActDiff:=fbCenterAxis.fActDiff;
+stCenter.sErrorMessage:=fbCenterAxis.sErrorMessage;
+stCenter.stAxisStatus:=fbCenterAxis.stAxisStatus;
+
+stCenter.stAxisStatus.fActPosition:=(Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2;
+
+//**********************************************************************************//
+
+(*fStoppingTimeAxis1:=Axis1.NcToPlc.ActVelo/fbAxis1.fDeceleration;
+fStoppingTimeAxis2:=Axis2.NcToPlc.ActVelo/fbAxis2.fDeceleration;
+fStoppingDistance1:=Axis1.NcToPlc.ActVelo*fStoppingTimeAxis1;
+fStoppingDistance2:=Axis2.NcToPlc.ActVelo*fStoppingTimeAxis2;
+fStoppingZone1:=fMinGap+fStoppingDistance1;
+fStoppingZone2:=fMinGap+fStoppingDistance2;*)
+
+//**********************************************************************************//
+
+// Collision avoidance
+IF NOT bOverlap THEN
+	IF Axis1.Nctoplc.SetPos <= (fMinGap-Axis2.NcToPlc.ActPos) 
+	OR Axis1.Nctoplc.ActPos <= (fMinGap-Axis2.NcToPlc.ActPos) THEN	
+		fbPower1(
+		Axis:= Axis1, // Better way to do this?
+		Enable:= fbAxis1.bEnable,  // Better way to do this?
+		Enable_Positive:= fbAxis1.bEnable AND fbAxis1.bLimitFwd,
+		Enable_Negative:= FALSE, 
+		Override:= , 
+		BufferMode:= , 
+		Options:= , 
+		Status=> , 
+		Busy=> , 
+		Active=> , 
+		Error=> , 
+		ErrorID=> );
+	END_IF
+
+	IF Axis2.Nctoplc.SetPos <= (fMinGap-Axis1.NcToPlc.ActPos)
+	OR Axis2.Nctoplc.ActPos <= (fMinGap-Axis1.NcToPlc.ActPos) THEN
+		fbPower2(
+		Axis:= Axis2, 
+		Enable:= fbAxis2.bEnable, // Better way to do this?
+		Enable_Positive:= fbAxis2.bEnable AND fbAxis2.bLimitFwd, // Better way to do this?
+		Enable_Negative:= FALSE, 
+		Override:= , 
+		BufferMode:= , 
+		Options:= , 
+		Status=> , 
+		Busy=> , 
+		Active=> , 
+		Error=> , 
+		ErrorID=> );	
+	END_IF
+END_IF
+
+//**********************************************************************************//
+(*
+// This version couples/uncouples manually with the input bit, can only drive either physical axes or virtual axes. Can't interchange without flipping bit.
+
+IF bEnable THEN	
+	CASE nSlitState OF
+		0: 	
+			IF bEnable THEN
+				nSlitState:=nSlitState+1;
+				bReverseCalc:=TRUE;
+				bDecouple:=FALSE;			
+			END_IF
+		1: 
+			IF fbHomeDirect1.bDone AND fbHomeDirect2.bDone THEN
+				bReverseCalc:=FALSE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		2:		
+			bEnableGearing:=TRUE;			
 			nSlitState:=nSlitState+1;
-			bReverseCalc:=TRUE;
-		END_IF
-	1: // One of the virtual axis has a command so reverse calculate (fbDirectHome) virtual axes positions
-		IF (fbHomeDirect1.bDone AND fbHomeDirect2.bDone)= TRUE THEN
-			nSlitState:=0;
-			bReverseCalc:=FALSE;				
-		END_IF
-		IF bCoupleToggleOn1 OR bCoupleToggleOn2 THEN
-			nSlitState:=2;	
-		END_IF
-	2: // Turn off reverse calculate (fbDirectHome)
-		bReverseCalc:=FALSE;
-		bEnableGearing:=TRUE;
-		nSlitState:=nSlitState+1;
-	3: // Start GearInMultiMaster function blocks
-		bEnableGearing:=FALSE;
-		nSlitState:=nSlitState+1;
-	4: // Wait until movement is finished and then uncouple
-		IF NOT (GapAxis.Status.HasJob AND CenterAxis.Status.HasJob AND BladeAxis1.Status.HasJob AND BladeAxis2.Status.HasJob)  THEN
-			bEnableGearing:=FALSE;
+		3:
+			IF fbGearInMultiMaster_1.InGear AND fbGearInMultiMaster_2.InGear THEN
+				nSlitState:=nSlitState+1;
+			END_IF
+		4:
+			IF NOT bEnable THEN
+				bEnableGearing:=FALSE;
+				nSlitState:=100;
+			END_IF
+		100:
 			bDecouple:=TRUE;
-			nSlitState:=nSlitState+1;		
-		END_IF
-	5: // Finish decoupling and return to start
-		bDecouple:=FALSE;
-		nSlitState:=0;
-END_CASE
-
+			nSlitState:=nSlitState+1;
+		101:
+			bDecouple:=FALSE;
+			nSlitState:=0;
+	END_CASE
+ELSE
+	bEnableGearing:=FALSE;
+	bDecouple:=TRUE;
+	nSlitState:=0;
+END_IF
+	
+fbHomeDirect1(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc, // Won't work without motor power
+	fHomePosition:= Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos, // Gap 
+	Axis:= GapAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+	
+fbHomeDirect2(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc, // Won't work without motor power
+	fHomePosition:= (Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2, // Offset 
+	Axis:= CenterAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+	
 fbGearInMultiMaster_1(
 	Master1:= GapAxis, 
 	Master2:= CenterAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
-	Slave:= BladeAxis1, 
+	Slave:= Axis1, 
 	Enable:= bEnableGearing, 
-	GearRatio1:= 0.5, 
+	GearRatio1:= 0.5,  // 0.5 Should it be 1?
 	GearRatio2:= 1, 
 	GearRatio3:= , 
 	GearRatio4:= , 
@@ -105,9 +323,9 @@ fbGearInMultiMaster_2(
 	Master2:= CenterAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
-	Slave:= BladeAxis2, 
+	Slave:= Axis2, 
 	Enable:= bEnableGearing, 
-	GearRatio1:= 0.5, 
+	GearRatio1:= 0.5, //0.5 Should it be 1?
 	GearRatio2:= -1, 
 	GearRatio3:= , 
 	GearRatio4:= , 
@@ -123,11 +341,96 @@ fbGearInMultiMaster_2(
 	Error=> , 
 	ErrorID=> );
 
+fbGearOut1(
+	Slave:= Axis1, 
+	Execute:= bDecouple, 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+fbGearOut2(
+	Slave:= Axis2, 
+	Execute:= bDecouple, 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+*)
+//**********************************************************************************//
+// This version has axes uncoupled as default except when a move is executed a move on either virtual axis.
+// It will then couple them for the move then uncouple when complete.
+
+fbToggleOn1(CLK:= fbGapAxis.bExecute);
+fbToggleOn2(CLK:= fbCenterAxis.bExecute);
+
+IF bEnable AND (fbToggleOn1.Q OR fbToggleOn2.Q) THEN
+	nSlitState:=2;
+
+	bReverseCalc:=FALSE;
+	bDecouple:=FALSE;
+END_IF
+
+IF bEnable AND NOT bReset THEN	
+	CASE nSlitState OF
+		-2:
+			IF GapAxis.Status.Operational AND CenterAxis.Status.Operational THEN
+				stGap.bEnable:=TRUE;
+				stCenter.bEnable:=TRUE;					
+				nSlitState:=nSlitState+1;				
+			END_IF
+		-1:
+			fbInitTimer(IN:= TRUE, PT:= T#1S, Q=> , ET=> );
+			IF fbInitTimer.Q THEN
+				fbAxis1.bEnable:=TRUE;
+				fbAxis2.bEnable:=TRUE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		0: 	
+			bReverseCalc:=TRUE;
+			bDecouple:=FALSE;
+			nSlitState:=nSlitState+1;
+		1: 
+			IF fbHomeDirect1.bDone AND fbHomeDirect2.bDone THEN
+				bReverseCalc:=FALSE;
+				nSlitState:=nSlitState-1;	
+			END_IF
+		2:
+			bEnableGearing:=TRUE;		
+			nSlitState:=nSlitState+1;
+		3:
+			IF fbGearInMultiMaster_1.InGear AND fbGearInMultiMaster_2.InGear THEN
+				nSlitState:=nSlitState+1;
+			END_IF
+		4: 
+			IF GapAxis.Status.HasJob OR CenterAxis.Status.HasJob THEN
+				nSlitState:=nSlitState+1;				
+			END_IF
+		5:
+			IF GapAxis.Status.InTargetPosition AND CenterAxis.Status.InTargetPosition AND Axis1.Status.NotMoving AND Axis2.Status.NotMoving THEN
+				bEnableGearing:=FALSE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		6:
+			bDecouple:=TRUE;
+			nSlitState:=nSlitState+1;
+		7:
+			bDecouple:=FALSE;
+			nSlitState:=0;
+	END_CASE
+ELSE
+	bEnableGearing:=FALSE;
+	bDecouple:=TRUE;
+	nSlitState:=-2;
+END_IF
+	
 fbHomeDirect1(
 	En:= TRUE, 
 	bReset:= bReset, 
 	bExecute:= bReverseCalc, // Won't work without motor power
-	fHomePosition:= BladeAxis1.NcToPlc.ActPos+BladeAxis2.NcToPlc.ActPos, // Gap 
+	fHomePosition:= Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos, // Gap 
 	Axis:= GapAxis, 
 	EnO=> , 
 	bBusy=> , 
@@ -140,7 +443,7 @@ fbHomeDirect2(
 	En:= TRUE, 
 	bReset:= bReset, 
 	bExecute:= bReverseCalc, // Won't work without motor power
-	fHomePosition:= (BladeAxis1.NcToPlc.ActPos-BladeAxis2.NcToPlc.ActPos)/2, // Offset 
+	fHomePosition:= (Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2, // Offset 
 	Axis:= CenterAxis, 
 	EnO=> , 
 	bBusy=> , 
@@ -148,9 +451,55 @@ fbHomeDirect2(
 	bHomed=> , 
 	bError=> , 
 	nErrorId=> );
+	
+fbGearInMultiMaster_1(
+	Master1:= GapAxis, 
+	Master2:= CenterAxis, 
+	Master3:= EmptyAxis1, 
+	Master4:= EmptyAxis2, 
+	Slave:= Axis1, 
+	Enable:= bEnableGearing, 
+	GearRatio1:= 0.5,  // 0.5 Should it be 1?
+	GearRatio2:= 1, 
+	GearRatio3:= , 
+	GearRatio4:= , 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	InGear=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+
+fbGearInMultiMaster_2(
+	Master1:= GapAxis, 
+	Master2:= CenterAxis, 
+	Master3:= EmptyAxis1, 
+	Master4:= EmptyAxis2, 
+	Slave:= Axis2, 
+	Enable:= bEnableGearing, 
+	GearRatio1:= 0.5, //0.5 Should it be 1?
+	GearRatio2:= -1, 
+	GearRatio3:= , 
+	GearRatio4:= , 
+	Acceleration:= , 
+	Deceleration:= , 
+	Jerk:= , 
+	BufferMode:= , 
+	Options:= , 
+	InGear=> , 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
 
 fbGearOut1(
-	Slave:= GapAxis, 
+	Slave:= Axis1, 
 	Execute:= bDecouple, 
 	Options:= , 
 	Done=> , 
@@ -159,63 +508,375 @@ fbGearOut1(
 	ErrorID=> );
 	
 fbGearOut2(
-	Slave:= CenterAxis, 
+	Slave:= Axis2, 
 	Execute:= bDecouple, 
 	Options:= , 
 	Done=> , 
 	Busy=> , 
 	Error=> , 
-	ErrorID=> );]]></ST>
+	ErrorID=> );
+
+//**********************************************************************************//
+
+// Uses External Setpoint Generator
+(*
+fbToggleOn1(CLK:= fbGapAxis.bExecute);
+fbToggleOn2(CLK:= fbCenterAxis.bExecute);
+
+IF bEnable THEN
+	CASE nSlitState OF
+		0:
+			bReverseCalc:=TRUE;
+			IF fbHomeDirect1.bBusy OR fbHomeDirect2.bBusy THEN
+				nSlitState:=nSlitState+1;				
+			END_IF
+		1:
+			IF fbHomeDirect1.bDone AND fbHomeDirect2.bDone THEN
+				bReverseCalc:=FALSE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		2: 
+			IF fbToggleOn1.Q OR fbToggleOn2.Q THEN
+				bExtSetPtDisable:=FALSE;
+				bExtSetPtEnable:=TRUE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		3:
+			IF GapAxis.Status.InTargetPosition AND CenterAxis.Status.InTargetPosition THEN
+				nSlitState:=nSlitState+1;		
+			END_IF
+		4:
+			bExtSetPtEnable:=FALSE;
+			nSlitState:=nSlitState+1;			
+		5:
+			bExtSetPtDisable:=TRUE;	
+			nSlitState:=2;
+	END_CASE
+ELSE
+	bReverseCalc:=FALSE;
+	bExtSetPtEnable:=FALSE;
+	bExtSetPtDisable:=TRUE;		
+	nSlitState:=0;
+END_IF
+
+fbHomeDirect1(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc, // Won't work without motor power
+	fHomePosition:= Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos, // Gap 
+	Axis:= GapAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+	
+fbHomeDirect2(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc, // Won't work without motor power
+	fHomePosition:= (Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2, // Offset 
+	Axis:= CenterAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+	
+fbExtSetPointGenEnable1(
+	Axis:= Axis1, 
+	Execute:= bExtSetPtEnable, 
+	Position:=CenterAxis.NcToPlc.SetPos+0.5*GapAxis.NcToPlc.SetPos, 
+	PositionType:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	Enabled=> );
+	
+fbExtSetPointGenDisable1(
+	Axis:= Axis1, 
+	Execute:= bExtSetPtDisable, 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	Enabled=> );
+
+fbExtSetPointGenEnable2(
+	Axis:= Axis2, 
+	Execute:= bExtSetPtEnable, 
+	Position:=-CenterAxis.NcToPlc.SetPos+0.5*GapAxis.NcToPlc.SetPos, 
+	PositionType:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	Enabled=> );	
+	
+fbExtSetPointGenDisable2(
+	Axis:= Axis2, 
+	Execute:= bExtSetPtDisable, 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> , 
+	Enabled=> );
+
+MC_ExtSetPointGenFeed(
+	Position:= CenterAxis.NcToPlc.SetPos+0.5*GapAxis.NcToPlc.SetPos, 
+	Velocity:= 0,
+	Acceleration:= 0,
+	Direction:= 1, 
+	Axis:= Axis1);
+	
+MC_ExtSetPointGenFeed(
+	Position:= -CenterAxis.NcToPlc.SetPos+0.5*GapAxis.NcToPlc.SetPos, 
+	Velocity:= 0,
+	Acceleration:= 0,
+	Direction:= 1, 
+	Axis:= Axis2);	
+*)
+//**********************************************************************************//
+
+// This version directly specifies where to put the blades based on a hardcoded equation.
+(*
+fbToggleOn1(CLK:= fbGapAxis.bExecute);
+fbToggleOn2(CLK:= fbCenterAxis.bExecute);
+
+IF bEnable THEN
+	CASE nSlitState OF
+		0:
+			bReverseCalc:=FALSE;
+			nSlitState:=nSlitState+1;
+		1:
+			IF fbToggleOn1.Q OR fbToggleOn2.Q THEN
+//				bReverseCalc:=TRUE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		2:
+//			IF fbHomeDirect1.bDone AND fbHomeDirect1.bDone THEN
+				nSlitState:=nSlitState+1;				
+//			END_IF
+		3:
+			fbAxis1.bExecute:=FALSE;
+			fbAxis2.bExecute:=FALSE;
+			fbAxis1.nCommand:=3;
+			fbAxis2.nCommand:=3;	
+			fbAxis1.fPosition:=fbCenterAxis.fPosition+(0.5*fbGapAxis.fPosition);
+			fbAxis2.fPosition:=-(fbCenterAxis.fPosition-(0.5*fbGapAxis.fPosition));
+			nSlitState:=nSlitState+1;
+		4:
+			fbAxis1.bExecute:=TRUE;
+			fbAxis2.bExecute:=TRUE;
+			nSlitState:=nSlitState+1;
+		5:
+			IF GapAxis.Status.InTargetPosition AND CenterAxis.Status.InTargetPosition AND Axis1.Status.InTargetPosition AND Axis2.Status.InTargetPosition THEN
+				nSlitState:=nSlitState+1;		
+			END_IF
+		6:
+			nSlitState:=0;
+	END_CASE
+ELSE	
+	nSlitState:=0;
+END_IF
+
+fbHomeDirect1(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc, // Won't work without motor power
+	fHomePosition:= Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos, // Gap 
+	Axis:= GapAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+	
+fbHomeDirect2(
+	En:= TRUE, 
+	bReset:= bReset, 
+	bExecute:= bReverseCalc, // Won't work without motor power
+	fHomePosition:= (Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2, // Offset 
+	Axis:= CenterAxis, 
+	EnO=> , 
+	bBusy=> , 
+	bDone=> , 
+	bHomed=> , 
+	bError=> , 
+	nErrorId=> );
+*)
+//**********************************************************************************//
+		
+(*Error from functions and Nc*)
+//IF fbPower.Error AND fbPower.Active THEN
+	//bError:=fbPower.Enable;
+	//nErrorId:=fbPower.ErrorID;
+//END_IF
+
+//**********************************************************************************//
+
+// For testing - not used in logic
+fGap_SetPos:=GapAxis.Nctoplc.SetPos;
+fCenter_SetPos:=CenterAxis.Nctoplc.SetPos;
+
+fBlade1_SetPos:=Axis1.Nctoplc.SetPos;
+fBlade2_SetPos:=Axis2.Nctoplc.SetPos;
+
+fBlade1_ActPos:=Axis1.NcToPlc.ActPos;
+fBlade2_ActPos:=Axis2.NcToPlc.ActPos;
+
+fGap_ActPos:=Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos;
+fCenter_ActPos:=(Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2;
+
+fGap_ActDiff:=fGap_ActPos-GapAxis.NcToPlc.ActPos;
+fCenter_ActDiff:=fCenter_ActPos-CenterAxis.NcToPlc.ActPos;]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
-      <LineId Id="682" Count="1" />
-      <LineId Id="735" Count="1" />
-      <LineId Id="744" Count="0" />
-      <LineId Id="772" Count="1" />
+      <LineId Id="3588" Count="0" />
+      <LineId Id="3443" Count="22" />
+      <LineId Id="3594" Count="0" />
+      <LineId Id="3466" Count="5" />
+      <LineId Id="3591" Count="0" />
+      <LineId Id="3472" Count="4" />
+      <LineId Id="3857" Count="0" />
+      <LineId Id="3859" Count="0" />
+      <LineId Id="3883" Count="12" />
+      <LineId Id="3905" Count="0" />
+      <LineId Id="3896" Count="8" />
+      <LineId Id="3882" Count="0" />
+      <LineId Id="3906" Count="1" />
+      <LineId Id="3479" Count="23" />
+      <LineId Id="3593" Count="0" />
+      <LineId Id="3503" Count="6" />
+      <LineId Id="3592" Count="0" />
+      <LineId Id="3510" Count="9" />
+      <LineId Id="1592" Count="0" />
+      <LineId Id="1596" Count="0" />
+      <LineId Id="1598" Count="0" />
+      <LineId Id="1601" Count="1" />
+      <LineId Id="1605" Count="0" />
+      <LineId Id="1993" Count="0" />
+      <LineId Id="1976" Count="0" />
+      <LineId Id="2225" Count="0" />
+      <LineId Id="1593" Count="0" />
+      <LineId Id="1590" Count="0" />
+      <LineId Id="948" Count="0" />
+      <LineId Id="1497" Count="0" />
+      <LineId Id="902" Count="12" />
       <LineId Id="754" Count="0" />
-      <LineId Id="667" Count="0" />
-      <LineId Id="441" Count="0" />
-      <LineId Id="215" Count="0" />
-      <LineId Id="672" Count="0" />
-      <LineId Id="662" Count="0" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="673" Count="0" />
-      <LineId Id="184" Count="0" />
-      <LineId Id="361" Count="0" />
-      <LineId Id="701" Count="1" />
-      <LineId Id="700" Count="0" />
-      <LineId Id="698" Count="0" />
-      <LineId Id="551" Count="0" />
-      <LineId Id="496" Count="0" />
-      <LineId Id="676" Count="1" />
-      <LineId Id="681" Count="0" />
-      <LineId Id="614" Count="1" />
-      <LineId Id="627" Count="1" />
-      <LineId Id="623" Count="0" />
-      <LineId Id="198" Count="0" />
-      <LineId Id="626" Count="0" />
-      <LineId Id="630" Count="0" />
-      <LineId Id="199" Count="1" />
-      <LineId Id="632" Count="0" />
-      <LineId Id="634" Count="0" />
-      <LineId Id="633" Count="0" />
-      <LineId Id="177" Count="0" />
-      <LineId Id="620" Count="0" />
-      <LineId Id="31" Count="20" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="123" Count="21" />
-      <LineId Id="96" Count="0" />
-      <LineId Id="581" Count="0" />
-      <LineId Id="583" Count="16" />
-      <LineId Id="703" Count="0" />
-      <LineId Id="601" Count="5" />
-      <LineId Id="582" Count="0" />
-      <LineId Id="617" Count="0" />
-      <LineId Id="99" Count="6" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="108" Count="6" />
-      <LineId Id="107" Count="0" />
+      <LineId Id="917" Count="1" />
+      <LineId Id="1498" Count="0" />
+      <LineId Id="922" Count="12" />
+      <LineId Id="916" Count="0" />
+      <LineId Id="1591" Count="0" />
+      <LineId Id="4123" Count="0" />
+      <LineId Id="4125" Count="9" />
+      <LineId Id="4256" Count="0" />
+      <LineId Id="4135" Count="21" />
+      <LineId Id="4255" Count="0" />
+      <LineId Id="4157" Count="0" />
+      <LineId Id="4159" Count="95" />
+      <LineId Id="1586" Count="1" />
+      <LineId Id="3977" Count="7" />
+      <LineId Id="4530" Count="0" />
+      <LineId Id="4282" Count="1" />
+      <LineId Id="3985" Count="1" />
+      <LineId Id="4366" Count="0" />
+      <LineId Id="3988" Count="0" />
+      <LineId Id="4379" Count="0" />
+      <LineId Id="4606" Count="0" />
+      <LineId Id="4387" Count="0" />
+      <LineId Id="4371" Count="0" />
+      <LineId Id="4374" Count="0" />
+      <LineId Id="4373" Count="0" />
+      <LineId Id="4602" Count="0" />
+      <LineId Id="4607" Count="0" />
+      <LineId Id="4603" Count="0" />
+      <LineId Id="4610" Count="0" />
+      <LineId Id="4604" Count="1" />
+      <LineId Id="4608" Count="0" />
+      <LineId Id="3989" Count="8" />
+      <LineId Id="4531" Count="0" />
+      <LineId Id="4385" Count="0" />
+      <LineId Id="4000" Count="17" />
+      <LineId Id="4019" Count="0" />
+      <LineId Id="4271" Count="0" />
+      <LineId Id="4020" Count="95" />
+      <LineId Id="2423" Count="0" />
+      <LineId Id="2422" Count="0" />
+      <LineId Id="2428" Count="4" />
+      <LineId Id="2579" Count="0" />
+      <LineId Id="2433" Count="1" />
+      <LineId Id="2441" Count="0" />
+      <LineId Id="3810" Count="0" />
+      <LineId Id="4257" Count="2" />
+      <LineId Id="2568" Count="0" />
+      <LineId Id="2571" Count="0" />
+      <LineId Id="2569" Count="0" />
+      <LineId Id="2572" Count="0" />
+      <LineId Id="2574" Count="0" />
+      <LineId Id="3764" Count="0" />
+      <LineId Id="3812" Count="0" />
+      <LineId Id="3814" Count="0" />
+      <LineId Id="3813" Count="0" />
+      <LineId Id="3811" Count="0" />
+      <LineId Id="3815" Count="0" />
+      <LineId Id="2462" Count="0" />
+      <LineId Id="2469" Count="0" />
+      <LineId Id="2471" Count="1" />
+      <LineId Id="3804" Count="0" />
+      <LineId Id="2841" Count="0" />
+      <LineId Id="2578" Count="0" />
+      <LineId Id="2575" Count="0" />
+      <LineId Id="2577" Count="0" />
+      <LineId Id="2478" Count="1" />
+      <LineId Id="2580" Count="0" />
+      <LineId Id="3796" Count="0" />
+      <LineId Id="2848" Count="0" />
+      <LineId Id="2847" Count="0" />
+      <LineId Id="2581" Count="1" />
+      <LineId Id="2481" Count="25" />
+      <LineId Id="2508" Count="19" />
+      <LineId Id="2537" Count="0" />
+      <LineId Id="2539" Count="9" />
+      <LineId Id="2564" Count="0" />
+      <LineId Id="2550" Count="7" />
+      <LineId Id="2851" Count="5" />
+      <LineId Id="2850" Count="0" />
+      <LineId Id="2565" Count="0" />
+      <LineId Id="2559" Count="1" />
+      <LineId Id="2585" Count="0" />
+      <LineId Id="2562" Count="1" />
+      <LineId Id="2535" Count="0" />
+      <LineId Id="3099" Count="1" />
+      <LineId Id="3638" Count="4" />
+      <LineId Id="3647" Count="2" />
+      <LineId Id="3852" Count="1" />
+      <LineId Id="3856" Count="0" />
+      <LineId Id="3650" Count="0" />
+      <LineId Id="3849" Count="0" />
+      <LineId Id="3851" Count="0" />
+      <LineId Id="3850" Count="0" />
+      <LineId Id="3848" Count="0" />
+      <LineId Id="3660" Count="0" />
+      <LineId Id="3669" Count="0" />
+      <LineId Id="3854" Count="1" />
+      <LineId Id="3670" Count="21" />
+      <LineId Id="3822" Count="0" />
+      <LineId Id="3824" Count="23" />
+      <LineId Id="3823" Count="0" />
+      <LineId Id="3692" Count="0" />
+      <LineId Id="2536" Count="0" />
+      <LineId Id="3693" Count="0" />
+      <LineId Id="1822" Count="2" />
+      <LineId Id="1821" Count="0" />
+      <LineId Id="1825" Count="0" />
+      <LineId Id="3614" Count="16" />
+      <LineId Id="2818" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
