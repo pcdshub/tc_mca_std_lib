@@ -17,34 +17,28 @@ VAR_OUTPUT
 END_VAR
 
 VAR
-	r_trigError : BOOL;
-	f_trigError : BOOL;
 	iStateError : UINT;
 	iOtherError : UINT;
 	ErrorData	: DUT_TerminalError;
 	nErrSysCNT	: UINT;
 	
 	//testing
-	bStateChanged : BOOL;				//Indicate if state change happened
-	uiInfoData_State_Prev : UINT;		//Previous value of Infodata.State
-	bWcState_Prev : BOOL;				//Previous state of WcState
+	bStateChanged : BOOL;						//Indicate if state change happened
+	uiInfoData_State_Prev : UINT := 16#8;		//Previous value of Infodata.State
+	bWcState_Prev : BOOL := FALSE;				//Previous state of WcState
 	
 	//FB-s
-	myR_Trig : R_TRIG;
-	myF_Trig : F_TRIG;
+	
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
 Currently:
-This system now works mostly like the original FBs from Beckhoff with an extension of error evaluation.
 
 Problem:
-With this mechanism only the first error state is captured. It means that, if the terminal is going through different error states, we will not know it.
-Also if mulitple, but not connected errors occure we will not know it neither.
 
 TODO:
-solve the problem
+
 *)
 
 //Connect EN to EnO
@@ -60,7 +54,6 @@ ELSE
 	bError:=FALSE;
 END_IF
 
-
 //Change detection
 IF uiInfoData_State <> uiInfoData_State_Prev OR bWcState <> bWcState_Prev THEN
 	bStateChanged := TRUE;
@@ -72,20 +65,16 @@ END_IF
 uiInfoData_State_Prev := uiInfoData_State;
 bWcState_Prev := bWcState;
 
-
-
+//Decision tree
 IF bStateChanged THEN
 	IF bError THEN
 		IF ErrorData.ErrorState = DUT_ErrorState.Active THEN
 			//Close active error
-			
-			
 			//Read system time
 			ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
 			ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
 			ErrorData.ErrorState := DUT_ErrorState.Inactive;
-			
-			//Write Off time to Error System
+			//Write Off-time to Error System
 			FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
 				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
 					pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
@@ -97,12 +86,9 @@ IF bStateChanged THEN
 				
 			//Clear ErrorData
 			MEMSET(ADR(ErrorData), 0, SIZEOF(ErrorData));
-			
-			
 		END_IF
+		
 		//Open a new error
-		
-		
 		ErrorData.ErrorState := DUT_ErrorState.Active;												//Set Error State
 		ErrorData.nDateTimeOn := Tc2_EtherCAT.F_GetActualDcTime64();								//Get system time
 		ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOn);			//Convert to string
@@ -154,10 +140,8 @@ IF bStateChanged THEN
 		pErrorSystem^.aErrorData[0] := ErrorData;
 		pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
 		
-		
-	ELSE		//Close Active Error
-		
-		
+	ELSE
+		//Close Active Error
 		//Read system time
 		ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
 		ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
@@ -175,8 +159,6 @@ IF bStateChanged THEN
 			
 		//Clear ErrorData
 		MEMSET(ADR(ErrorData), 0, SIZEOF(ErrorData));
-		
-		
 	END_IF
 END_IF
 
@@ -186,14 +168,13 @@ END_IF
       <LineId Id="162" Count="0" />
       <LineId Id="169" Count="0" />
       <LineId Id="171" Count="0" />
-      <LineId Id="179" Count="0" />
-      <LineId Id="173" Count="2" />
+      <LineId Id="173" Count="0" />
       <LineId Id="178" Count="0" />
       <LineId Id="170" Count="0" />
       <LineId Id="176" Count="0" />
       <LineId Id="168" Count="0" />
       <LineId Id="165" Count="0" />
-      <LineId Id="62" Count="12" />
+      <LineId Id="62" Count="11" />
       <LineId Id="221" Count="1" />
       <LineId Id="207" Count="0" />
       <LineId Id="223" Count="0" />
@@ -204,32 +185,26 @@ END_IF
       <LineId Id="210" Count="0" />
       <LineId Id="253" Count="0" />
       <LineId Id="238" Count="0" />
-      <LineId Id="255" Count="0" />
-      <LineId Id="229" Count="1" />
+      <LineId Id="388" Count="0" />
+      <LineId Id="230" Count="0" />
       <LineId Id="248" Count="0" />
       <LineId Id="234" Count="0" />
-      <LineId Id="354" Count="0" />
-      <LineId Id="310" Count="0" />
       <LineId Id="347" Count="0" />
       <LineId Id="346" Count="0" />
-      <LineId Id="311" Count="14" />
+      <LineId Id="311" Count="2" />
+      <LineId Id="315" Count="10" />
       <LineId Id="239" Count="0" />
-      <LineId Id="348" Count="0" />
-      <LineId Id="344" Count="0" />
       <LineId Id="244" Count="0" />
       <LineId Id="307" Count="0" />
-      <LineId Id="349" Count="0" />
-      <LineId Id="308" Count="0" />
+      <LineId Id="387" Count="0" />
       <LineId Id="256" Count="48" />
       <LineId Id="245" Count="0" />
-      <LineId Id="306" Count="0" />
-      <LineId Id="240" Count="0" />
+      <LineId Id="390" Count="0" />
       <LineId Id="250" Count="0" />
-      <LineId Id="350" Count="1" />
+      <LineId Id="389" Count="0" />
       <LineId Id="326" Count="15" />
       <LineId Id="251" Count="0" />
-      <LineId Id="352" Count="1" />
-      <LineId Id="249" Count="0" />
+      <LineId Id="352" Count="0" />
       <LineId Id="232" Count="0" />
       <LineId Id="228" Count="0" />
       <LineId Id="9" Count="0" />
