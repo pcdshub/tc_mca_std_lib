@@ -28,14 +28,14 @@ VAR_OUTPUT
 	bError: BOOL;
 END_VAR
 VAR
+	fbSetPos1: MC_SetPosition;
+	fbSetPos2: MC_SetPosition;
 	fbGearInMultiMaster_1: MC_GearInMultiMaster;
 	fbGearInMultiMaster_2: MC_GearInMultiMaster;
-	EmptyAxis1: AXIS_REF; // Needed for master axis 3 in MC_GearInMultiMaster
-	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
-	fbHomeDirect1: FB_HomeDirect;
-	fbHomeDirect2: FB_HomeDirect;
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
+	EmptyAxis1: AXIS_REF; // Needed for master axis 3 in MC_GearInMultiMaster
+	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
 	fbPower1: MC_Power;
 	fbPower2: MC_Power;
 	nSlitState: INT := 0;
@@ -209,7 +209,7 @@ CASE nSlitState OF
 			bReverseCalc:=TRUE;
 		END_IF
 	1: // One of the virtual axis has a command so reverse calculate (fbDirectHome) virtual axes positions
-		IF (fbHomeDirect1.bDone AND fbHomeDirect2.bDone)= TRUE THEN
+		IF (fbSetPos1.Done AND fbSetPos2.Done)= TRUE THEN
 			nSlitState:=0;
 			bReverseCalc:=FALSE;				
 		END_IF
@@ -233,6 +233,28 @@ CASE nSlitState OF
 		bDecouple:=FALSE;
 		nSlitState:=0;
 END_CASE
+
+fbSetPos1(
+	Axis:= GapAxis, 
+	Execute:= bReverseCalc, 
+	Position:= Axis1.NcToPlc.SetPos+Axis2.NcToPlc.SetPos, 
+	Mode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+
+fbSetPos2(
+	Axis:= CenterAxis, 
+	Execute:= bReverseCalc, 
+	Position:= (Axis1.NcToPlc.SetPos-Axis2.NcToPlc.SetPos)/2, 
+	Mode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
 
 fbGearInMultiMaster_1(
 	Master1:= GapAxis, 
@@ -278,50 +300,6 @@ fbGearInMultiMaster_2(
 	Active=> , 
 	CommandAborted=> , 
 	Error=> , 
-	ErrorID=> );
-
-fbHomeDirect1(
-	En:= TRUE, 
-	bReset:= bReset, 
-	bExecute:= bReverseCalc, // Won't work without motor power
-	fHomePosition:= Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos, // Gap 
-	Axis:= GapAxis, 
-	EnO=> , 
-	bBusy=> , 
-	bDone=> , 
-	bHomed=> , 
-	bError=> , 
-	nErrorId=> );
-	
-fbHomeDirect2(
-	En:= TRUE, 
-	bReset:= bReset, 
-	bExecute:= bReverseCalc, // Won't work without motor power
-	fHomePosition:= (Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2, // Offset 
-	Axis:= CenterAxis, 
-	EnO=> , 
-	bBusy=> , 
-	bDone=> , 
-	bHomed=> , 
-	bError=> , 
-	nErrorId=> );
-
-fbGearOut1(
-	Slave:= GapAxis, 
-	Execute:= bDecouple, 
-	Options:= , 
-	Done=> , 
-	Busy=> , 
-	Error=> , 
-	ErrorID=> );
-	
-fbGearOut2(
-	Slave:= CenterAxis, 
-	Execute:= bDecouple, 
-	Options:= , 
-	Done=> , 
-	Busy=> , 
-	Error=> , 
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
@@ -358,22 +336,14 @@ fbGearOut2(
       <LineId Id="634" Count="0" />
       <LineId Id="633" Count="0" />
       <LineId Id="177" Count="0" />
+      <LineId Id="926" Count="0" />
+      <LineId Id="928" Count="19" />
+      <LineId Id="927" Count="0" />
       <LineId Id="620" Count="0" />
       <LineId Id="31" Count="20" />
       <LineId Id="9" Count="0" />
       <LineId Id="123" Count="21" />
       <LineId Id="96" Count="0" />
-      <LineId Id="581" Count="0" />
-      <LineId Id="583" Count="16" />
-      <LineId Id="703" Count="0" />
-      <LineId Id="601" Count="5" />
-      <LineId Id="582" Count="0" />
-      <LineId Id="617" Count="0" />
-      <LineId Id="99" Count="6" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="106" Count="0" />
-      <LineId Id="108" Count="6" />
-      <LineId Id="107" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
