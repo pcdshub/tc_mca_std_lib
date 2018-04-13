@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+  <DUT Name="DUT_FB_DriveVirtualIF" Id="{b3ebc52b-ec09-4f86-92ec-2e2385fe4e7a}">
+    <Declaration><![CDATA[TYPE DUT_FB_DriveVirtualIF :
+STRUCT
+	sVersion: STRING;	
+	En: BOOL;
+	bEnable: BOOL;
+	bReset: BOOL;
+	bExecute: BOOL;
+	nCommand: UINT;
+	nCmdData: UINT;
+	fVelocity: LREAL;
+	fPosition: LREAL;
+	fAcceleration: LREAL;
+	fDeceleration: LREAL;
+	bJogFwd: BOOL;
+	bJogBwd: BOOL;
+	bLimitFwd: BOOL;
+	bLimitBwd: BOOL;	
+	fOverride: LREAL := 100;
+	bHomeSensor: BOOL;
+	fHomePosition:LREAL;
+	nHomeRevOffset: UINT;
+	MasterAxis: AXIS_REF;
+	EnO: BOOL;
+	bEnabled: BOOL;
+	bBusy: BOOL;
+	bDone: BOOL;
+	bError: BOOL;
+	bHomed: BOOL;
+	nErrorId: UDINT;
+	nMotionAxisID:UDINT;
+	Status: ST_AxisStatus;
+	fActVelocity: LREAL;
+	fActPosition: LREAL;
+	fActDiff: LREAL;
+    sErrorMessage:STRING;
+	stAxisStatus: DUT_AxisStatus_v0_01;	
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
