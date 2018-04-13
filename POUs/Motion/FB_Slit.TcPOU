@@ -21,7 +21,7 @@ VAR_INPUT
 	bLimitBwd2: BOOL;	
 	bEnable: BOOL;
 	bReset: BOOL;
-	bOverlap: BOOL;	// True = Slits are allowed to overlap and cannot collide
+	bCollisionAvoidanceOFF: BOOL;	// True = Slits are allowed to overlap and cannot collide
 	fMinGap: LREAL;	// in mm
 END_VAR
 VAR_OUTPUT
@@ -189,13 +189,13 @@ stCenter.stAxisStatus.bHomed:=bHomed;*)
 //**********************************************************************************//
 
 // Collision avoidance
-IF NOT bOverlap THEN
+IF NOT bCollisionAvoidanceOFF THEN
 	IF Axis1.Nctoplc.SetPos <= (fMinGap+Axis2.NcToPlc.ActPos) 
 	OR Axis1.Nctoplc.ActPos <= (fMinGap+Axis2.NcToPlc.ActPos) THEN	
 		fbPower1(
-		Axis:= Axis1, // Better way to do this?
-		Enable:= fbAxis1.bEnable,  // Better way to do this?
-		Enable_Positive:= fbAxis1.bEnable AND fbAxis1.bLimitFwd,
+		Axis:= Axis1,
+		Enable:= Axis1.PlcToNc.ControlDWord.0,
+		Enable_Positive:= Axis1.PlcToNc.ControlDWord.1,
 		Enable_Negative:= FALSE, 
 		Override:= , 
 		BufferMode:= , 
@@ -207,13 +207,13 @@ IF NOT bOverlap THEN
 		ErrorID=> );
 	END_IF
 
-	IF Axis2.Nctoplc.SetPos <= (fMinGap+Axis1.NcToPlc.ActPos)
-	OR Axis2.Nctoplc.ActPos <= (fMinGap+Axis1.NcToPlc.ActPos) THEN
+	IF Axis2.Nctoplc.SetPos >= (fMinGap+Axis1.NcToPlc.ActPos)
+	OR Axis2.Nctoplc.ActPos >= (fMinGap+Axis1.NcToPlc.ActPos) THEN
 		fbPower2(
 		Axis:= Axis2, 
-		Enable:= fbAxis2.bEnable, // Better way to do this?
-		Enable_Positive:= fbAxis2.bEnable AND fbAxis2.bLimitFwd, // Better way to do this?
-		Enable_Negative:= FALSE, 
+		Enable:= Axis2.PlcToNc.ControlDWord.0,
+		Enable_Positive:= FALSE,
+		Enable_Negative:= Axis2.PlcToNc.ControlDWord.2, 
 		Override:= , 
 		BufferMode:= , 
 		Options:= , 
