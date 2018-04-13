@@ -185,14 +185,14 @@ stCenter.stAxisStatus.bHomed:=bHomed;*)
 
 // Collision avoidance
 IF NOT bCollisionAvoidanceOFF THEN
-	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) THEN
+	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) AND Axis1.Nctoplc.SetPos > Axis2.NcToPlc.SetPos THEN
 		fbAxis1.fOverride:=ABS(Axis1.Nctoplc.SetPos-Axis2.NcToPlc.SetPos)/fSlowZone*100;
 	ELSE
 		fbAxis1.fOverride:=100;
 	END_IF
 	
-	IF Axis2.Nctoplc.SetPos >= (Axis1.NcToPlc.SetPos-fSlowZone) THEN
-		fbAxis2.fOverride:=ABS(Axis2.Nctoplc.SetPos+Axis1.NcToPlc.SetPos)/fSlowZone*100;
+	IF Axis2.Nctoplc.SetPos >= (Axis1.NcToPlc.SetPos-fSlowZone) AND Axis2.Nctoplc.SetPos < Axis1.NcToPlc.SetPos THEN
+		fbAxis2.fOverride:=ABS(Axis1.NcToPlc.SetPos-Axis2.Nctoplc.SetPos)/fSlowZone*100;
 	ELSE
 		fbAxis2.fOverride:=100;
 	END_IF
