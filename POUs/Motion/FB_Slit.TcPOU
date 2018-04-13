@@ -36,6 +36,8 @@ VAR
 	fbHomeDirect2: FB_HomeDirect;
 	fbGearOut1: MC_GearOut;
 	fbGearOut2: MC_GearOut;
+	fbPower1: MC_Power;
+	fbPower2: MC_Power;
 	nSlitState: INT := 0;
 	bReverseCalc: BOOL:=FALSE;
 	bEnableGearing: BOOL:=FALSE;
@@ -136,7 +138,6 @@ fbCenterAxis.MasterAxis:=stCenter.MasterAxis;
 //Bit 1 and bit 2 of the control word to the nc axis defines whether feed direction is possible or not (do not change manually, done by the power block)
 //Axis1.PlcToNc.ControlDWord.1
 
-
 stCenter.EnO:=fbCenterAxis.EnO;
 stCenter.bEnabled:=fbCenterAxis.bEnabled;
 //stCenter.bBusy:=fbCenterAxis.bBusy;
@@ -155,6 +156,45 @@ stCenter.sErrorMessage:=fbCenterAxis.sErrorMessage;
 stCenter.stAxisStatus:=fbCenterAxis.stAxisStatus;
 
 stCenter.stAxisStatus.fActPosition:=(Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2;
+
+//**********************************************************************************//
+
+// Collision avoidance
+IF NOT bOverlap THEN
+	IF Axis1.Nctoplc.SetPos <= (fMinGap-Axis2.NcToPlc.ActPos) 
+	OR Axis1.Nctoplc.ActPos <= (fMinGap-Axis2.NcToPlc.ActPos) THEN	
+		fbPower1(
+		Axis:= Axis1, // Better way to do this?
+		Enable:= fbAxis1.bEnable,  // Better way to do this?
+		Enable_Positive:= fbAxis1.bEnable AND fbAxis1.bLimitFwd,
+		Enable_Negative:= FALSE, 
+		Override:= , 
+		BufferMode:= , 
+		Options:= , 
+		Status=> , 
+		Busy=> , 
+		Active=> , 
+		Error=> , 
+		ErrorID=> );
+	END_IF
+
+	IF Axis2.Nctoplc.SetPos <= (fMinGap-Axis1.NcToPlc.ActPos)
+	OR Axis2.Nctoplc.ActPos <= (fMinGap-Axis1.NcToPlc.ActPos) THEN
+		fbPower2(
+		Axis:= Axis2, 
+		Enable:= fbAxis2.bEnable, // Better way to do this?
+		Enable_Positive:= fbAxis2.bEnable AND fbAxis2.bLimitFwd, // Better way to do this?
+		Enable_Negative:= FALSE, 
+		Override:= , 
+		BufferMode:= , 
+		Options:= , 
+		Status=> , 
+		Busy=> , 
+		Active=> , 
+		Error=> , 
+		ErrorID=> );	
+	END_IF
+END_IF
 
 //**********************************************************************************//
 
@@ -285,7 +325,9 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
-      <LineId Id="737" Count="109" />
+      <LineId Id="737" Count="88" />
+      <LineId Id="827" Count="19" />
+      <LineId Id="860" Count="38" />
       <LineId Id="735" Count="1" />
       <LineId Id="670" Count="0" />
       <LineId Id="682" Count="1" />
