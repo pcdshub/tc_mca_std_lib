@@ -23,6 +23,7 @@ VAR_INPUT
 	bReset: BOOL;
 	bCollisionAvoidanceOFF: BOOL;	// True = Slits are allowed to overlap and cannot collide
 	fMinGap: LREAL;	// in mm
+	fSlowZone: LREAL;
 END_VAR
 VAR_OUTPUT
 	bError: BOOL;
@@ -38,17 +39,15 @@ VAR
 	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
 	fbPower1: MC_Power;
 	fbPower2: MC_Power;
-	nSlitState: INT := -2;
-	bReverseCalc: BOOL:=FALSE;
-	bEnableGearing: BOOL:=FALSE;
-	bDisableGearing: BOOL:=FALSE;
-	bCoupleToggleOn1: BOOL;
-	bCoupleToggleOn2: BOOL;
 	fbCoupleToggleOn1: R_TRIG;
 	fbCoupleToggleOn2: R_TRIG;
 	fbToggleOn1: R_TRIG;
 	fbToggleOn2: R_TRIG;
 	fbInitTimer: TON;		// Timer to give axes/encoders time to initialise before enabling	
+	nSlitState: INT := -2;
+	bReverseCalc: BOOL:=FALSE;
+	bEnableGearing: BOOL:=FALSE;
+	bDisableGearing: BOOL:=FALSE;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[// Gap interface parameter transfer
@@ -190,6 +189,14 @@ stCenter.stAxisStatus.bHomed:=bHomed;*)
 
 // Collision avoidance
 IF NOT bCollisionAvoidanceOFF THEN
+	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) THEN
+		fbAxis1.fOverride:=ABS(Axis1.Nctoplc.SetPos-Axis2.NcToPlc.SetPos)/fSlowZone*100;
+	END_IF
+	
+	IF Axis2.Nctoplc.SetPos >= (Axis1.NcToPlc.SetPos-fSlowZone) THEN
+		fbAxis2.fOverride:=ABS(Axis2.Nctoplc.SetPos+Axis1.NcToPlc.SetPos)/fSlowZone*100;
+	END_IF
+
 	IF Axis1.Nctoplc.SetPos <= (fMinGap+Axis2.NcToPlc.ActPos) 
 	OR Axis1.Nctoplc.ActPos <= (fMinGap+Axis2.NcToPlc.ActPos) THEN	
 		fbPower1(
@@ -223,6 +230,9 @@ IF NOT bCollisionAvoidanceOFF THEN
 		Error=> , 
 		ErrorID=> );	
 	END_IF
+ELSE
+	fbAxis1.fOverride:=100;
+	fbAxis2.fOverride:=100;
 END_IF
 
 //**********************************************************************************//
@@ -386,7 +396,15 @@ fbGearOut2(
       <LineId Id="1051" Count="22" />
       <LineId Id="1049" Count="0" />
       <LineId Id="846" Count="0" />
-      <LineId Id="860" Count="38" />
+      <LineId Id="860" Count="3" />
+      <LineId Id="1096" Count="0" />
+      <LineId Id="1098" Count="2" />
+      <LineId Id="1102" Count="1" />
+      <LineId Id="1101" Count="0" />
+      <LineId Id="1095" Count="0" />
+      <LineId Id="864" Count="32" />
+      <LineId Id="1117" Count="2" />
+      <LineId Id="897" Count="1" />
       <LineId Id="735" Count="1" />
       <LineId Id="948" Count="59" />
       <LineId Id="926" Count="0" />
