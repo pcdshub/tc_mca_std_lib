@@ -41,11 +41,14 @@ VAR
 	nSlitState: INT := 0;
 	bReverseCalc: BOOL:=FALSE;
 	bEnableGearing: BOOL:=FALSE;
-	bDecouple: BOOL:=FALSE;
+	bDisableGearing: BOOL:=FALSE;
 	bCoupleToggleOn1: BOOL;
 	bCoupleToggleOn2: BOOL;
 	fbCoupleToggleOn1: R_TRIG;
-	fbCoupleToggleOn2: R_TRIG;	
+	fbCoupleToggleOn2: R_TRIG;
+	fbToggleOn1: R_TRIG;
+	fbToggleOn2: R_TRIG;
+	fbInitTimer: TON;		// Timer to give axes/encoders time to initialise before enabling	
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[// Gap interface parameter transfer
@@ -198,41 +201,67 @@ END_IF
 
 //**********************************************************************************//
 
-//fbCoupleToggleOn(CLK:= GapAxis.Status.HasJob OR CenterAxis.Status.HasJob , Q=> bCoupleToggleOn);
-fbCoupleToggleOn1(CLK:= MAIN.M3.bExecute, Q=> bCoupleToggleOn1);
-fbCoupleToggleOn2(CLK:= MAIN.M4.bExecute, Q=> bCoupleToggleOn2);
+fbToggleOn1(CLK:= fbGapAxis.bExecute);
+fbToggleOn2(CLK:= fbCenterAxis.bExecute);
 
-CASE nSlitState OF
-	0: // Wait for user to request coupling turned on
-		IF bEnable THEN	
-			nSlitState:=nSlitState+1;
+IF bEnable AND (fbToggleOn1.Q OR fbToggleOn2.Q) THEN
+	nSlitState:=2;
+	bReverseCalc:=FALSE;
+	bDisableGearing:=FALSE;
+END_IF
+
+IF bEnable AND NOT bReset THEN	
+	CASE nSlitState OF
+		-2:
+			IF GapAxis.Status.Operational AND CenterAxis.Status.Operational THEN
+				stGap.bEnable:=TRUE;
+				stCenter.bEnable:=TRUE;					
+				nSlitState:=nSlitState+1;				
+			END_IF
+		-1:
+			fbInitTimer(IN:= TRUE, PT:= T#1S, Q=> , ET=> );
+			IF fbInitTimer.Q THEN
+				fbAxis1.bEnable:=TRUE;
+				fbAxis2.bEnable:=TRUE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		0: 	
 			bReverseCalc:=TRUE;
-		END_IF
-	1: // One of the virtual axis has a command so reverse calculate (fbDirectHome) virtual axes positions
-		IF (fbSetPos1.Done AND fbSetPos2.Done)= TRUE THEN
+			bDisableGearing:=FALSE;
+			nSlitState:=nSlitState+1;
+		1: 
+			IF fbSetPos1.Done AND fbSetPos2.Done THEN
+				bReverseCalc:=FALSE;
+				nSlitState:=nSlitState-1;	
+			END_IF
+		2:
+			bEnableGearing:=TRUE;		
+			nSlitState:=nSlitState+1;
+		3:
+			IF fbGearInMultiMaster_1.InGear AND fbGearInMultiMaster_2.InGear THEN
+				nSlitState:=nSlitState+1;
+			END_IF
+		4: 
+			IF GapAxis.Status.HasJob OR CenterAxis.Status.HasJob THEN
+				nSlitState:=nSlitState+1;				
+			END_IF
+		5:
+			IF GapAxis.Status.InTargetPosition AND CenterAxis.Status.InTargetPosition AND Axis1.Status.NotMoving AND Axis2.Status.NotMoving THEN
+				bEnableGearing:=FALSE;
+				nSlitState:=nSlitState+1;
+			END_IF
+		6:
+			bDisableGearing:=TRUE;
+			nSlitState:=nSlitState+1;
+		7:
+			bDisableGearing:=FALSE;
 			nSlitState:=0;
-			bReverseCalc:=FALSE;				
-		END_IF
-		IF bCoupleToggleOn1 OR bCoupleToggleOn2 THEN
-			nSlitState:=2;	
-		END_IF
-	2: // Turn off reverse calculate (fbDirectHome)
-		bReverseCalc:=FALSE;
-		bEnableGearing:=TRUE;
-		nSlitState:=nSlitState+1;
-	3: // Start GearInMultiMaster function blocks
-		bEnableGearing:=FALSE;
-		nSlitState:=nSlitState+1;
-	4: // Wait until movement is finished and then uncouple
-		IF NOT (GapAxis.Status.HasJob AND CenterAxis.Status.HasJob AND Axis1.Status.HasJob AND Axis2.Status.HasJob)  THEN
-			bEnableGearing:=FALSE;
-			bDecouple:=TRUE;
-			nSlitState:=nSlitState+1;		
-		END_IF
-	5: // Finish decoupling and return to start
-		bDecouple:=FALSE;
-		nSlitState:=0;
-END_CASE
+	END_CASE
+ELSE
+	bEnableGearing:=FALSE;
+	bDisableGearing:=TRUE;
+	nSlitState:=-2;
+END_IF
 
 fbSetPos1(
 	Axis:= GapAxis, 
@@ -300,6 +329,24 @@ fbGearInMultiMaster_2(
 	Active=> , 
 	CommandAborted=> , 
 	Error=> , 
+	ErrorID=> );
+	
+fbGearOut1(
+	Slave:= Axis1, 
+	Execute:= bDisableGearing, 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+	
+fbGearOut2(
+	Slave:= Axis2, 
+	Execute:= bDisableGearing, 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
@@ -307,36 +354,9 @@ fbGearInMultiMaster_2(
       <LineId Id="827" Count="19" />
       <LineId Id="860" Count="38" />
       <LineId Id="735" Count="1" />
-      <LineId Id="670" Count="0" />
-      <LineId Id="682" Count="1" />
-      <LineId Id="667" Count="0" />
-      <LineId Id="441" Count="0" />
-      <LineId Id="215" Count="0" />
-      <LineId Id="672" Count="0" />
-      <LineId Id="662" Count="0" />
-      <LineId Id="696" Count="0" />
-      <LineId Id="673" Count="0" />
-      <LineId Id="184" Count="0" />
-      <LineId Id="361" Count="0" />
-      <LineId Id="701" Count="1" />
-      <LineId Id="700" Count="0" />
-      <LineId Id="698" Count="0" />
-      <LineId Id="551" Count="0" />
-      <LineId Id="496" Count="0" />
-      <LineId Id="676" Count="1" />
-      <LineId Id="681" Count="0" />
-      <LineId Id="614" Count="1" />
-      <LineId Id="627" Count="1" />
-      <LineId Id="623" Count="0" />
-      <LineId Id="198" Count="0" />
-      <LineId Id="626" Count="0" />
-      <LineId Id="630" Count="0" />
-      <LineId Id="199" Count="1" />
-      <LineId Id="632" Count="0" />
-      <LineId Id="634" Count="0" />
-      <LineId Id="633" Count="0" />
-      <LineId Id="177" Count="0" />
+      <LineId Id="948" Count="59" />
       <LineId Id="926" Count="0" />
+      <LineId Id="1008" Count="0" />
       <LineId Id="928" Count="19" />
       <LineId Id="927" Count="0" />
       <LineId Id="620" Count="0" />
@@ -344,6 +364,9 @@ fbGearInMultiMaster_2(
       <LineId Id="9" Count="0" />
       <LineId Id="123" Count="21" />
       <LineId Id="96" Count="0" />
+      <LineId Id="1012" Count="0" />
+      <LineId Id="1015" Count="15" />
+      <LineId Id="1013" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
