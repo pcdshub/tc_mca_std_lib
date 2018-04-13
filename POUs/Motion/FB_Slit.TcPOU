@@ -38,7 +38,7 @@ VAR
 	EmptyAxis2: AXIS_REF; // Needed for master axis 4 in MC_GearInMultiMaster
 	fbPower1: MC_Power;
 	fbPower2: MC_Power;
-	nSlitState: INT := 0;
+	nSlitState: INT := -2;
 	bReverseCalc: BOOL:=FALSE;
 	bEnableGearing: BOOL:=FALSE;
 	bDisableGearing: BOOL:=FALSE;
@@ -83,13 +83,14 @@ stGap.nErrorId:=fbGapAxis.nErrorId;
 stGap.nMotionAxisID:=fbGapAxis.nMotionAxisID;
 stGap.Status:=fbGapAxis.Status;
 //stGap.fActPosition:=fbGapAxis.fActPosition;
-stGap.fActPosition:=Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos;
+stGap.fActPosition:=Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos;
 stGap.fActVelocity:=fbGapAxis.fActVelocity;
 stGap.fActDiff:=fbGapAxis.fActDiff;
 stGap.sErrorMessage:=fbGapAxis.sErrorMessage;
 stGap.stAxisStatus:=fbGapAxis.stAxisStatus;
 
 //Status struct for EPICS communication
+//These parameters are transferred as a whole struct, included here just in case something should be changed
 (*stGap.stAxisStatus.bEnable:=bEnable;
 stGap.stAxisStatus.bEnabled:=bEnabled;
 stGap.stAxisStatus.bError:=bError;
@@ -103,7 +104,7 @@ stGap.stAxisStatus.bReset:=bReset;
 stGap.stAxisStatus.fAcceleration:=fAcceleration;
 stGap.stAxisStatus.fActDiff:=fActDiff;*)
 //stGap.stAxisStatus.fActPosition:=fActPosition;
-stGap.stAxisStatus.fActPosition:=Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos;
+stGap.stAxisStatus.fActPosition:=Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos;
 (*stGap.stAxisStatus.fActVelocity:=fActVelocity;
 stGap.stAxisStatus.fDeceleration:=fDeceleration;
 stGap.stAxisStatus.fOverride:=fOverride;
@@ -152,20 +153,45 @@ stCenter.nErrorId:=fbCenterAxis.nErrorId;
 stCenter.nMotionAxisID:=fbCenterAxis.nMotionAxisID;
 stCenter.Status:=fbCenterAxis.Status;
 //stCenter.fActPosition:=fbCenterAxis.fActPosition;
-stCenter.fActPosition:=(Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2;
+stCenter.fActPosition:=(Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos)/2;
 stCenter.fActVelocity:=fbCenterAxis.fActVelocity;
 stCenter.fActDiff:=fbCenterAxis.fActDiff;
 stCenter.sErrorMessage:=fbCenterAxis.sErrorMessage;
 stCenter.stAxisStatus:=fbCenterAxis.stAxisStatus;
 
-stCenter.stAxisStatus.fActPosition:=(Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos)/2;
+//Status struct for EPICS communication
+//These parameters are transferred as a whole struct, included here just in case something should be changed
+(*stCenter.stAxisStatus.bEnable:=bEnable;
+stCenter.stAxisStatus.bEnabled:=bEnabled;
+stCenter.stAxisStatus.bError:=bError;
+stCenter.stAxisStatus.bExecute:=bExecute;
+stCenter.stAxisStatus.bHomeSensor:=bHomeSensor;
+stCenter.stAxisStatus.bJogBwd:=bJogBwd;
+stCenter.stAxisStatus.bJogFwd:=bJogFwd;
+stCenter.stAxisStatus.bLimitBwd:=bLimitBwd;
+stCenter.stAxisStatus.bLimitFwd:=bLimitFwd;
+stCenter.stAxisStatus.bReset:=bReset;
+stCenter.stAxisStatus.fAcceleration:=fAcceleration;
+stCenter.stAxisStatus.fActDiff:=fActDiff;*)
+//stCenter.stAxisStatus.fActPosition:=fActPosition;
+stCenter.stAxisStatus.fActPosition:=(Axis1.NcToPlc.ActPos+Axis2.NcToPlc.ActPos)/2;
+(*stCenter.stAxisStatus.fActVelocity:=fActVelocity;
+stCenter.stAxisStatus.fDeceleration:=fDeceleration;
+stCenter.stAxisStatus.fOverride:=fOverride;
+stCenter.stAxisStatus.fPosition:=fPosition;
+stCenter.stAxisStatus.fVelocity:=fVelocity;
+stCenter.stAxisStatus.nCmdData:=nCmdData;  //Or nCmdDataLocal
+stCenter.stAxisStatus.nCommand:=nCommand;  //Or nCommandLocal
+stCenter.stAxisStatus.nErrorId:=nErrorId;
+stCenter.stAxisStatus.bBusy:=bBusy;
+stCenter.stAxisStatus.bHomed:=bHomed;*)
 
 //**********************************************************************************//
 
 // Collision avoidance
 IF NOT bOverlap THEN
-	IF Axis1.Nctoplc.SetPos <= (fMinGap-Axis2.NcToPlc.ActPos) 
-	OR Axis1.Nctoplc.ActPos <= (fMinGap-Axis2.NcToPlc.ActPos) THEN	
+	IF Axis1.Nctoplc.SetPos <= (fMinGap+Axis2.NcToPlc.ActPos) 
+	OR Axis1.Nctoplc.ActPos <= (fMinGap+Axis2.NcToPlc.ActPos) THEN	
 		fbPower1(
 		Axis:= Axis1, // Better way to do this?
 		Enable:= fbAxis1.bEnable,  // Better way to do this?
@@ -181,8 +207,8 @@ IF NOT bOverlap THEN
 		ErrorID=> );
 	END_IF
 
-	IF Axis2.Nctoplc.SetPos <= (fMinGap-Axis1.NcToPlc.ActPos)
-	OR Axis2.Nctoplc.ActPos <= (fMinGap-Axis1.NcToPlc.ActPos) THEN
+	IF Axis2.Nctoplc.SetPos <= (fMinGap+Axis1.NcToPlc.ActPos)
+	OR Axis2.Nctoplc.ActPos <= (fMinGap+Axis1.NcToPlc.ActPos) THEN
 		fbPower2(
 		Axis:= Axis2, 
 		Enable:= fbAxis2.bEnable, // Better way to do this?
@@ -266,7 +292,7 @@ END_IF
 fbSetPos1(
 	Axis:= GapAxis, 
 	Execute:= bReverseCalc, 
-	Position:= Axis1.NcToPlc.SetPos+Axis2.NcToPlc.SetPos, 
+	Position:= Axis1.NcToPlc.SetPos-Axis2.NcToPlc.SetPos, 
 	Mode:= , 
 	Options:= , 
 	Done=> , 
@@ -277,7 +303,7 @@ fbSetPos1(
 fbSetPos2(
 	Axis:= CenterAxis, 
 	Execute:= bReverseCalc, 
-	Position:= (Axis1.NcToPlc.SetPos-Axis2.NcToPlc.SetPos)/2, 
+	Position:= (Axis1.NcToPlc.SetPos+Axis2.NcToPlc.SetPos)/2, 
 	Mode:= , 
 	Options:= , 
 	Done=> , 
@@ -315,8 +341,8 @@ fbGearInMultiMaster_2(
 	Master4:= EmptyAxis2, 
 	Slave:= Axis2, 
 	Enable:= bEnableGearing, 
-	GearRatio1:= 0.5, 
-	GearRatio2:= -1, 
+	GearRatio1:= -0.5, 
+	GearRatio2:= 1, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -350,8 +376,16 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
-      <LineId Id="737" Count="88" />
-      <LineId Id="827" Count="19" />
+      <LineId Id="737" Count="38" />
+      <LineId Id="1075" Count="0" />
+      <LineId Id="776" Count="49" />
+      <LineId Id="827" Count="16" />
+      <LineId Id="1048" Count="0" />
+      <LineId Id="1050" Count="0" />
+      <LineId Id="1074" Count="0" />
+      <LineId Id="1051" Count="22" />
+      <LineId Id="1049" Count="0" />
+      <LineId Id="846" Count="0" />
       <LineId Id="860" Count="38" />
       <LineId Id="735" Count="1" />
       <LineId Id="948" Count="59" />
