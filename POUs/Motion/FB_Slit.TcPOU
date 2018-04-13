@@ -15,15 +15,11 @@ VAR_IN_OUT
     stCenter:DUT_FB_DriveVirtualIF;
 END_VAR
 VAR_INPUT
-	bLimitFwd1: BOOL;
-	bLimitBwd1: BOOL;
-	bLimitFwd2: BOOL;
-	bLimitBwd2: BOOL;	
 	bEnable: BOOL;
 	bReset: BOOL;
 	bCollisionAvoidanceOFF: BOOL;	// True = Slits are allowed to overlap and cannot collide
-	fMinGap: LREAL;	// in mm
-	fSlowZone: LREAL;
+	fMinGap: LREAL;	// units = mm
+	fSlowZone: LREAL;	// zone in between slit blades where velocity will be reduced, units = mm
 END_VAR
 VAR_OUTPUT
 	bError: BOOL;
@@ -191,10 +187,14 @@ stCenter.stAxisStatus.bHomed:=bHomed;*)
 IF NOT bCollisionAvoidanceOFF THEN
 	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) THEN
 		fbAxis1.fOverride:=ABS(Axis1.Nctoplc.SetPos-Axis2.NcToPlc.SetPos)/fSlowZone*100;
+	ELSE
+		fbAxis1.fOverride:=100;
 	END_IF
 	
 	IF Axis2.Nctoplc.SetPos >= (Axis1.NcToPlc.SetPos-fSlowZone) THEN
 		fbAxis2.fOverride:=ABS(Axis2.Nctoplc.SetPos+Axis1.NcToPlc.SetPos)/fSlowZone*100;
+	ELSE
+		fbAxis2.fOverride:=100;
 	END_IF
 
 	IF Axis1.Nctoplc.SetPos <= (fMinGap+Axis2.NcToPlc.ActPos) 
@@ -398,8 +398,12 @@ fbGearOut2(
       <LineId Id="846" Count="0" />
       <LineId Id="860" Count="3" />
       <LineId Id="1096" Count="0" />
-      <LineId Id="1098" Count="2" />
+      <LineId Id="1098" Count="0" />
+      <LineId Id="1120" Count="1" />
+      <LineId Id="1099" Count="1" />
       <LineId Id="1102" Count="1" />
+      <LineId Id="1124" Count="0" />
+      <LineId Id="1123" Count="0" />
       <LineId Id="1101" Count="0" />
       <LineId Id="1095" Count="0" />
       <LineId Id="864" Count="32" />
