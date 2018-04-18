@@ -182,13 +182,15 @@ stCenter.stAxisStatus.bHomed:=bHomed;*)
 
 // Collision avoidance
 IF NOT bCollisionAvoidanceOFF THEN
-	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) AND Axis1.Nctoplc.SetPos > Axis2.NcToPlc.SetPos THEN
+	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) AND Axis1.Nctoplc.SetPos > Axis2.NcToPlc.SetPos 
+	AND Axis1.Status.Moving AND Axis1.Status.NegativeDirection THEN
 		fbAxis1.fOverride:=ABS(Axis1.Nctoplc.SetPos-Axis2.NcToPlc.SetPos)/fSlowZone*100;
 	ELSE
 		fbAxis1.fOverride:=100;
 	END_IF
 	
-	IF Axis2.Nctoplc.SetPos >= (Axis1.NcToPlc.SetPos-fSlowZone) AND Axis2.Nctoplc.SetPos < Axis1.NcToPlc.SetPos THEN
+	IF Axis2.Nctoplc.SetPos >= (Axis1.NcToPlc.SetPos-fSlowZone) AND Axis2.Nctoplc.SetPos < Axis1.NcToPlc.SetPos 
+	AND Axis2.Status.Moving AND Axis2.Status.PositiveDirection THEN
 		fbAxis2.fOverride:=ABS(Axis1.NcToPlc.SetPos-Axis2.Nctoplc.SetPos)/fSlowZone*100;
 	ELSE
 		fbAxis2.fOverride:=100;
@@ -395,10 +397,13 @@ fbGearOut2(
       <LineId Id="846" Count="0" />
       <LineId Id="860" Count="3" />
       <LineId Id="1096" Count="0" />
+      <LineId Id="1170" Count="0" />
       <LineId Id="1098" Count="0" />
       <LineId Id="1120" Count="1" />
       <LineId Id="1099" Count="1" />
-      <LineId Id="1102" Count="1" />
+      <LineId Id="1102" Count="0" />
+      <LineId Id="1171" Count="0" />
+      <LineId Id="1103" Count="0" />
       <LineId Id="1124" Count="0" />
       <LineId Id="1123" Count="0" />
       <LineId Id="1101" Count="0" />
