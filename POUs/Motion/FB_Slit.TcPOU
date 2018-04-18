@@ -105,8 +105,8 @@ stGap.stAxisStatus.fDeceleration:=fDeceleration;
 stGap.stAxisStatus.fOverride:=fOverride;
 stGap.stAxisStatus.fPosition:=fPosition;
 stGap.stAxisStatus.fVelocity:=fVelocity;
-stGap.stAxisStatus.nCmdData:=nCmdData;  //Or nCmdDataLocal
-stGap.stAxisStatus.nCommand:=nCommand;  //Or nCommandLocal
+stGap.stAxisStatus.nCmdData:=nCmdData;  
+stGap.stAxisStatus.nCommand:=nCommand;
 stGap.stAxisStatus.nErrorId:=nErrorId;
 stGap.stAxisStatus.bBusy:=bBusy;
 stGap.stAxisStatus.bHomed:=bHomed;*)
@@ -133,9 +133,6 @@ fbCenterAxis.fOverride:=stCenter.fOverride;
 fbCenterAxis.fHomePosition:=stCenter.fHomePosition;
 fbCenterAxis.nHomeRevOffset:=stCenter.nHomeRevOffset;
 fbCenterAxis.MasterAxis:=stCenter.MasterAxis;
-
-//Bit 1 and bit 2 of the control word to the nc axis defines whether feed direction is possible or not (do not change manually, done by the power block)
-//Axis1.PlcToNc.ControlDWord.1
 
 stCenter.EnO:=fbCenterAxis.EnO;
 stCenter.bEnabled:=fbCenterAxis.bEnabled;
@@ -175,8 +172,8 @@ stCenter.stAxisStatus.fDeceleration:=fDeceleration;
 stCenter.stAxisStatus.fOverride:=fOverride;
 stCenter.stAxisStatus.fPosition:=fPosition;
 stCenter.stAxisStatus.fVelocity:=fVelocity;
-stCenter.stAxisStatus.nCmdData:=nCmdData;  //Or nCmdDataLocal
-stCenter.stAxisStatus.nCommand:=nCommand;  //Or nCommandLocal
+stCenter.stAxisStatus.nCmdData:=nCmdData;
+stCenter.stAxisStatus.nCommand:=nCommand;
 stCenter.stAxisStatus.nErrorId:=nErrorId;
 stCenter.stAxisStatus.bBusy:=bBusy;
 stCenter.stAxisStatus.bHomed:=bHomed;*)
@@ -388,7 +385,7 @@ fbGearOut2(
     <LineIds Name="FB_Slit">
       <LineId Id="737" Count="38" />
       <LineId Id="1075" Count="0" />
-      <LineId Id="776" Count="49" />
+      <LineId Id="776" Count="46" />
       <LineId Id="827" Count="16" />
       <LineId Id="1048" Count="0" />
       <LineId Id="1050" Count="0" />
