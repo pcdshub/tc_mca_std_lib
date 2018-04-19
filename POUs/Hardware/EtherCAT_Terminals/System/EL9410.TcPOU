@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL9410" Id="{4a3117c8-7807-46a2-8f94-5841c9d9b645}" SpecialFunc="None">
+    <Declaration><![CDATA[//EL9410 | E-Bus power supplier and refresher, diagnostics
+FUNCTION_BLOCK EL9410
+
+VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO: BOOL;
+	bError: BOOL;
+END_VAR
+
+VAR
+	bStatus_Us_UV AT %I* : BOOL;
+	bStatus_Up_UV AT %I* : BOOL;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL9410_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+* TODO:
+* Status bits
+*)
+
+EnO:=En;
+
+//Error FB instance
+EL9410_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="EL9410">
+      <LineId Id="26" Count="16" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

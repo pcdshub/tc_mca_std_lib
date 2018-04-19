@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL3255" Id="{196b856f-d8fb-491f-ab71-4ec8edd9b398}" SpecialFunc="None">
+    <Declaration><![CDATA[//EL3255 | 5-channel potentiometer measurement with sensor supply
+FUNCTION_BLOCK EL3255
+
+VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO : BOOL;	
+	Ch1_Value : INT;
+	Ch2_Value : INT;
+	Ch3_Value : INT;
+	Ch4_Value : INT;
+	Ch5_Value : INT;
+	bError : BOOL;
+END_VAR
+
+VAR
+	AI_Std_Ch1_Value AT %I* : INT;
+	AI_Std_Ch2_Value AT %I* : INT;
+	AI_Std_Ch3_Value AT %I* : INT;
+	AI_Std_Ch4_Value AT %I* : INT;
+	AI_Std_Ch5_Value AT %I* : INT;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL3255_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+* TODO:
+* Channel Status words
+*)
+
+EnO:=En;
+
+//Error FB instance
+EL3255_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF EN THEN
+	IF NOT bError THEN
+		Ch1_Value := AI_Std_Ch1_Value;
+		Ch2_Value := AI_Std_Ch2_Value;
+		Ch3_Value := AI_Std_Ch3_Value;
+		Ch4_Value := AI_Std_Ch4_Value;
+		Ch5_Value := AI_Std_Ch5_Value;
+	ELSE
+		Ch1_Value := 0;
+		Ch2_Value := 0;
+		Ch3_Value := 0;
+		Ch4_Value := 0;
+		Ch5_Value := 0;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="EL3255">
+      <LineId Id="34" Count="20" />
+      <LineId Id="59" Count="2" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="62" Count="3" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

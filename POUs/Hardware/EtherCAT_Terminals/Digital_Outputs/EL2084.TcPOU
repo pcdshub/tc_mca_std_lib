@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL2084" Id="{be8a5e68-0c94-446d-9378-297bc4f60ee4}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL2084 | 4-channel digital output terminal 24 V DC, 0.5 A, negative switching
+FUNCTION_BLOCK EL2084
+
+VAR_INPUT
+	En: BOOL;
+	bDo_1: BOOL;
+	bDo_2: BOOL;
+	bDo_3: BOOL;
+	bDo_4: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO: BOOL;
+	bError: BOOL;
+END_VAR
+
+VAR
+	Channel_1_Output AT %Q*: BOOL;
+	Channel_2_Output AT %Q*: BOOL;
+	Channel_3_Output AT %Q*: BOOL;
+	Channel_4_Output AT %Q*: BOOL;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL2084_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[EnO:=En;
+
+//Error FB instance
+EL2084_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF En THEN
+	IF bError=FALSE THEN
+		Channel_1_Output:=bDo_1;
+		Channel_2_Output:=bDo_2;
+		Channel_3_Output:=bDo_3;
+		Channel_4_Output:=bDo_4;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="EL2084">
+      <LineId Id="3" Count="1" />
+      <LineId Id="47" Count="7" />
+      <LineId Id="9" Count="8" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
