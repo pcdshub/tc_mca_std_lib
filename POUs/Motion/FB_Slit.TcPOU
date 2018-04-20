@@ -3,8 +3,8 @@
   <POU Name="FB_Slit" Id="{96cc3dff-2d48-44bb-aac4-147730d312ba}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Slit
 VAR_IN_OUT
-	Axis1: AXIS_REF; 	// Right/Lower
-	Axis2: AXIS_REF;	// Left/Upper
+	Axis1: AXIS_REF; 	// Positive blade (in global co-ordinate system): Left/port (when travelling with the beam) Y+ OR Upper Z+
+	Axis2: AXIS_REF;	// Negative blade (in global co-ordinate system): Right/starboard (when travelling with the beam) Y- OR Lower Z-
 	GapAxis: AXIS_REF;
 	CenterAxis: AXIS_REF;
 	fbAxis1: FB_DriveVirtual;
