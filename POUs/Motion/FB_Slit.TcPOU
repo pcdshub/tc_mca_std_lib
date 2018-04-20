@@ -44,6 +44,8 @@ VAR
 	bReverseCalc: BOOL:=FALSE;
 	bEnableGearing: BOOL:=FALSE;
 	bDisableGearing: BOOL:=FALSE;
+	fSetposAxis1: LREAL;
+	fSetposAxis2: LREAL;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[// Gap interface parameter transfer
@@ -294,10 +296,14 @@ ELSE
 	nSlitState:=-2;
 END_IF
 
+// Remove inaccuracies from floating point numbers - not required for logic of code
+//fSetposAxis1:=LINT_TO_LREAL(LREAL_TO_LINT(Axis1.NcToPlc.SetPos*10000))/10000;
+//fSetposAxis2:=LINT_TO_LREAL(LREAL_TO_LINT(Axis2.NcToPlc.SetPos*10000))/10000;
+
 fbSetPos1(
 	Axis:= GapAxis, 
 	Execute:= bReverseCalc, 
-	Position:= Axis1.NcToPlc.SetPos-Axis2.NcToPlc.SetPos, 
+	Position:= fSetposAxis1-fSetposAxis2, 
 	Mode:= , 
 	Options:= , 
 	Done=> , 
@@ -308,7 +314,7 @@ fbSetPos1(
 fbSetPos2(
 	Axis:= CenterAxis, 
 	Execute:= bReverseCalc, 
-	Position:= (Axis1.NcToPlc.SetPos+Axis2.NcToPlc.SetPos)/2, 
+	Position:= (fSetposAxis1+fSetposAxis2)/2, 
 	Mode:= , 
 	Options:= , 
 	Done=> , 
@@ -407,8 +413,16 @@ fbGearOut2(
       <LineId Id="1117" Count="2" />
       <LineId Id="897" Count="1" />
       <LineId Id="735" Count="1" />
-      <LineId Id="948" Count="59" />
+      <LineId Id="948" Count="4" />
+      <LineId Id="1175" Count="0" />
+      <LineId Id="1173" Count="0" />
+      <LineId Id="955" Count="17" />
+      <LineId Id="1179" Count="0" />
+      <LineId Id="1174" Count="0" />
+      <LineId Id="975" Count="32" />
       <LineId Id="926" Count="0" />
+      <LineId Id="1228" Count="0" />
+      <LineId Id="1223" Count="2" />
       <LineId Id="1008" Count="0" />
       <LineId Id="928" Count="19" />
       <LineId Id="927" Count="0" />
