@@ -297,8 +297,8 @@ ELSE
 END_IF
 
 // Remove inaccuracies from floating point numbers - not required for logic of code
-//fSetposAxis1:=LINT_TO_LREAL(LREAL_TO_LINT(Axis1.NcToPlc.SetPos*10000))/10000;
-//fSetposAxis2:=LINT_TO_LREAL(LREAL_TO_LINT(Axis2.NcToPlc.SetPos*10000))/10000;
+fSetposAxis1:=LINT_TO_LREAL(LREAL_TO_LINT(Axis1.NcToPlc.SetPos*10000))/10000;
+fSetposAxis2:=LINT_TO_LREAL(LREAL_TO_LINT(Axis2.NcToPlc.SetPos*10000))/10000;
 
 fbSetPos1(
 	Axis:= GapAxis, 
