@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="EL1872" Id="{3ace7b69-1cfb-4a8d-9c7c-e39ec6dce330}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1872 | 16-channel digital input terminals 24 V DC, 10 µs, type 3, flat-ribbon cable connection
 FUNCTION_BLOCK EL1872
@@ -52,14 +52,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL1872_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
 //Error FB instance
-EL1872_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

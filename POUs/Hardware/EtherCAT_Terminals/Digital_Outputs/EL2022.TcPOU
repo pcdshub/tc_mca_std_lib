@@ -24,14 +24,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL2022_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
 //Error FB instance
-EL2022_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

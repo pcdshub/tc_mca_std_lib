@@ -33,12 +33,8 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-Currently:
-
-Problem:
-
-TODO:
-
+*
+*
 *)
 
 //Connect EN to EnO
@@ -69,15 +65,13 @@ bWcState_Prev := bWcState;
 IF bStateChanged THEN
 	IF bError THEN
 		IF ErrorData.ErrorState = DUT_ErrorState.Active THEN
-			//Close active error
+	//Close active error
 			//Read system time
-			ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
-			ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
+			ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
 			ErrorData.ErrorState := DUT_ErrorState.Inactive;
 			//Write Off-time to Error System
 			FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
 				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-					pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
 					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
 					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
 					EXIT;
@@ -88,13 +82,10 @@ IF bStateChanged THEN
 			MEMSET(ADR(ErrorData), 0, SIZEOF(ErrorData));
 		END_IF
 		
-		//Open a new error
-		ErrorData.ErrorState := DUT_ErrorState.Active;												//Set Error State
-		ErrorData.nDateTimeOn := Tc2_EtherCAT.F_GetActualDcTime64();								//Get system time
-		ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOn);			//Convert to string
-		ErrorData.iTerminalID := iTerminal_ID;														//Terminal_ID
-		ErrorData.bWcState := bWcState;																//WcState bit
-		ErrorData.uiInfoDataState := uiInfoData_State;												//uiInfoData_State
+	//Open a new error
+		ErrorData.ErrorState := DUT_ErrorState.Active;															//Set Error State
+		ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());			//Convert to string
+		ErrorData.iTerminalID := iTerminal_ID;																	//Terminal_ID
 		
 		//Error message according to uiInfoData_State and WcState
 		iStateError := (uiInfoData_State AND 16#000F);												//Mask for operation state 
@@ -105,16 +96,16 @@ IF bStateChanged THEN
 			16#0002 : ErrorData.sErrorMessage := 'Slave in PREOP state;   ';
 			16#0003 : ErrorData.sErrorMessage := 'Slave in BOOT state;   ';
 			16#0004 : ErrorData.sErrorMessage := 'Slave in SAFEOP state;   ';
-			16#0008 : ;																			//Normal operation state
+			16#0008 : ;																				//Normal operation state
 		ELSE
-			ErrorData.sErrorMessage := 'Undefined State of operation;   ';						//I hope we will never see this message
+			ErrorData.sErrorMessage := 'Undefined State of operation;   ';							//I hope we will never see this message
 			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, UINT_TO_STRING(iStateError));
 			ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, '   ');
 		END_CASE
 		
 		//Error messages according to the second least significant digit
 		CASE iOtherError OF
-			16#0000 : ;																			//No error case
+			16#0000 : ;																				//No error case
 			16#0010 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Slave signals error;   ');
 			16#0020 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Invalid vendorID/productCode read;   ');
 			16#0040 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Initialisation error occured;   ');
@@ -141,16 +132,14 @@ IF bStateChanged THEN
 		pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
 		
 	ELSE
-		//Close Active Error
+	//Close Active Error
 		//Read system time
-		ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
-		ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
+		ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
 		ErrorData.ErrorState := DUT_ErrorState.Inactive;
 		
 		//Write Off time to Error System
 		FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
 			IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-				pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
 				pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
 				pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
 				EXIT;
@@ -166,12 +155,8 @@ END_IF
     </Implementation>
     <LineIds Name="FB_TerminalError">
       <LineId Id="162" Count="0" />
-      <LineId Id="169" Count="0" />
-      <LineId Id="171" Count="0" />
-      <LineId Id="173" Count="0" />
-      <LineId Id="178" Count="0" />
-      <LineId Id="170" Count="0" />
       <LineId Id="176" Count="0" />
+      <LineId Id="420" Count="0" />
       <LineId Id="168" Count="0" />
       <LineId Id="165" Count="0" />
       <LineId Id="62" Count="11" />
@@ -191,18 +176,23 @@ END_IF
       <LineId Id="234" Count="0" />
       <LineId Id="347" Count="0" />
       <LineId Id="346" Count="0" />
-      <LineId Id="311" Count="2" />
-      <LineId Id="315" Count="10" />
+      <LineId Id="312" Count="1" />
+      <LineId Id="315" Count="2" />
+      <LineId Id="319" Count="6" />
       <LineId Id="239" Count="0" />
       <LineId Id="244" Count="0" />
       <LineId Id="307" Count="0" />
       <LineId Id="387" Count="0" />
-      <LineId Id="256" Count="48" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="258" Count="1" />
+      <LineId Id="262" Count="42" />
       <LineId Id="245" Count="0" />
       <LineId Id="390" Count="0" />
       <LineId Id="250" Count="0" />
       <LineId Id="389" Count="0" />
-      <LineId Id="326" Count="15" />
+      <LineId Id="326" Count="0" />
+      <LineId Id="328" Count="5" />
+      <LineId Id="335" Count="6" />
       <LineId Id="251" Count="0" />
       <LineId Id="352" Count="0" />
       <LineId Id="232" Count="0" />

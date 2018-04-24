@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="EL1008" Id="{1c776ddd-5c71-412e-8433-aacbe67877c3}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1008 | 8-channel digital input terminal 24 V DC, 3 ms
 FUNCTION_BLOCK EL1008
@@ -36,14 +36,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL1008_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
 //Error FB instance
-EL1008_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="EL1012" Id="{ce5b0254-0472-4caf-9dae-188a6a2cef3f}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1012 | 2-channel digital input terminal 24 V DC, 10 µs
 FUNCTION_BLOCK EL1012
@@ -24,14 +24,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 
 	//FB-s
-	EL1012_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
 //Error FB instance
-EL1012_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="EL1804" Id="{7d6613f2-77a5-44fc-afc2-9c64ab38ad33}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1804 | HD EtherCAT Terminals, 4-channel digital input 24 V DC, 3 ms, 3-wire connection
 FUNCTION_BLOCK EL1804
@@ -28,14 +28,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL1804_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
 //Error FB instance
-EL1804_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

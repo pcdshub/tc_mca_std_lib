@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="EL1104" Id="{d698c95c-e3b1-45de-92df-948ff81dc9ca}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1104 | 4-channel digital input terminals 24 V DC, 3 ms, 24 V and 0 V sensor supply
 FUNCTION_BLOCK EL1104
@@ -28,14 +28,14 @@ VAR
 	InfoData_State AT %I*: UINT;
 
 	//FB-s
-	EL1104_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
 //Error FB instance
-EL1104_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

@@ -30,7 +30,7 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL3255_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -42,7 +42,7 @@ END_VAR
 EnO:=En;
 
 //Error FB instance
-EL3255_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

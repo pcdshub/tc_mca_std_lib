@@ -23,7 +23,7 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL2252_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -32,7 +32,7 @@ END_VAR
 * Add the DC sync variables
 *)
 
-EL2252_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,

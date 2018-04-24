@@ -24,7 +24,7 @@ VAR
 	InfoData_State AT %I*: UINT;
 	
 	//FB-s
-	EL5042_Error : FB_TerminalError;
+	fbTerminalError : FB_TerminalError;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
@@ -35,7 +35,7 @@ END_VAR]]></Declaration>
 EnO:=En;
 
 //Error FB instance
-EL5042_Error(
+fbTerminalError(
 	En := TRUE,
 	iTerminal_ID := iTerminal_ID,
 	bWcState := WcState_WcState,
