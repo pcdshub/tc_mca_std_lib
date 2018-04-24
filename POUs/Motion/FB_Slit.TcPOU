@@ -48,7 +48,14 @@ VAR
 	fSetposAxis2: LREAL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// Gap interface parameter transfer
+      <ST><![CDATA[(**********************************************************************************
+This function block must come after the FB_DriveVirtual instances of the slit axes.
+Otherwise the collision avoidance inhibit feed bits in FB_Power won't be set properly.
+It's not ideal to have two FB_Power blocks in the same project for the same axis but
+there isn't a better way.
+**********************************************************************************)
+
+// Gap interface parameter transfer
 //fbGapAxis.En:=stGap.EN;
 fbGapAxis.bEnable:=stGap.bEnable;
 fbGapAxis.bReset:=stGap.bReset;	
@@ -395,7 +402,13 @@ fbGearOut2(
 	ErrorID=> );]]></ST>
     </Implementation>
     <LineIds Name="FB_Slit">
-      <LineId Id="737" Count="38" />
+      <LineId Id="737" Count="0" />
+      <LineId Id="1288" Count="0" />
+      <LineId Id="1286" Count="0" />
+      <LineId Id="1290" Count="2" />
+      <LineId Id="1287" Count="0" />
+      <LineId Id="1285" Count="0" />
+      <LineId Id="738" Count="37" />
       <LineId Id="1075" Count="0" />
       <LineId Id="776" Count="46" />
       <LineId Id="827" Count="16" />
