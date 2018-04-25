@@ -5,14 +5,14 @@
 VAR_IN_OUT
 	Axis1: AXIS_REF; 	// Positive blade (in global co-ordinate system): Left/port (when travelling with the beam) Y+ OR Upper Z+
 	Axis2: AXIS_REF;	// Negative blade (in global co-ordinate system): Right/starboard (when travelling with the beam) Y- OR Lower Z-
-	GapAxis: AXIS_REF;
 	CenterAxis: AXIS_REF;
+	GapAxis: AXIS_REF;
 	fbAxis1: FB_DriveVirtual;
 	fbAxis2: FB_DriveVirtual;
-	fbGapAxis:FB_DriveVirtual;
 	fbCenterAxis:FB_DriveVirtual;
-	stGap:DUT_FB_DriveVirtualIF;
+	fbGapAxis:FB_DriveVirtual;
     stCenter:DUT_FB_DriveVirtualIF;
+	stGap:DUT_FB_DriveVirtualIF;
 END_VAR
 VAR_INPUT
 	bEnable: BOOL;
@@ -54,73 +54,6 @@ Otherwise the collision avoidance inhibit feed bits in FB_Power won't be set pro
 It's not ideal to have two FB_Power blocks in the same project for the same axis but
 there isn't a better way.
 **********************************************************************************)
-
-// Gap interface parameter transfer
-//fbGapAxis.En:=stGap.EN;
-fbGapAxis.bEnable:=stGap.bEnable;
-fbGapAxis.bReset:=stGap.bReset;	
-fbGapAxis.bExecute:=stGap.bExecute;	
-fbGapAxis.nCommand:=stGap.nCommand;
-fbGapAxis.nCmdData:=stGap.nCmdData;
-fbGapAxis.fVelocity:=stGap.fVelocity;	
-fbGapAxis.fPosition:=stGap.fPosition;
-fbGapAxis.fAcceleration:=stGap.fAcceleration;
-fbGapAxis.fDeceleration:=stGap.fDeceleration;
-fbGapAxis.bJogFwd:=stGap.bJogFwd;
-fbGapAxis.bJogBwd:=stGap.bJogBwd;	
-//fbGapAxis.bLimitFwd:=stGap.bLimitFwd;
-//fbGapAxis.bLimitFwd:=stGap.bLimitFwd;
-fbGapAxis.fOverride:=stGap.fOverride;
-//fbGapAxis.bHomeSensor:=stGap.bHomeSensor;
-fbGapAxis.fHomePosition:=stGap.fHomePosition;
-fbGapAxis.nHomeRevOffset:=stGap.nHomeRevOffset;
-fbGapAxis.MasterAxis:=stGap.MasterAxis;
-
-stGap.EnO:=fbGapAxis.EnO;
-stGap.bEnabled:=fbGapAxis.bEnabled;
-//stGap.bBusy:=fbGapAxis.bBusy;
-stGap.bBusy:=fbGapAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
-stGap.bDone:=fbGapAxis.bDone AND fbAxis1.status.HasBeenStopped AND fbAxis2.status.HasBeenStopped;;
-stGap.bError:=fbGapAxis.bError;
-stGap.bHomed:=fbGapAxis.bHomed;
-stGap.nErrorId:=fbGapAxis.nErrorId;
-stGap.nMotionAxisID:=fbGapAxis.nMotionAxisID;
-stGap.Status:=fbGapAxis.Status;
-//stGap.fActPosition:=fbGapAxis.fActPosition;
-stGap.fActPosition:=Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos;
-stGap.fActVelocity:=fbGapAxis.fActVelocity;
-stGap.fActDiff:=fbGapAxis.fActDiff;
-stGap.sErrorMessage:=fbGapAxis.sErrorMessage;
-stGap.stAxisStatus:=fbGapAxis.stAxisStatus;
-
-//Status struct for EPICS communication
-//These parameters are transferred as a whole struct, included here just in case something should be changed
-(*stGap.stAxisStatus.bEnable:=bEnable;
-stGap.stAxisStatus.bEnabled:=bEnabled;
-stGap.stAxisStatus.bError:=bError;
-stGap.stAxisStatus.bExecute:=bExecute;
-stGap.stAxisStatus.bHomeSensor:=bHomeSensor;
-stGap.stAxisStatus.bJogBwd:=bJogBwd;
-stGap.stAxisStatus.bJogFwd:=bJogFwd;
-stGap.stAxisStatus.bLimitBwd:=bLimitBwd;
-stGap.stAxisStatus.bLimitFwd:=bLimitFwd;
-stGap.stAxisStatus.bReset:=bReset;
-stGap.stAxisStatus.fAcceleration:=fAcceleration;
-stGap.stAxisStatus.fActDiff:=fActDiff;*)
-//stGap.stAxisStatus.fActPosition:=fActPosition;
-stGap.stAxisStatus.fActPosition:=Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos;
-(*stGap.stAxisStatus.fActVelocity:=fActVelocity;
-stGap.stAxisStatus.fDeceleration:=fDeceleration;
-stGap.stAxisStatus.fOverride:=fOverride;
-stGap.stAxisStatus.fPosition:=fPosition;
-stGap.stAxisStatus.fVelocity:=fVelocity;
-stGap.stAxisStatus.nCmdData:=nCmdData;  
-stGap.stAxisStatus.nCommand:=nCommand;
-stGap.stAxisStatus.nErrorId:=nErrorId;
-stGap.stAxisStatus.bBusy:=bBusy;
-stGap.stAxisStatus.bHomed:=bHomed;*)
-
-//**********************************************************************************//
 
 // Center interface parameter transfer
 //fbCenterAxis.En:=fbCenterAxis.En;
@@ -189,6 +122,73 @@ stCenter.stAxisStatus.bHomed:=bHomed;*)
 
 //**********************************************************************************//
 
+// Gap interface parameter transfer
+//fbGapAxis.En:=stGap.EN;
+fbGapAxis.bEnable:=stGap.bEnable;
+fbGapAxis.bReset:=stGap.bReset;	
+fbGapAxis.bExecute:=stGap.bExecute;	
+fbGapAxis.nCommand:=stGap.nCommand;
+fbGapAxis.nCmdData:=stGap.nCmdData;
+fbGapAxis.fVelocity:=stGap.fVelocity;	
+fbGapAxis.fPosition:=stGap.fPosition;
+fbGapAxis.fAcceleration:=stGap.fAcceleration;
+fbGapAxis.fDeceleration:=stGap.fDeceleration;
+fbGapAxis.bJogFwd:=stGap.bJogFwd;
+fbGapAxis.bJogBwd:=stGap.bJogBwd;	
+//fbGapAxis.bLimitFwd:=stGap.bLimitFwd;
+//fbGapAxis.bLimitFwd:=stGap.bLimitFwd;
+fbGapAxis.fOverride:=stGap.fOverride;
+//fbGapAxis.bHomeSensor:=stGap.bHomeSensor;
+fbGapAxis.fHomePosition:=stGap.fHomePosition;
+fbGapAxis.nHomeRevOffset:=stGap.nHomeRevOffset;
+fbGapAxis.MasterAxis:=stGap.MasterAxis;
+
+stGap.EnO:=fbGapAxis.EnO;
+stGap.bEnabled:=fbGapAxis.bEnabled;
+//stGap.bBusy:=fbGapAxis.bBusy;
+stGap.bBusy:=fbGapAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
+stGap.bDone:=fbGapAxis.bDone AND fbAxis1.status.HasBeenStopped AND fbAxis2.status.HasBeenStopped;;
+stGap.bError:=fbGapAxis.bError;
+stGap.bHomed:=fbGapAxis.bHomed;
+stGap.nErrorId:=fbGapAxis.nErrorId;
+stGap.nMotionAxisID:=fbGapAxis.nMotionAxisID;
+stGap.Status:=fbGapAxis.Status;
+//stGap.fActPosition:=fbGapAxis.fActPosition;
+stGap.fActPosition:=Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos;
+stGap.fActVelocity:=fbGapAxis.fActVelocity;
+stGap.fActDiff:=fbGapAxis.fActDiff;
+stGap.sErrorMessage:=fbGapAxis.sErrorMessage;
+stGap.stAxisStatus:=fbGapAxis.stAxisStatus;
+
+//Status struct for EPICS communication
+//These parameters are transferred as a whole struct, included here just in case something should be changed
+(*stGap.stAxisStatus.bEnable:=bEnable;
+stGap.stAxisStatus.bEnabled:=bEnabled;
+stGap.stAxisStatus.bError:=bError;
+stGap.stAxisStatus.bExecute:=bExecute;
+stGap.stAxisStatus.bHomeSensor:=bHomeSensor;
+stGap.stAxisStatus.bJogBwd:=bJogBwd;
+stGap.stAxisStatus.bJogFwd:=bJogFwd;
+stGap.stAxisStatus.bLimitBwd:=bLimitBwd;
+stGap.stAxisStatus.bLimitFwd:=bLimitFwd;
+stGap.stAxisStatus.bReset:=bReset;
+stGap.stAxisStatus.fAcceleration:=fAcceleration;
+stGap.stAxisStatus.fActDiff:=fActDiff;*)
+//stGap.stAxisStatus.fActPosition:=fActPosition;
+stGap.stAxisStatus.fActPosition:=Axis1.NcToPlc.ActPos-Axis2.NcToPlc.ActPos;
+(*stGap.stAxisStatus.fActVelocity:=fActVelocity;
+stGap.stAxisStatus.fDeceleration:=fDeceleration;
+stGap.stAxisStatus.fOverride:=fOverride;
+stGap.stAxisStatus.fPosition:=fPosition;
+stGap.stAxisStatus.fVelocity:=fVelocity;
+stGap.stAxisStatus.nCmdData:=nCmdData;  
+stGap.stAxisStatus.nCommand:=nCommand;
+stGap.stAxisStatus.nErrorId:=nErrorId;
+stGap.stAxisStatus.bBusy:=bBusy;
+stGap.stAxisStatus.bHomed:=bHomed;*)
+
+//**********************************************************************************//
+
 // Collision avoidance
 IF NOT bCollisionAvoidanceOFF THEN
 	IF Axis1.Nctoplc.SetPos <= (Axis2.NcToPlc.SetPos+fSlowZone) AND Axis1.Status.NegativeDirection THEN
@@ -249,8 +249,8 @@ END_IF
 
 //**********************************************************************************//
 
-fbToggleOn1(CLK:= fbGapAxis.bExecute);
-fbToggleOn2(CLK:= fbCenterAxis.bExecute);
+fbToggleOn1(CLK:= fbCenterAxis.bExecute);
+fbToggleOn2(CLK:= fbGapAxis.bExecute);
 
 IF bEnable AND (fbToggleOn1.Q OR fbToggleOn2.Q) THEN
 	nSlitState:=2;
@@ -290,11 +290,11 @@ IF bEnable AND NOT bReset AND NOT stGap.bReset AND NOT stCenter.bReset THEN
 				nSlitState:=nSlitState+1;
 			END_IF
 		4: 
-			IF GapAxis.Status.HasJob OR CenterAxis.Status.HasJob THEN
+			IF CenterAxis.Status.HasJob OR GapAxis.Status.HasJob THEN
 				nSlitState:=nSlitState+1;				
 			END_IF
 		5:
-			IF GapAxis.Status.InTargetPosition AND CenterAxis.Status.InTargetPosition AND Axis1.Status.NotMoving AND Axis2.Status.NotMoving THEN
+			IF CenterAxis.Status.InTargetPosition AND GapAxis.Status.InTargetPosition AND Axis1.Status.NotMoving AND Axis2.Status.NotMoving THEN
 				bEnableGearing:=FALSE;
 				nSlitState:=nSlitState+1;
 			END_IF
@@ -316,17 +316,6 @@ fSetposAxis1:=LINT_TO_LREAL(LREAL_TO_LINT(Axis1.NcToPlc.SetPos*10000))/10000;
 fSetposAxis2:=LINT_TO_LREAL(LREAL_TO_LINT(Axis2.NcToPlc.SetPos*10000))/10000;
 
 fbSetPos1(
-	Axis:= GapAxis, 
-	Execute:= bReverseCalc, 
-	Position:= fSetposAxis1-fSetposAxis2, 
-	Mode:= , 
-	Options:= , 
-	Done=> , 
-	Busy=> , 
-	Error=> , 
-	ErrorID=> );
-
-fbSetPos2(
 	Axis:= CenterAxis, 
 	Execute:= bReverseCalc, 
 	Position:= (fSetposAxis1+fSetposAxis2)/2, 
@@ -337,15 +326,26 @@ fbSetPos2(
 	Error=> , 
 	ErrorID=> );
 
+fbSetPos2(
+	Axis:= GapAxis, 
+	Execute:= bReverseCalc, 
+	Position:= fSetposAxis1-fSetposAxis2, 
+	Mode:= , 
+	Options:= , 
+	Done=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorID=> );
+
 fbGearInMultiMaster_1(
-	Master1:= GapAxis, 
-	Master2:= CenterAxis, 
+	Master1:= CenterAxis, 
+	Master2:= GapAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= Axis1, 
 	Enable:= bEnableGearing, 
-	GearRatio1:= 0.5, 
-	GearRatio2:= 1, 
+	GearRatio1:= 1, 
+	GearRatio2:= 0.5, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -361,14 +361,14 @@ fbGearInMultiMaster_1(
 	ErrorID=> );
 
 fbGearInMultiMaster_2(
-	Master1:= GapAxis, 
-	Master2:= CenterAxis, 
+	Master1:= CenterAxis, 
+	Master2:= GapAxis, 
 	Master3:= EmptyAxis1, 
 	Master4:= EmptyAxis2, 
 	Slave:= Axis2, 
 	Enable:= bEnableGearing, 
-	GearRatio1:= -0.5, 
-	GearRatio2:= 1, 
+	GearRatio1:= 1, 
+	GearRatio2:= -0.5, 
 	GearRatio3:= , 
 	GearRatio4:= , 
 	Acceleration:= , 
@@ -405,12 +405,9 @@ fbGearOut2(
       <LineId Id="737" Count="0" />
       <LineId Id="1288" Count="0" />
       <LineId Id="1286" Count="0" />
-      <LineId Id="1290" Count="2" />
-      <LineId Id="1287" Count="0" />
-      <LineId Id="1285" Count="0" />
-      <LineId Id="738" Count="37" />
-      <LineId Id="1075" Count="0" />
-      <LineId Id="776" Count="46" />
+      <LineId Id="1290" Count="1" />
+      <LineId Id="1341" Count="0" />
+      <LineId Id="802" Count="20" />
       <LineId Id="827" Count="16" />
       <LineId Id="1048" Count="0" />
       <LineId Id="1050" Count="0" />
@@ -418,7 +415,10 @@ fbGearOut2(
       <LineId Id="1051" Count="22" />
       <LineId Id="1049" Count="0" />
       <LineId Id="846" Count="0" />
-      <LineId Id="860" Count="3" />
+      <LineId Id="860" Count="0" />
+      <LineId Id="1410" Count="65" />
+      <LineId Id="1409" Count="0" />
+      <LineId Id="861" Count="2" />
       <LineId Id="1096" Count="0" />
       <LineId Id="1280" Count="2" />
       <LineId Id="1098" Count="0" />
@@ -451,12 +451,12 @@ fbGearOut2(
       <LineId Id="926" Count="0" />
       <LineId Id="1228" Count="0" />
       <LineId Id="1223" Count="2" />
+      <LineId Id="1476" Count="0" />
+      <LineId Id="1478" Count="8" />
+      <LineId Id="1477" Count="0" />
       <LineId Id="1008" Count="0" />
-      <LineId Id="928" Count="19" />
-      <LineId Id="927" Count="0" />
-      <LineId Id="620" Count="0" />
-      <LineId Id="31" Count="20" />
-      <LineId Id="9" Count="0" />
+      <LineId Id="928" Count="9" />
+      <LineId Id="1512" Count="22" />
       <LineId Id="123" Count="21" />
       <LineId Id="96" Count="0" />
       <LineId Id="1012" Count="0" />
