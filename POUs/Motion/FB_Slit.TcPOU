@@ -258,7 +258,7 @@ IF bEnable AND (fbToggleOn1.Q OR fbToggleOn2.Q) THEN
 	bDisableGearing:=FALSE;
 END_IF
 
-IF bEnable AND NOT bReset AND NOT stGap.bReset AND NOT stCenter.bReset THEN	
+IF bEnable AND NOT bReset AND NOT fbAxis1.bReset AND NOT fbAxis2.bReset AND NOT stGap.bReset AND NOT stCenter.bReset THEN	
 	CASE nSlitState OF
 		-2:
 			IF GapAxis.Status.Operational AND CenterAxis.Status.Operational THEN
