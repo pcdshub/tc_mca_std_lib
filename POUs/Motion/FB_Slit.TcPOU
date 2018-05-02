@@ -116,9 +116,9 @@ stCenter.stAxisStatus.fPosition:=fPosition;
 stCenter.stAxisStatus.fVelocity:=fVelocity;
 stCenter.stAxisStatus.nCmdData:=nCmdData;
 stCenter.stAxisStatus.nCommand:=nCommand;
-stCenter.stAxisStatus.nErrorId:=nErrorId;
-stCenter.stAxisStatus.bBusy:=bBusy;
-stCenter.stAxisStatus.bHomed:=bHomed;*)
+stCenter.stAxisStatus.nErrorId:=nErrorId;*)
+stCenter.stAxisStatus.bBusy:=fbCenterAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
+(*stCenter.stAxisStatus.bHomed:=bHomed;*)
 
 //**********************************************************************************//
 
@@ -147,7 +147,7 @@ stGap.EnO:=fbGapAxis.EnO;
 stGap.bEnabled:=fbGapAxis.bEnabled;
 //stGap.bBusy:=fbGapAxis.bBusy;
 stGap.bBusy:=fbGapAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
-stGap.bDone:=fbGapAxis.bDone AND fbAxis1.status.HasBeenStopped AND fbAxis2.status.HasBeenStopped;;
+stGap.bDone:=fbGapAxis.bDone AND fbAxis1.status.HasBeenStopped AND fbAxis2.status.HasBeenStopped;
 stGap.bError:=fbGapAxis.bError;
 stGap.bHomed:=fbGapAxis.bHomed;
 stGap.nErrorId:=fbGapAxis.nErrorId;
@@ -183,9 +183,9 @@ stGap.stAxisStatus.fPosition:=fPosition;
 stGap.stAxisStatus.fVelocity:=fVelocity;
 stGap.stAxisStatus.nCmdData:=nCmdData;  
 stGap.stAxisStatus.nCommand:=nCommand;
-stGap.stAxisStatus.nErrorId:=nErrorId;
-stGap.stAxisStatus.bBusy:=bBusy;
-stGap.stAxisStatus.bHomed:=bHomed;*)
+stGap.stAxisStatus.nErrorId:=nErrorId;*)
+stGap.stAxisStatus.bBusy:=fbGapAxis.status.HasJob OR fbAxis1.status.HasJob OR fbAxis2.status.HasJob;
+(*stGap.stAxisStatus.bHomed:=bHomed;*)
 
 //**********************************************************************************//
 
