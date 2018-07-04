@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="FB_NcAxis" Id="{0e6f3299-5a2e-4431-8f09-1233c54c1e17}" SpecialFunc="None">
     <Declaration><![CDATA[///#########################################################
 ///Function block to communicate between Nc and Plc.

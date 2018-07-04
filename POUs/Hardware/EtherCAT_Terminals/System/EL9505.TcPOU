@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL9505" Id="{010a0f13-6d5c-4f48-8fc5-897e7583293a}" SpecialFunc="None">
+    <Declaration><![CDATA[//EL9505 | Power supply terminal 5V
+FUNCTION_BLOCK EL9505
+
+VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO: BOOL;
+	bError: BOOL;
+END_VAR
+
+VAR
+	bStatus_Uo_Power_OK AT %I* : BOOL;
+	bStatus_Uo_Overload AT %I* : BOOL;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL9505_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+* TODO:
+* Status bits
+*)
+EnO:=En;
+
+//Error FB instance
+EL9505_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);]]></ST>
+    </Implementation>
+    <LineIds Name="EL9505">
+      <LineId Id="36" Count="3" />
+      <LineId Id="26" Count="9" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

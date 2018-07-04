@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL3214" Id="{0ef824af-3384-4b63-9d1f-7d6cf6b0bd23}" SpecialFunc="None">
+    <Declaration><![CDATA[//EL3214 | 4-channel analog input terminal, PT100 (RTD)
+FUNCTION_BLOCK EL3214
+
+VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO: BOOL;
+	iAi_Ch1_Value : INT;
+	iAi_Ch2_Value : INT;
+	iAi_Ch3_Value : INT;
+	iAi_Ch4_Value : INT;
+	bError: BOOL;
+END_VAR
+
+VAR
+	//Channels
+	AI_RTD_Ch_1_Status	AT %I* : WORD;
+	AI_RTD_Ch_1_Value 	AT %I* : INT;
+	AI_RTD_Ch_2_Status 	AT %I* : WORD;
+	AI_RTD_Ch_2_Value 	AT %I* : INT;
+	AI_RTD_Ch_3_Status 	AT %I* : WORD;
+	AI_RTD_Ch_3_Value 	AT %I* : INT;
+	AI_RTD_Ch_4_Status 	AT %I* : WORD;
+	AI_RTD_Ch_4_Value 	AT %I* : INT;
+	
+	//Terminal status
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL3214_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+* TODO:
+* Status words of the channels
+*)
+
+EnO := En;
+
+//Error FB instance
+EL3214_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF En THEN
+	IF bError = FALSE THEN
+		iAi_Ch1_Value := AI_RTD_Ch_1_Value;
+		iAi_Ch2_Value := AI_RTD_Ch_2_Value;
+		iAi_Ch3_Value := AI_RTD_Ch_3_Value;
+		iAi_Ch4_Value := AI_RTD_Ch_4_Value;
+	ELSE
+		iAi_Ch1_Value := 0;
+		iAi_Ch2_Value := 0;
+		iAi_Ch3_Value := 0;
+		iAi_Ch4_Value := 0;
+	END_IF
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="EL3214">
+      <LineId Id="50" Count="2" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="54" Count="25" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

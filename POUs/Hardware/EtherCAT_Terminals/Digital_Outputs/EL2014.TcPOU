@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="EL2014" Id="{87ed0f35-77bb-4af3-abb4-bd4457e39e0b}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK EL2014
+VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT; 
+	bDo_1: BOOL;
+	bDo_2: BOOL;
+	bDo_3: BOOL;
+	bDo_4: BOOL;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO : BOOL;
+	bError : BOOL;
+END_VAR
+
+VAR
+	Channel_1_Output AT %Q*: BOOL;
+	Channel_2_Output AT %Q*: BOOL;
+	Channel_3_Output AT %Q*: BOOL;
+	Channel_4_Output AT %Q*: BOOL;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL2014_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+* TODO:
+* Channel diagnostic variables and device diag variables
+*)
+
+EnO:=En;
+
+EL2014_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF En THEN
+	IF bError=FALSE THEN
+		Channel_1_Output:=bDo_1;
+		Channel_2_Output:=bDo_2;
+		Channel_3_Output:=bDo_3;
+		Channel_4_Output:=bDo_4;
+	ELSE
+		Channel_1_Output:=FALSE;
+		Channel_2_Output:=FALSE;
+		Channel_3_Output:=FALSE;
+		Channel_4_Output:=FALSE;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="EL2014">
+      <LineId Id="92" Count="2" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="41" Count="16" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="59" Count="3" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="63" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+  <POU Name="EL1712" Id="{e15e5319-b194-4791-a5c7-f512af50c4c1}" SpecialFunc="None">
+    <Declaration><![CDATA[///EL1712 | 2-channel digital input terminals 120V AC/DC, 10ms
+FUNCTION_BLOCK EL1712
+
+VAR_INPUT
+	En: BOOL;
+	iTerminal_ID : INT;
+	ErrorSystem : POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO: BOOL;
+	bDi_1: BOOL;
+	bDi_2: BOOL;
+	bError: BOOL;
+END_VAR
+
+VAR
+	Channel_1_Input AT %I*: BOOL;
+	Channel_2_Input AT %I*: BOOL;
+	WcState_WcState AT %I*: BOOL;
+	InfoData_State AT %I*: UINT;
+	
+	//FB-s
+	EL1712_Error : FB_TerminalError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[EnO:=En;
+
+//Error FB instance
+EL1712_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
+);
+
+IF En THEN
+	IF bError=FALSE THEN
+		bDi_1:=Channel_1_Input;
+		bDi_2:=Channel_2_Input;
+	ELSE
+		bDi_1:=FALSE;
+		bDi_2:=FALSE;
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="EL1712">
+      <LineId Id="3" Count="1" />
+      <LineId Id="44" Count="7" />
+      <LineId Id="9" Count="9" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
