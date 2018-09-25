@@ -74,9 +74,9 @@ IF fbExecuteRiseEdge.Q THEN
     2:
     3:
     4:
-	11:
-	12:
     15:
+	16:
+	17:
     ELSE //nCmdData not valid	
       bError:=TRUE;
       nErrorId:=16#4FFF;   
@@ -295,7 +295,7 @@ CASE nCmdDataLocal OF
 	   
 	   
 	   
-	11:  // Home on bHomeSensor via no limit switches
+	16:  // Home on bHomeSensor via no limit switches
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -331,7 +331,7 @@ CASE nCmdDataLocal OF
 	        END_IF;	 
 	   END_CASE;
 	   
-	12:  // Home on bHomeSensor via no limit switches
+	17:  // Home on bHomeSensor via no limit switches
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -469,9 +469,10 @@ RETURN;]]></ST>
       <LineId Id="646" Count="0" />
       <LineId Id="648" Count="0" />
       <LineId Id="647" Count="0" />
-      <LineId Id="651" Count="2" />
-      <LineId Id="1676" Count="1" />
-      <LineId Id="654" Count="1" />
+      <LineId Id="651" Count="3" />
+      <LineId Id="1755" Count="0" />
+      <LineId Id="1754" Count="0" />
+      <LineId Id="655" Count="0" />
       <LineId Id="658" Count="1" />
       <LineId Id="650" Count="0" />
       <LineId Id="100" Count="0" />
