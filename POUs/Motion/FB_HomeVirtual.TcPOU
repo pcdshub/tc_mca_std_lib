@@ -40,6 +40,12 @@ VAR
 	nCmdDataLocal: UINT;  //Ensure that nCmdData is not changed during sequence
 	bSequenceReady:BOOL:=TRUE;
 	bRestoreNCDataNeeded: BOOL:=FALSE;
+	
+	encoderReference: Trigger_Ref;
+	fbTouchProbe: MC_TouchProbe;
+	bExecuteLatch: BOOL;
+	fbHalt: MC_Halt;
+	bExecuteHalt: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -59,6 +65,8 @@ IF NOT bExecute THEN
   bExecuteMoveVelocity:=FALSE;
   bExecutePrepare:=FALSE;
   bExecuteFinish:=FALSE;
+  bExecuteLatch:=FALSE;
+  bExecuteHalt:=FALSE;
 END_IF
 
 //Reset at rinsing edge of bExecute
@@ -289,89 +297,6 @@ CASE nCmdDataLocal OF
 	        END_IF;	 
 	   END_CASE;
 
-	   
-	   
-	   
-	   
-	   
-	   
-	16:  // Home on bHomeSensor via no limit switches
-	   CASE nHomingState OF
-		  0:
-		    bHomed:=Axis.Status.Homed;
-            // Wait for read of velocities from NC and reset of calibration flag
-	        IF fbHomePrepare.bDone AND bExecute AND NOT bSequenceReady THEN
-			  bRestoreNCDataNeeded:=TRUE;
-				nHomingState:=1;                                      		  
-	        END_IF
-		  1: // Wait for fbHomeToSwitch
-		    bHomed:=FALSE;
-		    bSequenceReady:=FALSE;
-            bExecuteMoveVelocity:=FALSE;			
-            bExecuteHomeToSwitch:=TRUE;	
-            fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Positive_Direction;
-            fbHomeToSwitch.nSearchDirOffCam:=MC_Positive_Direction;	             
-	        fbHomeToSwitch.fVelocityToCamNC:=fbHomePrepare.fVelocityToCam; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomePrepare.fVelocityFromCam;  // Low speed              		
-		    fbHomeToSwitch.bCamSensor:=bHomeSensor;            	 		    
-	        IF fbHomeToSwitch.bDone THEN	          
-			  nHomingState:=2;
-			  bExecuteFinish:=TRUE;
-			  fbHomeFinish.bSofLimEnableHigh:=fbHomePrepare.bSofLimEnableHighOriginal;
-			  fbHomeFinish.bSofLimEnableLow:=fbHomePrepare.bSofLimEnableLowOriginal;
-	        END_IF;	
-          2: // Restore softlimit enable
-            bHomed:=FALSE;
-		    bSequenceReady:=FALSE;            		            	
-	        IF fbHomeFinish.bDone THEN
-			  bRestoreNCDataNeeded:=FALSE;
-	          bSequenceReady:=TRUE;
-			  nHomingState:=0;
-			  bHomed:=Axis.Status.Homed;
-	        END_IF;	 
-	   END_CASE;
-	   
-	17:  // Home on bHomeSensor via no limit switches
-	   CASE nHomingState OF
-		  0:
-		    bHomed:=Axis.Status.Homed;
-            // Wait for read of velocities from NC and reset of calibration flag
-	        IF fbHomePrepare.bDone AND bExecute AND NOT bSequenceReady THEN
-			  bRestoreNCDataNeeded:=TRUE;
-				nHomingState:=1;                                      		  
-	        END_IF
-		  1: // Wait for fbHomeToSwitch
-		    bHomed:=FALSE;
-		    bSequenceReady:=FALSE;
-            bExecuteMoveVelocity:=FALSE;			
-            bExecuteHomeToSwitch:=TRUE;	
-            fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Negative_Direction;
-            fbHomeToSwitch.nSearchDirOffCam:=MC_Negative_Direction;	             
-	        fbHomeToSwitch.fVelocityToCamNC:=fbHomePrepare.fVelocityToCam; // High speed
-  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomePrepare.fVelocityFromCam;  // Low speed              		
-		    fbHomeToSwitch.bCamSensor:=bHomeSensor;            	 		    
-	        IF fbHomeToSwitch.bDone THEN	          
-			  nHomingState:=2;
-			  bExecuteFinish:=TRUE;
-			  fbHomeFinish.bSofLimEnableHigh:=fbHomePrepare.bSofLimEnableHighOriginal;
-			  fbHomeFinish.bSofLimEnableLow:=fbHomePrepare.bSofLimEnableLowOriginal;
-	        END_IF;	
-          2: // Restore softlimit enable
-            bHomed:=FALSE;
-		    bSequenceReady:=FALSE;            		            	
-	        IF fbHomeFinish.bDone THEN
-			  bRestoreNCDataNeeded:=FALSE;
-	          bSequenceReady:=TRUE;
-			  nHomingState:=0;
-			  bHomed:=Axis.Status.Homed;
-	        END_IF;	 
-	   END_CASE;		
-
-
-
-
-
-  	    
    15: //Set current position (simplest homing sequence)
      bExecuteHomeDirect:=bExecute;
 	 bHomed:=Axis.Status.Homed;
@@ -379,7 +304,114 @@ CASE nCmdDataLocal OF
 	   bExecuteHomeDirect:=FALSE;				
        bSequenceReady:=TRUE;	
      END_IF	 
-	 
+
+
+// PBPBPBPBPBPBPBPBPBPBPBPB	   
+	 16: //  Home to zero pulse on incremental encoder in from positive direction
+	   CASE nHomingState OF
+		  0:
+		    bHomed:=Axis.Status.Homed;
+            // Wait for read of velocities from NC and reset of calibration flag
+	        IF fbHomePrepare.bDone AND bExecute AND NOT bSequenceReady THEN
+				bRestoreNCDataNeeded:=TRUE;
+				fbMoveVelocity.Velocity:=ABS(fbHomePrepare.fVelocityToCam);
+            	fbMoveVelocity.Direction:=MC_Positive_Direction;
+				nHomingState:=1;                                      		  
+	        END_IF
+		  1: // Initialise touch probe to wait for zero pulse
+		    bHomed:=FALSE;
+			bExecuteLatch:=TRUE;
+			IF fbTouchProbe.Busy THEN
+				nHomingState:=2;
+			END_IF
+		  2: // Execute move velocity and check that it's moving
+		  	bExecuteMoveVelocity:=bExecute;
+			IF fbMoveVelocity.Busy THEN
+				nHomingState:=3;
+			END_IF
+		   3: // Wait for zero pulse to activate touch probe
+			IF fbTouchProbe.Done THEN
+				bExecuteMoveVelocity:=FALSE;
+		 		nHomingState:=4;
+			END_IF;
+		   4: // Check that axis has stopped, calculate current position in relation to home and then execute Home Direct
+			bExecuteHalt:=TRUE;
+     		IF NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN				
+	  			bExecuteHomeDirect:=bExecute;
+				fHomePosition:=fHomePosition-fbTouchProbe.RecordedPosition+Axis.NcToPlc.ActPos;
+			  	nHomingState:=5;					
+     		END_IF			   
+ 		   5: // Check that home direct was successful 
+			IF fbHomeDirect.bDone THEN	          
+			  bExecuteFinish:=TRUE;
+			  fbHomeFinish.bSofLimEnableHigh:=fbHomePrepare.bSofLimEnableHighOriginal;
+			  fbHomeFinish.bSofLimEnableLow:=fbHomePrepare.bSofLimEnableLowOriginal;
+  			  nHomingState:=6;
+	        END_IF;	
+          6: // Restore softlimit enable
+            bHomed:=FALSE;
+		    bSequenceReady:=FALSE;            		            	
+	        IF fbHomeFinish.bDone THEN
+			  bRestoreNCDataNeeded:=FALSE;
+	          bSequenceReady:=TRUE;
+			  nHomingState:=0;
+			  bHomed:=Axis.Status.Homed;
+	        END_IF;
+	   END_CASE;
+			
+	 17: //  Home to zero pulse on incremental encoder from negative direction
+	   CASE nHomingState OF
+		  0:
+		    bHomed:=Axis.Status.Homed;
+            // Wait for read of velocities from NC and reset of calibration flag
+	        IF fbHomePrepare.bDone AND bExecute AND NOT bSequenceReady THEN
+				bRestoreNCDataNeeded:=TRUE;
+				fbMoveVelocity.Velocity:=ABS(fbHomePrepare.fVelocityToCam);
+            	fbMoveVelocity.Direction:=MC_Negative_Direction;
+				nHomingState:=1;                                      		  
+	        END_IF
+		  1: // Initialise touch probe to wait for zero pulse
+		    bHomed:=FALSE;
+			bExecuteLatch:=TRUE;
+			IF fbTouchProbe.Busy THEN
+				nHomingState:=2;
+			END_IF
+		  2: // Execute move velocity and check that it's moving
+		  	bExecuteMoveVelocity:=bExecute;
+			IF fbMoveVelocity.Busy THEN
+				nHomingState:=3;
+			END_IF
+		   3: // Wait for zero pulse to activate touch probe
+			IF fbTouchProbe.Done THEN
+				bExecuteMoveVelocity:=FALSE;
+		 		nHomingState:=4;
+			END_IF;
+		   4: // Check that axis has stopped, calculate current position in relation to home and then execute Home Direct
+			bExecuteHalt:=TRUE;
+     		IF NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN				
+	  			bExecuteHomeDirect:=bExecute;
+				fHomePosition:=fHomePosition+fbTouchProbe.RecordedPosition-Axis.NcToPlc.ActPos;
+			  	nHomingState:=5;					
+     		END_IF			   
+ 		   5: // Check that home direct was successful 
+			IF fbHomeDirect.bDone THEN	          
+			  bExecuteFinish:=TRUE;
+			  fbHomeFinish.bSofLimEnableHigh:=fbHomePrepare.bSofLimEnableHighOriginal;
+			  fbHomeFinish.bSofLimEnableLow:=fbHomePrepare.bSofLimEnableLowOriginal;
+  			  nHomingState:=6;
+	        END_IF;	
+          6: // Restore softlimit enable
+            bHomed:=FALSE;
+		    bSequenceReady:=FALSE;            		            	
+	        IF fbHomeFinish.bDone THEN
+			  bRestoreNCDataNeeded:=FALSE;
+	          bSequenceReady:=TRUE;
+			  nHomingState:=0;
+			  bHomed:=Axis.Status.Homed;
+	        END_IF;
+	   END_CASE;
+// PBPBPBPBPBPBPBPBPBPBPBPB  
+	   
 ELSE
   fbHomeToSwitch.bCamSensor:=FALSE;
   bHomed:=Axis.Status.Homed;
@@ -407,7 +439,25 @@ fbHomeDirect(
 	Axis:=Axis
 );
 
+
+// PBPBPBPBPBPBPBPBPBPBPBPB
+encoderReference.SignalSource:=SignalSource_ZeroPulse;
+encoderReference.EncoderID:=1;
+			
+fbTouchProbe(
+	Axis:= Axis, 
+	TriggerInput:= encoderReference, 
+	Execute:= bExecuteLatch, 
+);
+				
+fbHalt(
+	Axis:= Axis, 
+	Execute:= bExecuteHalt, 
+	Deceleration:= fbHomePrepare.fVelocityToCam, 
+);					
+// PBPBPBPBPBPBPBPBPBPBPBPB				
  
+
 //############# Finish homing
 
 IF NOT bexecute AND bRestoreNCDataNeeded THEN  //If homing is aborted restore is needed
@@ -457,6 +507,8 @@ RETURN;]]></ST>
       <LineId Id="1157" Count="0" />
       <LineId Id="1172" Count="0" />
       <LineId Id="1288" Count="0" />
+      <LineId Id="2228" Count="0" />
+      <LineId Id="2377" Count="0" />
       <LineId Id="509" Count="0" />
       <LineId Id="183" Count="0" />
       <LineId Id="96" Count="0" />
@@ -469,9 +521,11 @@ RETURN;]]></ST>
       <LineId Id="646" Count="0" />
       <LineId Id="648" Count="0" />
       <LineId Id="647" Count="0" />
-      <LineId Id="651" Count="3" />
+      <LineId Id="651" Count="1" />
+      <LineId Id="2287" Count="0" />
+      <LineId Id="654" Count="0" />
       <LineId Id="1755" Count="0" />
-      <LineId Id="1754" Count="0" />
+      <LineId Id="2130" Count="0" />
       <LineId Id="655" Count="0" />
       <LineId Id="658" Count="1" />
       <LineId Id="650" Count="0" />
@@ -538,20 +592,7 @@ RETURN;]]></ST>
       <LineId Id="1550" Count="0" />
       <LineId Id="1525" Count="3" />
       <LineId Id="1484" Count="0" />
-      <LineId Id="1668" Count="0" />
-      <LineId Id="1599" Count="0" />
-      <LineId Id="1669" Count="4" />
-      <LineId Id="1601" Count="0" />
-      <LineId Id="1675" Count="0" />
-      <LineId Id="1616" Count="4" />
-      <LineId Id="1624" Count="0" />
-      <LineId Id="1626" Count="0" />
-      <LineId Id="1636" Count="24" />
-      <LineId Id="1614" Count="0" />
-      <LineId Id="1679" Count="34" />
-      <LineId Id="1351" Count="0" />
-      <LineId Id="1663" Count="4" />
-      <LineId Id="1662" Count="0" />
+      <LineId Id="1918" Count="0" />
       <LineId Id="602" Count="0" />
       <LineId Id="605" Count="0" />
       <LineId Id="623" Count="0" />
@@ -559,7 +600,42 @@ RETURN;]]></ST>
       <LineId Id="620" Count="0" />
       <LineId Id="622" Count="0" />
       <LineId Id="604" Count="0" />
-      <LineId Id="645" Count="0" />
+      <LineId Id="2292" Count="0" />
+      <LineId Id="1835" Count="2" />
+      <LineId Id="2008" Count="1" />
+      <LineId Id="2044" Count="3" />
+      <LineId Id="2211" Count="1" />
+      <LineId Id="2048" Count="1" />
+      <LineId Id="2131" Count="0" />
+      <LineId Id="2051" Count="0" />
+      <LineId Id="2210" Count="0" />
+      <LineId Id="2220" Count="0" />
+      <LineId Id="2219" Count="0" />
+      <LineId Id="2221" Count="0" />
+      <LineId Id="2218" Count="0" />
+      <LineId Id="2222" Count="4" />
+      <LineId Id="2090" Count="0" />
+      <LineId Id="2155" Count="0" />
+      <LineId Id="2091" Count="1" />
+      <LineId Id="2089" Count="0" />
+      <LineId Id="2232" Count="0" />
+      <LineId Id="2127" Count="1" />
+      <LineId Id="2227" Count="0" />
+      <LineId Id="2231" Count="0" />
+      <LineId Id="2156" Count="0" />
+      <LineId Id="2041" Count="0" />
+      <LineId Id="2187" Count="0" />
+      <LineId Id="2189" Count="2" />
+      <LineId Id="2230" Count="0" />
+      <LineId Id="2192" Count="8" />
+      <LineId Id="2186" Count="0" />
+      <LineId Id="2376" Count="0" />
+      <LineId Id="2236" Count="0" />
+      <LineId Id="2238" Count="48" />
+      <LineId Id="2237" Count="0" />
+      <LineId Id="2375" Count="0" />
+      <LineId Id="2201" Count="0" />
+      <LineId Id="1839" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="251" Count="0" />
       <LineId Id="477" Count="0" />
@@ -580,8 +656,15 @@ RETURN;]]></ST>
       <LineId Id="611" Count="2" />
       <LineId Id="610" Count="0" />
       <LineId Id="614" Count="0" />
+      <LineId Id="2289" Count="0" />
+      <LineId Id="2097" Count="8" />
       <LineId Id="1540" Count="0" />
-      <LineId Id="1354" Count="0" />
+      <LineId Id="2115" Count="0" />
+      <LineId Id="2141" Count="3" />
+      <LineId Id="2116" Count="0" />
+      <LineId Id="2207" Count="0" />
+      <LineId Id="2290" Count="0" />
+      <LineId Id="2233" Count="0" />
       <LineId Id="1298" Count="0" />
       <LineId Id="1558" Count="0" />
       <LineId Id="1542" Count="0" />
