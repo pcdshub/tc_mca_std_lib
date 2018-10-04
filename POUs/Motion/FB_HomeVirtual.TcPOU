@@ -304,10 +304,8 @@ CASE nCmdDataLocal OF
 	   bExecuteHomeDirect:=FALSE;				
        bSequenceReady:=TRUE;	
      END_IF	 
-
-
-// PBPBPBPBPBPBPBPBPBPBPBPB	   
-	 16: //  Home to zero pulse on incremental encoder in from positive direction
+ 
+    16: //  Home to zero pulse on incremental encoder module from positive direction
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -359,7 +357,7 @@ CASE nCmdDataLocal OF
 	        END_IF;
 	   END_CASE;
 			
-	 17: //  Home to zero pulse on incremental encoder from negative direction
+   17: //  Home to zero pulse on incremental encoder module from negative direction
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -410,7 +408,6 @@ CASE nCmdDataLocal OF
 			  bHomed:=Axis.Status.Homed;
 	        END_IF;
 	   END_CASE;
-// PBPBPBPBPBPBPBPBPBPBPBPB  
 	   
 ELSE
   fbHomeToSwitch.bCamSensor:=FALSE;
@@ -439,11 +436,8 @@ fbHomeDirect(
 	Axis:=Axis
 );
 
-
-// PBPBPBPBPBPBPBPBPBPBPBPB
 encoderReference.SignalSource:=SignalSource_ZeroPulse;
-encoderReference.EncoderID:=1;
-			
+encoderReference.EncoderID:=1;			
 fbTouchProbe(
 	Axis:= Axis, 
 	TriggerInput:= encoderReference, 
@@ -455,8 +449,6 @@ fbHalt(
 	Execute:= bExecuteHalt, 
 	Deceleration:= fbHomePrepare.fVelocityToCam, 
 );					
-// PBPBPBPBPBPBPBPBPBPBPBPB				
- 
 
 //############# Finish homing
 
@@ -600,8 +592,7 @@ RETURN;]]></ST>
       <LineId Id="620" Count="0" />
       <LineId Id="622" Count="0" />
       <LineId Id="604" Count="0" />
-      <LineId Id="2292" Count="0" />
-      <LineId Id="1835" Count="2" />
+      <LineId Id="1836" Count="1" />
       <LineId Id="2008" Count="1" />
       <LineId Id="2044" Count="3" />
       <LineId Id="2211" Count="1" />
@@ -634,7 +625,6 @@ RETURN;]]></ST>
       <LineId Id="2238" Count="48" />
       <LineId Id="2237" Count="0" />
       <LineId Id="2375" Count="0" />
-      <LineId Id="2201" Count="0" />
       <LineId Id="1839" Count="0" />
       <LineId Id="191" Count="0" />
       <LineId Id="251" Count="0" />
@@ -657,14 +647,13 @@ RETURN;]]></ST>
       <LineId Id="610" Count="0" />
       <LineId Id="614" Count="0" />
       <LineId Id="2289" Count="0" />
-      <LineId Id="2097" Count="8" />
+      <LineId Id="2099" Count="1" />
+      <LineId Id="2102" Count="3" />
       <LineId Id="1540" Count="0" />
       <LineId Id="2115" Count="0" />
       <LineId Id="2141" Count="3" />
       <LineId Id="2116" Count="0" />
-      <LineId Id="2207" Count="0" />
-      <LineId Id="2290" Count="0" />
-      <LineId Id="2233" Count="0" />
+      <LineId Id="2378" Count="0" />
       <LineId Id="1298" Count="0" />
       <LineId Id="1558" Count="0" />
       <LineId Id="1542" Count="0" />
