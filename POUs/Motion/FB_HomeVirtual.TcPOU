@@ -82,9 +82,9 @@ IF fbExecuteRiseEdge.Q THEN
     2:
     3:
     4:
+	13:
+	14:
     15:
-	16:
-	17:
     ELSE //nCmdData not valid	
       bError:=TRUE;
       nErrorId:=16#4FFF;   
@@ -297,15 +297,7 @@ CASE nCmdDataLocal OF
 	        END_IF;	 
 	   END_CASE;
 
-   15: //Set current position (simplest homing sequence)
-     bExecuteHomeDirect:=bExecute;
-	 bHomed:=Axis.Status.Homed;
-     IF fbHomeDirect.bDone THEN  //Homing ready				
-	   bExecuteHomeDirect:=FALSE;				
-       bSequenceReady:=TRUE;	
-     END_IF	 
- 
-    16: //  Home to zero pulse on incremental encoder module from positive direction
+    13: //  Home to zero pulse on incremental encoder module from positive direction
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -357,7 +349,7 @@ CASE nCmdDataLocal OF
 	        END_IF;
 	   END_CASE;
 			
-   17: //  Home to zero pulse on incremental encoder module from negative direction
+   14: //  Home to zero pulse on incremental encoder module from negative direction
 	   CASE nHomingState OF
 		  0:
 		    bHomed:=Axis.Status.Homed;
@@ -407,7 +399,16 @@ CASE nCmdDataLocal OF
 			  nHomingState:=0;
 			  bHomed:=Axis.Status.Homed;
 	        END_IF;
-	   END_CASE;
+	   END_CASE;	   
+	   
+   15: //Set current position (simplest homing sequence)
+     bExecuteHomeDirect:=bExecute;
+	 bHomed:=Axis.Status.Homed;
+     IF fbHomeDirect.bDone THEN  //Homing ready				
+	   bExecuteHomeDirect:=FALSE;				
+       bSequenceReady:=TRUE;	
+     END_IF	 
+
 	   
 ELSE
   fbHomeToSwitch.bCamSensor:=FALSE;
@@ -515,10 +516,8 @@ RETURN;]]></ST>
       <LineId Id="647" Count="0" />
       <LineId Id="651" Count="1" />
       <LineId Id="2287" Count="0" />
-      <LineId Id="654" Count="0" />
-      <LineId Id="1755" Count="0" />
-      <LineId Id="2130" Count="0" />
-      <LineId Id="655" Count="0" />
+      <LineId Id="2425" Count="1" />
+      <LineId Id="654" Count="1" />
       <LineId Id="658" Count="1" />
       <LineId Id="650" Count="0" />
       <LineId Id="100" Count="0" />
@@ -584,7 +583,9 @@ RETURN;]]></ST>
       <LineId Id="1550" Count="0" />
       <LineId Id="1525" Count="3" />
       <LineId Id="1484" Count="0" />
+      <LineId Id="2429" Count="102" />
       <LineId Id="1918" Count="0" />
+      <LineId Id="2428" Count="0" />
       <LineId Id="602" Count="0" />
       <LineId Id="605" Count="0" />
       <LineId Id="623" Count="0" />
@@ -592,38 +593,6 @@ RETURN;]]></ST>
       <LineId Id="620" Count="0" />
       <LineId Id="622" Count="0" />
       <LineId Id="604" Count="0" />
-      <LineId Id="1836" Count="1" />
-      <LineId Id="2008" Count="1" />
-      <LineId Id="2044" Count="3" />
-      <LineId Id="2211" Count="1" />
-      <LineId Id="2048" Count="1" />
-      <LineId Id="2131" Count="0" />
-      <LineId Id="2051" Count="0" />
-      <LineId Id="2210" Count="0" />
-      <LineId Id="2220" Count="0" />
-      <LineId Id="2219" Count="0" />
-      <LineId Id="2221" Count="0" />
-      <LineId Id="2218" Count="0" />
-      <LineId Id="2222" Count="4" />
-      <LineId Id="2090" Count="0" />
-      <LineId Id="2155" Count="0" />
-      <LineId Id="2091" Count="1" />
-      <LineId Id="2089" Count="0" />
-      <LineId Id="2232" Count="0" />
-      <LineId Id="2127" Count="1" />
-      <LineId Id="2227" Count="0" />
-      <LineId Id="2231" Count="0" />
-      <LineId Id="2156" Count="0" />
-      <LineId Id="2041" Count="0" />
-      <LineId Id="2187" Count="0" />
-      <LineId Id="2189" Count="2" />
-      <LineId Id="2230" Count="0" />
-      <LineId Id="2192" Count="8" />
-      <LineId Id="2186" Count="0" />
-      <LineId Id="2376" Count="0" />
-      <LineId Id="2236" Count="0" />
-      <LineId Id="2238" Count="48" />
-      <LineId Id="2237" Count="0" />
       <LineId Id="2375" Count="0" />
       <LineId Id="1839" Count="0" />
       <LineId Id="191" Count="0" />
