@@ -64,14 +64,14 @@ nFreePos := GVL_ErrorSystem.cSizeOfErrorData - nNoError;
 IF bACK THEN
 	FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
 		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = lErrorID THEN
-			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknoledged;
+			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknowledged;
 		END_IF
 	END_FOR
 END_IF
 
 //Deleting acknoledged errors
 FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
-	IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Acknoledged THEN
+	IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Acknowledged THEN
 		MEMMOVE (ADR(ErrorSystem.aErrorData[nListCnt1]), ADR(ErrorSystem.aErrorData[nListCnt1+1]), (GVL_ErrorSystem.cSizeOfErrorData - 1 - nListCnt1) * SIZEOF(DUT_TerminalError));
 		MEMSET(ADR(ErrorSystem.aErrorData[GVL_ErrorSystem.cSizeOfErrorData - 1]), 0, SIZEOF(DUT_TerminalError));
 	END_IF
