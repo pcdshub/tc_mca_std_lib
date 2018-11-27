@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <POU Name="FB_GetCpuTemp" Id="{3f3229d6-d4ef-4d57-b584-dff4cb23a325}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_GetCpuTemp
+VAR_INPUT
+	
+END_VAR
+VAR_OUTPUT
+    iCpuTemperature       : INT;
+END_VAR
+VAR
+    fbGetCPUTemp          : FB_MDP_ReadElement;
+    stMDP_Addr            : ST_MDP_Addr;                   (* includes all address parameters without the Dynamic Module Id *)
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(* Request the single MDP element cpu temperature *)
+stMDP_Addr.nArea := INT_TO_BYTE(eMDP_Area_ConfigArea);
+stMDP_Addr.nTableId := 1;
+stMDP_Addr.nSubIdx := 3;                                         (* SubIndex 3 = cpu temperature *)
+ 
+fbGetCpuTemp(
+           bExecute    := TRUE,
+           eModuleType := eMDP_ModT_CPU,                         (* module type CPU *)
+           stMDP_Addr  := stMDP_Addr,
+           iModIdx     := 0,                                      (* if it's a multi-processor system: Idx 0 = 1st CPU, Idx 1 = 2nd CPU, ... *)
+           pDstBuf     := ADR(iCpuTemperature),
+           cbDstBufLen := SIZEOF(iCpuTemperature),
+           sAmsNetId   := '');]]></ST>
+    </Implementation>
+    <LineIds Name="FB_GetCpuTemp">
+      <LineId Id="10" Count="11" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
