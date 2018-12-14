@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_Indexer" Id="{6fbe44b4-8810-4c86-9116-a974a03c6a6d}">
+    <Declaration><![CDATA[TYPE ST_Indexer :
+STRUCT
+    Request : WORD;
+    Data    : ARRAY [1..17] OF WORD;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

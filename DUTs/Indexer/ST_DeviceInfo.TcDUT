@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_DeviceInfo" Id="{f2896ebb-0941-45d8-a8d2-120c925b894b}">
+    <Declaration><![CDATA[TYPE ST_DeviceInfo :
+STRUCT
+    (* Typcode -> Tabelle *)
+    TypCode  : WORD := 0;
+    (* DeviceSize in Bytes *)
+    Size     : WORD := 0;
+    (* Offset in Merkerbereich *)
+    Offset   : WORD := 0;
+    (* Unitcode -> Tabelle *)
+    Unit     : WORD := 0;
+    (* Flags *)
+    Flags    : BYTE := 0;  (* bit 0: lowlevel device *)
+    AllFlags : DWORD := 0; (* computed by indexer: Flags 0..23: AUX% is used, 24..31: Flags *)
+    (* param IDX or Bitmap *)
+    Parameters : ARRAY[1..16] OF WORD := [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    (* proposed Name of Device *)
+    Name     : STRING[34];
+    AUX      : ARRAY [0..7] OF STRING[34];
+    AbsMax   : REAL := 3.402823E+38;
+    AbsMin   : REAL := -3.402823E+38;
+END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>
