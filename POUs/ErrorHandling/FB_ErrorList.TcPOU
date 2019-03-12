@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="FB_ErrorList" Id="{978ea49f-a940-4b4e-9f45-8cdde4adcf37}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorList
 
@@ -44,13 +44,13 @@ pErrorSystem := ADR(ErrorSystem);
 nNoOverflow := ErrorSystem.nNoOverflows;
 
 IF bReset THEN
-	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, GVL_ErrorSystem.cSizeOfErrorData * SIZEOF(DUT_TerminalError));
+	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(DUT_TerminalError));
 	ErrorSystem.lNextErrorID := 1;
 END_IF
 
 //Number of errors in the system
 nNoError := 0;
-FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
+FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
 	IF ErrorSystem.aErrorData[nListCnt1].Error_ID <> 0  THEN
 		nNoError := nNoError+1; 
 	END_IF
@@ -58,11 +58,11 @@ END_FOR
 ErrorSystem.nNoErrors := nNoError;
 
 //Number of free position in the list
-nFreePos := GVL_ErrorSystem.cSizeOfErrorData - nNoError;
+nFreePos := cSizeOfErrorData - nNoError;
 
 //Acknoledge specified Error entry
 IF bACK THEN
-	FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
+	FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
 		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = lErrorID THEN
 			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknowledged;
 		END_IF
@@ -70,10 +70,10 @@ IF bACK THEN
 END_IF
 
 //Deleting acknoledged errors
-FOR nListCnt1 := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
+FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
 	IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Acknowledged THEN
-		MEMMOVE (ADR(ErrorSystem.aErrorData[nListCnt1]), ADR(ErrorSystem.aErrorData[nListCnt1+1]), (GVL_ErrorSystem.cSizeOfErrorData - 1 - nListCnt1) * SIZEOF(DUT_TerminalError));
-		MEMSET(ADR(ErrorSystem.aErrorData[GVL_ErrorSystem.cSizeOfErrorData - 1]), 0, SIZEOF(DUT_TerminalError));
+		MEMMOVE (ADR(ErrorSystem.aErrorData[nListCnt1]), ADR(ErrorSystem.aErrorData[nListCnt1+1]), (cSizeOfErrorData - 1 - nListCnt1) * SIZEOF(DUT_TerminalError));
+		MEMSET(ADR(ErrorSystem.aErrorData[cSizeOfErrorData - 1]), 0, SIZEOF(DUT_TerminalError));
 	END_IF
 END_FOR
 ]]></ST>

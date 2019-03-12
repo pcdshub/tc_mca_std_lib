@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="FB_TerminalError" Id="{d77c0e9f-60d8-42e2-aa7d-91cf61b54d46}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TerminalError
 
@@ -71,13 +71,11 @@ IF bStateChanged THEN
 		IF ErrorData.ErrorState = DUT_ErrorState.Active THEN
 			//Close active error
 			//Read system time
-			ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
-			ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
+			ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
 			ErrorData.ErrorState := DUT_ErrorState.Inactive;
 			//Write Off-time to Error System
-			FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
+			FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
 				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-					pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
 					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
 					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
 					EXIT;
@@ -89,12 +87,11 @@ IF bStateChanged THEN
 		END_IF
 		
 		//Open a new error
-		ErrorData.ErrorState := DUT_ErrorState.Active;												//Set Error State
-		ErrorData.nDateTimeOn := Tc2_EtherCAT.F_GetActualDcTime64();								//Get system time
-		ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOn);			//Convert to string
-		ErrorData.iTerminalID := iTerminal_ID;														//Terminal_ID
-		ErrorData.bWcState := bWcState;																//WcState bit
-		ErrorData.uiInfoDataState := uiInfoData_State;												//uiInfoData_State
+		ErrorData.ErrorState := DUT_ErrorState.Active;													//Set Error State
+		ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());	//Convert to string
+		ErrorData.iTerminalID := iTerminal_ID;															//Terminal_ID
+		ErrorData.bWcState := bWcState;																	//WcState bit
+		ErrorData.uiInfoDataState := uiInfoData_State;													//uiInfoData_State
 		
 		//Error message according to uiInfoData_State and WcState
 		iStateError := (uiInfoData_State AND 16#000F);												//Mask for operation state 
@@ -130,28 +127,23 @@ IF bStateChanged THEN
 		END_IF
 		
 		//Check for overflow
-		IF pErrorSystem^.nNoErrors = GVL_ErrorSystem.cSizeOfErrorData THEN
+		IF pErrorSystem^.nNoErrors = cSizeOfErrorData THEN
 			pErrorSystem^.nNoOverflows := pErrorSystem^.nNoOverflows+1;
 		END_IF
 		
 		//Write Error Data into Error System
 		ErrorData.Error_ID := pErrorSystem^.lNextErrorID ;
-		MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (GVL_ErrorSystem.cSizeOfErrorData-1) * SIZEOF(DUT_TerminalError));
+		MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(DUT_TerminalError));
 		pErrorSystem^.aErrorData[0] := ErrorData;
 		pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
 		
 	ELSE
 		//Close Active Error
-		//Read system time
-		ErrorData.nDateTimeOff := Tc2_EtherCAT.F_GetActualDcTime64();
-		ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(ErrorData.nDateTimeOff);
-		ErrorData.ErrorState := DUT_ErrorState.Inactive;
-		
+	
 		//Write Off time to Error System
-		FOR nErrSysCNT := 0 TO GVL_ErrorSystem.cSizeOfErrorData - 1 DO
+		FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
 			IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-				pErrorSystem^.aErrorData[nErrSysCNT].nDateTimeOff := ErrorData.nDateTimeOff;
-				pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
+				pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
 				pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
 				EXIT;
 			END_IF
@@ -191,18 +183,21 @@ END_IF
       <LineId Id="234" Count="0" />
       <LineId Id="347" Count="0" />
       <LineId Id="346" Count="0" />
-      <LineId Id="311" Count="2" />
-      <LineId Id="315" Count="10" />
+      <LineId Id="312" Count="1" />
+      <LineId Id="315" Count="2" />
+      <LineId Id="319" Count="6" />
       <LineId Id="239" Count="0" />
       <LineId Id="244" Count="0" />
       <LineId Id="307" Count="0" />
       <LineId Id="387" Count="0" />
-      <LineId Id="256" Count="48" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="258" Count="46" />
       <LineId Id="245" Count="0" />
       <LineId Id="390" Count="0" />
       <LineId Id="250" Count="0" />
       <LineId Id="389" Count="0" />
-      <LineId Id="326" Count="15" />
+      <LineId Id="330" Count="3" />
+      <LineId Id="335" Count="6" />
       <LineId Id="251" Count="0" />
       <LineId Id="352" Count="0" />
       <LineId Id="232" Count="0" />

@@ -1,8 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <GVL Name="GVL" Id="{913e21aa-a47e-444c-bfce-679b16c0434b}">
     <Declaration><![CDATA[VAR_GLOBAL
 	nHomingError:UDINT:=16#14D00;
+END_VAR
+
+VAR_GLOBAL CONSTANT
+	//Error-handling 
+	cSizeOfErrorData : UINT := 128;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>
