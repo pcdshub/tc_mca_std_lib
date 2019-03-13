@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="EL3214" Id="{0ef824af-3384-4b63-9d1f-7d6cf6b0bd23}" SpecialFunc="None">
     <Declaration><![CDATA[//EL3214 | 4-channel analog input terminal, PT100 (RTD)
 FUNCTION_BLOCK EL3214
@@ -55,7 +55,7 @@ EL3214_Error(
 	pErrorSystem := ErrorSystem,
 	bError => bError,
 );
-
+(*
 IF En THEN
 	IF bError = FALSE THEN
 		iAi_Ch1_Value := AI_RTD_Ch_1_Value;
@@ -69,7 +69,7 @@ IF En THEN
 		iAi_Ch4_Value := 0;
 	END_IF
 END_IF
-]]></ST>
+*)]]></ST>
     </Implementation>
     <LineIds Name="EL3214">
       <LineId Id="50" Count="2" />

@@ -19,7 +19,7 @@ END_VAR
 VAR
 	iStateError : UINT;
 	iOtherError : UINT;
-	ErrorData	: DUT_TerminalError;
+	ErrorData	: ST_ErrorEntry;
 	nErrSysCNT	: UINT;
 	
 	//testing
@@ -90,8 +90,6 @@ IF bStateChanged THEN
 		ErrorData.ErrorState := DUT_ErrorState.Active;													//Set Error State
 		ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());	//Convert to string
 		ErrorData.iTerminalID := iTerminal_ID;															//Terminal_ID
-		ErrorData.bWcState := bWcState;																	//WcState bit
-		ErrorData.uiInfoDataState := uiInfoData_State;													//uiInfoData_State
 		
 		//Error message according to uiInfoData_State and WcState
 		iStateError := (uiInfoData_State AND 16#000F);												//Mask for operation state 
@@ -127,24 +125,26 @@ IF bStateChanged THEN
 		END_IF
 		
 		//Check for overflow
-		IF pErrorSystem^.nNoErrors = cSizeOfErrorData THEN
+		IF pErrorSystem^.nNoErrors >= cSizeOfErrorData THEN
 			pErrorSystem^.nNoOverflows := pErrorSystem^.nNoOverflows+1;
 		END_IF
 		
 		//Write Error Data into Error System
 		ErrorData.Error_ID := pErrorSystem^.lNextErrorID ;
-		MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(DUT_TerminalError));
+		MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
 		pErrorSystem^.aErrorData[0] := ErrorData;
 		pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
 		
 	ELSE
 		//Close Active Error
-	
+		//Read system time
+		ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
+		ErrorData.ErrorState := DUT_ErrorState.Inactive;
 		//Write Off time to Error System
 		FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
 			IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-				pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
-				pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
+				pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
+				pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := ErrorData.ErrorState;
 				EXIT;
 			END_IF
 		END_FOR
@@ -191,12 +191,15 @@ END_IF
       <LineId Id="307" Count="0" />
       <LineId Id="387" Count="0" />
       <LineId Id="256" Count="0" />
-      <LineId Id="258" Count="46" />
+      <LineId Id="258" Count="1" />
+      <LineId Id="262" Count="42" />
       <LineId Id="245" Count="0" />
       <LineId Id="390" Count="0" />
       <LineId Id="250" Count="0" />
       <LineId Id="389" Count="0" />
-      <LineId Id="330" Count="3" />
+      <LineId Id="421" Count="1" />
+      <LineId Id="420" Count="0" />
+      <LineId Id="331" Count="2" />
       <LineId Id="335" Count="6" />
       <LineId Id="251" Count="0" />
       <LineId Id="352" Count="0" />

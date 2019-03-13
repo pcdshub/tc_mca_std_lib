@@ -1,19 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
-  <DUT Name="DUT_TerminalError" Id="{8f84cc80-708c-4401-8591-6bfbf208dfab}">
-    <Declaration><![CDATA[TYPE DUT_TerminalError :
+  <DUT Name="ST_ErrorEntry" Id="{a3a3bc94-dbfe-4a23-82d7-065e2d88f20a}">
+    <Declaration><![CDATA[TYPE ST_ErrorEntry :
 STRUCT
-	//Error system related
-	iTerminalID : INT;					//ID of the terminal
 	Error_ID : ULINT := 0;				//ID for the Error entry
 	ErrorState : DUT_ErrorState;		//State of the error
 	
 	//Error related
+	iTerminalID : INT;					//ID of the terminal
 	sDateTimeOn : STRING(24);			//Date and time when the error occured. Readable format
 	sDateTimeOff : STRING(24);			//Date and time when the error disapeared. Readable format
-	bWcState : BOOL;					//WcState variable of the terminal
-	uiInfoDataState : UINT;				//InfoData.State variable of the terminal
 	sErrorMessage : STRING (128);		//Error message corresponding to WcState and InfoData.State
+	
 	ErrorType : INT; 					//Error types (priorities) need to be developed
 END_STRUCT
 END_TYPE

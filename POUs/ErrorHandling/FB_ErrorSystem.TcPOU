@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
-  <POU Name="FB_ErrorList" Id="{978ea49f-a940-4b4e-9f45-8cdde4adcf37}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorList
+  <POU Name="FB_ErrorSystem" Id="{978ea49f-a940-4b4e-9f45-8cdde4adcf37}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorSystem
 
 VAR_INPUT
 	En : BOOL;											//Enable input
@@ -31,8 +31,8 @@ END_VAR
 * This Function Block implements the core structure of the Error/Warning Handling
 * system. It realizes the datastructure containing every Error Entry, collect
 * statistics about the usage and manage the Error Entries.
-* Note: The system is under development, most of the functionalities are not
-* implemented or existing functionalities may change with time.
+* Note: The system is under development, some functionalities are not
+* implemented or they may change by time.
 * ================================================================================
 *)
 EnO := En;
@@ -44,7 +44,7 @@ pErrorSystem := ADR(ErrorSystem);
 nNoOverflow := ErrorSystem.nNoOverflows;
 
 IF bReset THEN
-	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(DUT_TerminalError));
+	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(ST_ErrorEntry));
 	ErrorSystem.lNextErrorID := 1;
 END_IF
 
@@ -72,13 +72,13 @@ END_IF
 //Deleting acknoledged errors
 FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
 	IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Acknowledged THEN
-		MEMMOVE (ADR(ErrorSystem.aErrorData[nListCnt1]), ADR(ErrorSystem.aErrorData[nListCnt1+1]), (cSizeOfErrorData - 1 - nListCnt1) * SIZEOF(DUT_TerminalError));
-		MEMSET(ADR(ErrorSystem.aErrorData[cSizeOfErrorData - 1]), 0, SIZEOF(DUT_TerminalError));
+		MEMMOVE (ADR(ErrorSystem.aErrorData[nListCnt1]), ADR(ErrorSystem.aErrorData[nListCnt1+1]), (cSizeOfErrorData - 1 - nListCnt1) * SIZEOF(ST_ErrorEntry));
+		MEMSET(ADR(ErrorSystem.aErrorData[cSizeOfErrorData - 1]), 0, SIZEOF(ST_ErrorEntry));
 	END_IF
 END_FOR
 ]]></ST>
     </Implementation>
-    <LineIds Name="FB_ErrorList">
+    <LineIds Name="FB_ErrorSystem">
       <LineId Id="94" Count="1" />
       <LineId Id="147" Count="0" />
       <LineId Id="146" Count="0" />

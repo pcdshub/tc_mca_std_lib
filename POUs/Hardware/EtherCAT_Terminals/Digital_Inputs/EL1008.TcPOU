@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="EL1008" Id="{1c776ddd-5c71-412e-8433-aacbe67877c3}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1008 | 8-channel digital input terminal 24 V DC, 3 ms
 FUNCTION_BLOCK EL1008
@@ -52,6 +52,7 @@ EL1008_Error(
 	bError => bError,
 );
 
+(*
 IF En THEN
 	IF bError=FALSE THEN
 		bDi_1:=Channel_1_Input;
@@ -72,13 +73,17 @@ IF En THEN
 		bDi_7:=FALSE;
 		bDi_8:=FALSE;
 	END_IF
-END_IF]]></ST>
+END_IF
+*)]]></ST>
     </Implementation>
     <LineIds Name="EL1008">
       <LineId Id="3" Count="1" />
       <LineId Id="68" Count="7" />
-      <LineId Id="9" Count="21" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="10" Count="20" />
       <LineId Id="2" Count="0" />
+      <LineId Id="114" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

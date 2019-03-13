@@ -4,7 +4,7 @@
     <Declaration><![CDATA[TYPE ST_ErrorSystem :
 STRUCT
 	//Array of error data. Size = cSizeOfErrorData in the GVL
-	aErrorData : ARRAY [0..cSizeOfErrorData - 1] OF DUT_TerminalError;
+	aErrorData : ARRAY [0..cSizeOfErrorData - 1] OF ST_ErrorEntry;
 	lNextErrorID : ULINT := 1;					//ErrorID for the next error entry
 	nNoErrors : UINT;							//Number of errors in the list
 	nNoOverflows : INT := 0;					//Number of overflows. How many error entries have been lost

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="FB_EL1252ASM_v1_00" Id="{89d3ff0e-6db9-4001-9d08-c10173794a83}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_EL1252ASM_v1_00
 VAR_INPUT
@@ -59,11 +59,13 @@ IF En THEN
 		Di_1:=FALSE;
 		Di_2:=FALSE;
 	END_IF
-END_IF]]></ST>
+END_IF
+]]></ST>
     </Implementation>
     <LineIds Name="FB_EL1252ASM_v1_00">
       <LineId Id="3" Count="24" />
       <LineId Id="2" Count="0" />
+      <LineId Id="59" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

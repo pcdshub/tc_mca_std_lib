@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="EL1819" Id="{00fa0d24-98b5-49bc-bf41-0a4a34b46bc9}" SpecialFunc="None">
     <Declaration><![CDATA[///EL1819 | HD EtherCAT Terminals, 16-channel digital input 24 V DC, 10 µs
 FUNCTION_BLOCK EL1819
@@ -12,6 +12,7 @@ END_VAR
 
 VAR_OUTPUT
 	EnO: BOOL;
+	(*
 	bDi_1: BOOL;
 	bDi_2: BOOL;
 	bDi_3: BOOL;
@@ -28,10 +29,12 @@ VAR_OUTPUT
 	bDi_14: BOOL;
 	bDi_15: BOOL;
 	bDi_16: BOOL;
+	*)
 	bError: BOOL;
 END_VAR
 
 VAR
+	(*
 	Channel_1_Input AT %I*: BOOL;
 	Channel_2_Input AT %I*: BOOL;
 	Channel_3_Input AT %I*: BOOL;
@@ -48,6 +51,8 @@ VAR
 	Channel_14_Input AT %I*: BOOL;
 	Channel_15_Input AT %I*: BOOL;
 	Channel_16_Input AT %I*: BOOL;
+	*)
+	
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
 	
@@ -68,6 +73,7 @@ EL1819_Error(
 	bError => bError,
 );
 
+(*
 IF En THEN
 	IF bError=FALSE THEN
 		bDi_1:=Channel_1_Input;
@@ -104,13 +110,17 @@ IF En THEN
 		bDi_15:=FALSE;
 		bDi_16:=FALSE;
 	END_IF
-END_IF]]></ST>
+END_IF
+*)]]></ST>
     </Implementation>
     <LineIds Name="EL1819">
       <LineId Id="3" Count="1" />
       <LineId Id="100" Count="7" />
-      <LineId Id="9" Count="37" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="10" Count="36" />
       <LineId Id="2" Count="0" />
+      <LineId Id="162" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

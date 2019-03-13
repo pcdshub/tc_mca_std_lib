@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
   <POU Name="EL3174_0002" Id="{d4261a4c-8c4d-44a0-931d-aac8fef66000}" SpecialFunc="None">
     <Declaration><![CDATA[//EL3174-0002 | 4-channel analog input, -10/0...+10V, -20/0/+4...20mA, 16 bit, differential
 FUNCTION_BLOCK EL3174_0002
@@ -12,23 +12,15 @@ END_VAR
 	
 VAR_OUTPUT
 	EnO: BOOL;
-	iAi_Ch1_Value : INT;
-	iAi_Ch2_Value : INT;
-	iAi_Ch3_Value : INT;
-	iAi_Ch4_Value : INT;
 	bError: BOOL;
 END_VAR
 
 VAR
 	//Channels
 	AI_Std_Ch_1_Status	AT %I* : WORD;
-	AI_Std_Ch_1_Value 	AT %I* : INT;
 	AI_Std_Ch_2_Status 	AT %I* : WORD;
-	AI_Std_Ch_2_Value 	AT %I* : INT;
 	AI_Std_Ch_3_Status 	AT %I* : WORD;
-	AI_Std_Ch_3_Value 	AT %I* : INT;
 	AI_Std_Ch_4_Status 	AT %I* : WORD;
-	AI_Std_Ch_4_Value 	AT %I* : INT;
 	
 	//Terminal status
 	WcState_WcState AT %I*: BOOL;
@@ -55,7 +47,7 @@ EL3174_0002_Error(
 	pErrorSystem := ErrorSystem,
 	bError => bError,
 );
-
+(*
 IF En THEN
 	IF bError = FALSE THEN
 		iAi_Ch1_Value := AI_Std_Ch_1_Value;
@@ -69,7 +61,7 @@ IF En THEN
 		iAi_Ch4_Value := 0;
 	END_IF
 END_IF
-]]></ST>
+*)]]></ST>
     </Implementation>
     <LineIds Name="EL3174_0002">
       <LineId Id="95" Count="0" />
