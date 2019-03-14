@@ -1,49 +1,211 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <POU Name="EL2014" Id="{87ed0f35-77bb-4af3-abb4-bd4457e39e0b}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK EL2014
+    <Declaration><![CDATA[// EL2014 | 4-channel output terminal, 24V DC, 0.5A, 4 x 0V contact
+FUNCTION_BLOCK EL2014 
 VAR_INPUT
-	En: BOOL;
-	iTerminal_ID : INT; 
-	ErrorSystem : POINTER TO ST_ErrorSystem;
+	En		: BOOL;
+	iTerminal_ID 		:	INT; 
+	ErrorSystem 		:	POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO : BOOL;
-	bError : BOOL;
+	EnO			: BOOL;
+	bError		: BOOL;
 END_VAR
 
 VAR
-	WcState_WcState AT %I*: BOOL;
-	InfoData_State AT %I*: UINT;
+	//Channel Diagnostic Inputs
+	wChannel_1_Diag		AT %I*	: BYTE;
+	wChannel_2_Diag		AT %I*	: BYTE;
+	wChannel_3_Diag		AT %I*	: BYTE;
+	wChannel_4_Diag		AT %I*	: BYTE;
+	//Device Diagnostic Inputs
+	wDevice_Diag		AT %I*	: BYTE;
+	//Device State Inputs
+	WcState_WcState 	AT %I*	: BOOL;
+	InfoData_State 		AT %I*	: UINT;
 	
+		
 	//FB-s
-	EL2014_Error : FB_TerminalError;
+	EL2014_Error	: FB_TerminalError;
+	CH1_Error		: FB_GenericError;
+	CH2_Error		: FB_GenericError;
+	CH3_Error		: FB_GenericError;
+	CH4_Error		: FB_GenericError;
+	DEV_Error		: FB_GenericError;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-* TODO:
-* Channel diagnostic variables and device diag variables
+* 	TODO: Test the algorithm on hardware
 *)
 
+//Connect EnO to En
 EnO:=En;
 
+//Channel #1 Diag 
+IF wChannel_1_Diag <> 0 THEN
+	CH1_Error.sErrorMessage := 'EL2014 Channel #1: ';
+	IF (wChannel_1_Diag AND 16#01) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Overtemperature; ');			CH1_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_1_Diag AND 16#02) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Open Load; ');					CH1_Error.ErrorPriority := 100;			END_IF
+	IF (wChannel_1_Diag AND 16#04) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Overcurrent; ');				CH1_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_1_Diag AND 16#08) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH1_Error.ErrorPriority := 10;			END_IF
+	CH1_Error.bError := TRUE;
+ELSE
+	CH1_Error.bError := FALSE;
+	CH1_Error.sErrorMessage := '';
+END_IF
+
+//Channel #2 Diag 
+IF wChannel_2_Diag <> 0 THEN
+	CH1_Error.sErrorMessage := 'EL2014 Channel #2: ';
+	IF (wChannel_2_Diag AND 16#01) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Overtemperature; ');			CH2_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_2_Diag AND 16#02) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Open Load; ');					CH2_Error.ErrorPriority := 100;			END_IF
+	IF (wChannel_2_Diag AND 16#04) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Overcurrent; ');				CH2_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_2_Diag AND 16#08) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH2_Error.ErrorPriority := 10;			END_IF
+	CH2_Error.bError := TRUE;
+ELSE
+	CH2_Error.bError := FALSE;
+	CH2_Error.sErrorMessage := '';
+END_IF
+
+//Channel #3 Diag 
+IF wChannel_3_Diag <> 0 THEN
+	CH1_Error.sErrorMessage := 'EL2014 Channel #3: ';
+	IF (wChannel_3_Diag AND 16#01) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Overtemperature; ');			CH3_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_3_Diag AND 16#02) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Open Load; ');					CH3_Error.ErrorPriority := 100;			END_IF
+	IF (wChannel_3_Diag AND 16#04) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Overcurrent; ');				CH3_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_3_Diag AND 16#08) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH3_Error.ErrorPriority := 10;			END_IF
+	CH3_Error.bError := TRUE;
+ELSE
+	CH3_Error.bError := FALSE;
+	CH3_Error.sErrorMessage := '';
+END_IF
+
+//Channel #4 Diag 
+IF wChannel_4_Diag <> 0 THEN
+	CH4_Error.sErrorMessage := 'EL2014 Channel #4: ';
+	IF (wChannel_4_Diag AND 16#01) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Overtemperature; ');			CH4_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_4_Diag AND 16#02) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Open Load; ');					CH4_Error.ErrorPriority := 100;			END_IF
+	IF (wChannel_4_Diag AND 16#04) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Overcurrent; ');				CH4_Error.ErrorPriority := 10;			END_IF
+	IF (wChannel_4_Diag AND 16#08) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH4_Error.ErrorPriority := 10;			END_IF
+	CH4_Error.bError := TRUE;
+ELSE
+	CH4_Error.bError := FALSE;
+	CH4_Error.sErrorMessage := '';
+END_IF
+
+//Device Diag
+IF wDevice_Diag <> 0 THEN
+	DEV_Error.sErrorMessage := 'EL2014: ' ;
+	IF (wDevice_Diag AND 16#01) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Common Fault; ');					CH4_Error.ErrorPriority := 10;			END_IF
+	IF (wDevice_Diag AND 16#02) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Device Overtemperature; ');		CH4_Error.ErrorPriority := 100;			END_IF
+	IF (wDevice_Diag AND 16#04) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Undervoltage; ');					CH4_Error.ErrorPriority := 10;			END_IF
+	IF (wDevice_Diag AND 16#08) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Missing Voltage; ');				CH4_Error.ErrorPriority := 10;			END_IF
+	DEV_Error.bError := TRUE;
+ELSE
+	DEV_Error.bError := FALSE;
+	DEV_Error.sErrorMessage := '';
+END_IF
+
+//Terminal's State of Operation
 EL2014_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
+	En 					:= TRUE,
+	iTerminal_ID 		:= iTerminal_ID,
+	bWcState			:= WcState_WcState,
+	uiInfoData_State	:= InfoData_State,
+	pErrorSystem		:= ErrorSystem,
+	bError				=> bError,
 );
 
-]]></ST>
+CH1_Error (
+	En					:=	TRUE,
+	bError				:=	,
+	sErrorMessage		:=	,
+	ErrorPriority		:=	,
+	iTerminal_ID		:=	iTerminal_ID,
+	pErrorSystem		:=	ErrorSystem,
+	EnO					=>	,
+);
+
+CH2_Error (
+	En					:=	TRUE,
+	bError				:=	,
+	sErrorMessage		:=	,
+	ErrorPriority		:=	,
+	iTerminal_ID		:=	iTerminal_ID,
+	pErrorSystem		:=	ErrorSystem,
+	EnO					=>	,
+);
+
+CH3_Error (
+	En					:=	TRUE,
+	bError				:=	,
+	sErrorMessage		:=	,
+	ErrorPriority		:=	,
+	iTerminal_ID		:=	iTerminal_ID,
+	pErrorSystem		:=	ErrorSystem,
+	EnO					=>	,
+);
+
+CH4_Error (
+	En					:=	TRUE,
+	bError				:=	,
+	sErrorMessage		:=	,
+	ErrorPriority		:=	,
+	iTerminal_ID		:=	iTerminal_ID,
+	pErrorSystem		:=	ErrorSystem,
+	EnO					=>	,
+);
+
+DEV_Error (
+	En					:=	TRUE,
+	bError				:=	,
+	sErrorMessage		:=	,
+	ErrorPriority		:=	,
+	iTerminal_ID		:=	iTerminal_ID,
+	pErrorSystem		:=	ErrorSystem,
+	EnO					=>	,
+);]]></ST>
     </Implementation>
     <LineIds Name="EL2014">
-      <LineId Id="92" Count="2" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="41" Count="10" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="347" Count="1" />
+      <LineId Id="346" Count="0" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="197" Count="1" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="206" Count="2" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="209" Count="2" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="245" Count="0" />
+      <LineId Id="248" Count="10" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="262" Count="11" />
+      <LineId Id="261" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="279" Count="10" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="333" Count="2" />
+      <LineId Id="290" Count="0" />
+      <LineId Id="337" Count="7" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="43" Count="8" />
       <LineId Id="122" Count="1" />
+      <LineId Id="153" Count="2" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="260" Count="0" />
+      <LineId Id="156" Count="2" />
+      <LineId Id="292" Count="0" />
+      <LineId Id="294" Count="18" />
+      <LineId Id="293" Count="0" />
+      <LineId Id="313" Count="8" />
+      <LineId Id="324" Count="8" />
+      <LineId Id="323" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <DUT Name="ST_ErrorEntry" Id="{a3a3bc94-dbfe-4a23-82d7-065e2d88f20a}">
     <Declaration><![CDATA[TYPE ST_ErrorEntry :
 STRUCT
@@ -12,7 +12,7 @@ STRUCT
 	sDateTimeOff : STRING(24);			//Date and time when the error disapeared. Readable format
 	sErrorMessage : STRING (128);		//Error message corresponding to WcState and InfoData.State
 	
-	ErrorType : INT; 					//Error types (priorities) need to be developed
+	ErrorPriority : INT; 					//Error types (priorities) need to be developed
 END_STRUCT
 END_TYPE
 ]]></Declaration>

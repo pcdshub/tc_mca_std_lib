@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <POU Name="FB_GenericError" Id="{9d17d973-b42e-465f-99f6-fee6d97d056b}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_GenericError
 
@@ -8,6 +8,8 @@ VAR_INPUT
 	En					: BOOL;
 	bError				: BOOL;
 	sErrorMessage		: STRING;
+	ErrorPriority		: INT;
+	iTerminal_ID		: INT;
 	pErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
 
@@ -67,6 +69,8 @@ IF bMsgChanged THEN
 		LocalEntry.ErrorState := DUT_ErrorState.Active;													//Set Error State
 		LocalEntry.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());	//Convert to string
 		LocalEntry.sErrorMessage := sErrorMessage;														//Write message into the entry
+		LocalEntry.ErrorPriority := ErrorPriority;														//Priority
+		LocalEntry.iTerminalID := iTerminal_ID;															//Terminal_ID
 		
 		//Check for overflow
 		IF pErrorSystem^.nNoErrors >= cSizeOfErrorData THEN
@@ -125,7 +129,10 @@ END_IF
       <LineId Id="57" Count="11" />
       <LineId Id="53" Count="1" />
       <LineId Id="69" Count="0" />
-      <LineId Id="72" Count="4" />
+      <LineId Id="72" Count="3" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="76" Count="0" />
       <LineId Id="78" Count="2" />
       <LineId Id="77" Count="0" />
       <LineId Id="81" Count="0" />

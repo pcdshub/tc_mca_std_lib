@@ -13,18 +13,13 @@ VAR_OUTPUT
 	Di_2_LatchTimePos: ULINT;
 	Di_1_LatchTimeNeg: ULINT;
 	Di_2_LatchTimeNeg: ULINT;
-	///Below bits can be used but then they must be enabled in the COE of the card. Nicklas suggested to not use these (since something wss written that you then only were allowed to read the latch time onece (some kkind of auto reset??))	
-	///Di_1_LatchNeg:BOOL;
-	///	Di_1_LatchPos:BOOL;
-	///	Di_2_LatchNeg:BOOL;
-	///	Di_2_LatchPos:BOOL;
 	Error: BOOL;
 END_VAR
 VAR
 	Channel_1_Input AT %I*: BOOL;
 	Channel_2_Input AT %I*: BOOL;
-	///Latch_Status1 AT %I*: USINT;
-	///	Latch_Status2 AT %I*: USINT;
+	Latch_Status1 AT %I*: USINT;
+	Latch_Status2 AT %I*: USINT;
 	Latch_LatchPos1 AT %I*: ULINT;
 	Latch_LatchNeg1 AT %I*: ULINT;
 	Latch_LatchPos2 AT %I*: ULINT;
@@ -60,12 +55,13 @@ IF En THEN
 		Di_2:=FALSE;
 	END_IF
 END_IF
-]]></ST>
+
+///TODO: Checkout channel status whether there is something to connect to Error - Handing]]></ST>
     </Implementation>
     <LineIds Name="FB_EL1252ASM_v1_00">
       <LineId Id="3" Count="24" />
       <LineId Id="2" Count="0" />
-      <LineId Id="59" Count="0" />
+      <LineId Id="91" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>
