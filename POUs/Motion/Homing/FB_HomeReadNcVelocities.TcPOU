@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
-  <POU Name="FB_HomeReadNcVelocities" Id="{a78232f2-2338-46fa-908d-fbea8ac2e783}" SpecialFunc="None">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
+  <POU Name="FB_HomeReadNcVelocities" Id="{9d943176-a5db-494c-8bab-e01a0b9f0f74}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HomeReadNcVelocities
 VAR_INPUT
 	En: BOOL;

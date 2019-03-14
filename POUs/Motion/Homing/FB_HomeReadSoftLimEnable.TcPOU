@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
-  <POU Name="FB_HomeReadSoftLimEnable" Id="{be900be5-0784-4633-94f1-38a4124c1620}" SpecialFunc="None">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
+  <POU Name="FB_HomeReadSoftLimEnable" Id="{5f47942d-6527-4dd7-92d9-bf8b43fff50b}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HomeReadSoftLimEnable
 VAR_INPUT
 	En: BOOL;

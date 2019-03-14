@@ -1,65 +1,48 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <POU Name="EL5101" Id="{5df30a0c-1331-4fa2-acfe-28b08cfc5f04}" SpecialFunc="None">
     <Declaration><![CDATA[// EL5101 | 1-channel incremental encoder terminal, 5V, RS422
 FUNCTION_BLOCK EL5101
 
 VAR_INPUT
-	En: BOOL;
-	iTerminal_ID : INT;
-	ErrorSystem : POINTER TO ST_ErrorSystem;
+	En				: BOOL;
+	iTerminal_ID	: INT;
+	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO: BOOL;
-	Counter_Value : UINT;
-	Latch_Value : UINT;
-	bError: BOOL;
+	EnO		: BOOL;
+	bError	: BOOL;
 END_VAR
 
 VAR
-	uiCounter_Value AT %I* : UINT;
-	uiLatch_Value AT %I* : UINT;
-	WcState_WcState AT %I*: BOOL;
-	InfoData_State AT %I*: UINT;
+	WcState_WcState		AT %I* : BOOL;
+	InfoData_State		AT %I* : UINT;
 	
 	//FB-s
-	EL5101_Error : FB_TerminalError;
+	EL5101_Error	: FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-* TODO:
-* Channel Status word, control words
+* TODO: Channel Status word (Connected to NC -> Not needed )
 *)
-
 EnO:=En;
 
-//Error FB instance
+//Error FB instances
 EL5101_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
-);
-
-IF EN THEN
-	IF NOT bError THEN
-		Counter_Value := uiCounter_Value;
-		Latch_Value := uiLatch_Value;
-	ELSE
-		Counter_Value := 0;
-		Latch_Value := 0;
-	END_IF
-END_IF
-]]></ST>
+	En					:= TRUE,
+	iTerminal_ID		:= iTerminal_ID,
+	bWcState			:= WcState_WcState,
+	uiInfoData_State	:= InfoData_State,
+	pErrorSystem		:= ErrorSystem,
+	bError 				=> bError,
+);]]></ST>
     </Implementation>
     <LineIds Name="EL5101">
-      <LineId Id="30" Count="24" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="55" Count="0" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="10" />
     </LineIds>
   </POU>
 </TcPlcObject>
