@@ -32,31 +32,69 @@ END_VAR
       <ST><![CDATA[//Connect En to EnO
 EnO := En;
 
-//Check if pointer is OK
-IF pErrorSystem=0 THEN RETURN; END_IF
-
-IF sErrorMessage <> sMessagePrev THEN
-	bMsgChanged := TRUE;
-ELSE
-	bMsgChanged := FALSE;
-END_IF
-
-//Update previous value
-sMessagePrev := sErrorMessage;
-
-IF bMsgChanged THEN
-	IF bError THEN
-		IF LocalEntry.ErrorState = DUT_ErrorState.Active THEN			//Close active error
+IF En THEN
+	//Check if pointer is OK
+	IF pErrorSystem=0 THEN RETURN; END_IF
+	
+	IF sErrorMessage <> sMessagePrev THEN
+		bMsgChanged := TRUE;
+	ELSE
+		bMsgChanged := FALSE;
+	END_IF
+	
+	//Update previous value
+	sMessagePrev := sErrorMessage;
+	
+	IF bMsgChanged THEN
+		IF bError THEN
+			IF LocalEntry.ErrorState = DUT_ErrorState.Active THEN			//Close active error
+				
 			
-		
+				//Read system time
+				LocalEntry.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
+				LocalEntry.ErrorState := DUT_ErrorState.Inactive;
+				//Write Off-time to Error System
+				FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
+					IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = LocalEntry.Error_ID THEN
+						pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := LocalEntry.sDateTimeOff;
+						pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
+						EXIT;
+					END_IF
+				END_FOR
+					
+				//Clear ErrorData
+				MEMSET(ADR(LocalEntry), 0, SIZEOF(LocalEntry));
+			END_IF
+			
+			//Open a new error
+			LocalEntry.ErrorState := DUT_ErrorState.Active;													//Set Error State
+			LocalEntry.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());	//Convert to string
+			LocalEntry.sErrorMessage := sErrorMessage;														//Write message into the entry
+			LocalEntry.ErrorPriority := ErrorPriority;														//Priority
+			LocalEntry.iTerminalID := iTerminal_ID;															//Terminal_ID
+			
+			//Check for overflow
+			IF pErrorSystem^.nNoErrors >= cSizeOfErrorData THEN
+				pErrorSystem^.nNoOverflows := pErrorSystem^.nNoOverflows+1;
+			END_IF
+			
+			//Write Error Data into Error System
+			LocalEntry.Error_ID := pErrorSystem^.lNextErrorID ;
+			MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
+			pErrorSystem^.aErrorData[0] := LocalEntry;
+			pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
+			
+		ELSE
+			//Close Active Error
 			//Read system time
 			LocalEntry.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
 			LocalEntry.ErrorState := DUT_ErrorState.Inactive;
-			//Write Off-time to Error System
+			
+			//Write Off time to Error System
 			FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
 				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = LocalEntry.Error_ID THEN
 					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := LocalEntry.sDateTimeOff;
-					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
+					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := LocalEntry.ErrorState;
 					EXIT;
 				END_IF
 			END_FOR
@@ -64,43 +102,8 @@ IF bMsgChanged THEN
 			//Clear ErrorData
 			MEMSET(ADR(LocalEntry), 0, SIZEOF(LocalEntry));
 		END_IF
-		
-		//Open a new error
-		LocalEntry.ErrorState := DUT_ErrorState.Active;													//Set Error State
-		LocalEntry.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());	//Convert to string
-		LocalEntry.sErrorMessage := sErrorMessage;														//Write message into the entry
-		LocalEntry.ErrorPriority := ErrorPriority;														//Priority
-		LocalEntry.iTerminalID := iTerminal_ID;															//Terminal_ID
-		
-		//Check for overflow
-		IF pErrorSystem^.nNoErrors >= cSizeOfErrorData THEN
-			pErrorSystem^.nNoOverflows := pErrorSystem^.nNoOverflows+1;
-		END_IF
-		
-		//Write Error Data into Error System
-		LocalEntry.Error_ID := pErrorSystem^.lNextErrorID ;
-		MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
-		pErrorSystem^.aErrorData[0] := LocalEntry;
-		pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
-		
-	ELSE
-		//Close Active Error
-		//Read system time
-		LocalEntry.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
-		LocalEntry.ErrorState := DUT_ErrorState.Inactive;
-		
-		//Write Off time to Error System
-		FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
-			IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = LocalEntry.Error_ID THEN
-				pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := LocalEntry.sDateTimeOff;
-				pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := LocalEntry.ErrorState;
-				EXIT;
-			END_IF
-		END_FOR
-			
-		//Clear ErrorData
-		MEMSET(ADR(LocalEntry), 0, SIZEOF(LocalEntry));
 	END_IF
+	
 END_IF
 
 
@@ -109,6 +112,7 @@ END_IF
     <LineIds Name="FB_GenericError">
       <LineId Id="9" Count="0" />
       <LineId Id="29" Count="0" />
+      <LineId Id="183" Count="0" />
       <LineId Id="32" Count="0" />
       <LineId Id="31" Count="0" />
       <LineId Id="34" Count="0" />
@@ -144,6 +148,7 @@ END_IF
       <LineId Id="94" Count="9" />
       <LineId Id="52" Count="0" />
       <LineId Id="50" Count="0" />
+      <LineId Id="186" Count="1" />
       <LineId Id="45" Count="0" />
       <LineId Id="43" Count="0" />
       <LineId Id="41" Count="0" />

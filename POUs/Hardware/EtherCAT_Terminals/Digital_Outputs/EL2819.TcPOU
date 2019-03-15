@@ -3,14 +3,14 @@
   <POU Name="EL2819" Id="{f53f1521-ea95-4522-96ee-49d4e6c1f88a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK EL2819
 VAR_INPUT
-	En: BOOL;
-	iTerminal_ID : INT; 
-	ErrorSystem : POINTER TO ST_ErrorSystem;
+	En				: BOOL;
+	iTerminal_ID	: INT; 
+	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO : BOOL;
-	bError : BOOL;
+	EnO		: BOOL;
+	bError	: BOOL;
 END_VAR
 
 VAR
@@ -33,11 +33,11 @@ VAR
 	
 	wDevice_Diag	AT %I*	: WORD;
 	
-	WcState_WcState AT %I*: BOOL;
-	InfoData_State AT %I*: UINT;
+	WcState_WcState		AT %I*	: BOOL;
+	InfoData_State		AT %I*	: UINT;
 	
 	//FB-s
-	EL2819_Error : FB_TerminalError;
+	EL2819_Error	: FB_TerminalError;
 	
 	CH1_Error		: FB_GenericError;
 	CH2_Error		: FB_GenericError;
@@ -291,8 +291,17 @@ IF En THEN
 END_IF
 
 //FB Instances
+EL2819_Error(
+	En					:= TRUE,
+	iTerminal_ID		:= iTerminal_ID,
+	bWcState			:= WcState_WcState,
+	uiInfoData_State	:= InfoData_State,
+	pErrorSystem		:= ErrorSystem,
+	bError				=> bError,
+);
+
 CH1_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -302,7 +311,7 @@ CH1_Error (
 );
 
 CH2_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -312,7 +321,7 @@ CH2_Error (
 );
 
 CH3_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -322,7 +331,7 @@ CH3_Error (
 );
 
 CH4_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -332,7 +341,7 @@ CH4_Error (
 );
 
 CH5_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -342,7 +351,7 @@ CH5_Error (
 );
 
 CH6_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -352,7 +361,7 @@ CH6_Error (
 );
 
 CH7_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -362,7 +371,7 @@ CH7_Error (
 );
 
 CH8_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -372,7 +381,7 @@ CH8_Error (
 );
 
 CH9_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -382,7 +391,7 @@ CH9_Error (
 );
 
 CH10_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -392,7 +401,7 @@ CH10_Error (
 );
 
 CH11_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -402,7 +411,7 @@ CH11_Error (
 );
 
 CH12_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -412,7 +421,7 @@ CH12_Error (
 );
 
 CH13_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -422,7 +431,7 @@ CH13_Error (
 );
 
 CH14_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -432,7 +441,7 @@ CH14_Error (
 );
 
 CH15_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -442,7 +451,7 @@ CH15_Error (
 );
 
 CH16_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
@@ -452,22 +461,13 @@ CH16_Error (
 );
 
 DEV_Error (
-	En					:=	TRUE,
+	En					:=	En,
 	bError				:=	,
 	sErrorMessage		:=	,
 	ErrorPriority		:=	,
 	iTerminal_ID		:=	iTerminal_ID,
 	pErrorSystem		:=	ErrorSystem,
 	EnO					=>	,
-);
-
-EL2819_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
 );]]></ST>
     </Implementation>
     <LineIds Name="EL2819">
@@ -511,7 +511,11 @@ EL2819_Error(
       <LineId Id="210" Count="11" />
       <LineId Id="655" Count="0" />
       <LineId Id="654" Count="0" />
-      <LineId Id="244" Count="40" />
+      <LineId Id="244" Count="1" />
+      <LineId Id="720" Count="6" />
+      <LineId Id="719" Count="0" />
+      <LineId Id="718" Count="0" />
+      <LineId Id="246" Count="38" />
       <LineId Id="294" Count="0" />
       <LineId Id="296" Count="7" />
       <LineId Id="295" Count="0" />
@@ -539,8 +543,6 @@ EL2819_Error(
       <LineId Id="571" Count="0" />
       <LineId Id="285" Count="8" />
       <LineId Id="12" Count="0" />
-      <LineId Id="643" Count="7" />
-      <LineId Id="641" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

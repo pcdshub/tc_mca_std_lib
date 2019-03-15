@@ -5,19 +5,19 @@
 FUNCTION_BLOCK EL3214
 
 VAR_INPUT
-	En: BOOL;
-	iTerminal_ID : INT;
-	ErrorSystem : POINTER TO ST_ErrorSystem;
+	En				: BOOL;
+	iTerminal_ID	: INT;
+	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO: BOOL;
-	bError: BOOL;
+	EnO		: BOOL;
+	bError	: BOOL;
 END_VAR
 
 VAR
 	//Channels
-	wCh1_Status	AT %I* : WORD;
+	wCh1_Status		AT %I* : WORD;
 	wCh2_Status 	AT %I* : WORD;
 	wCh3_Status 	AT %I* : WORD;
 	wCh4_Status 	AT %I* : WORD;
@@ -36,7 +36,7 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-* TODO: Status words of the channels
+* TODO: Test on hardware
 *)
 
 EnO := En;
@@ -100,7 +100,7 @@ EL3214_Error(
 );
 
 CH1_Error (
-	En				:= TRUE,
+	En				:= En,
 	bError			:= ,
 	sErrorMessage	:= ,
 	ErrorPriority	:= ,
@@ -110,7 +110,7 @@ CH1_Error (
 );
 
 CH2_Error (
-	En				:= TRUE,
+	En				:= En,
 	bError			:= ,
 	sErrorMessage	:= ,
 	ErrorPriority	:= ,
@@ -120,7 +120,7 @@ CH2_Error (
 );
 
 CH3_Error (
-	En				:= TRUE,
+	En				:= En,
 	bError			:= ,
 	sErrorMessage	:= ,
 	ErrorPriority	:= ,
@@ -130,7 +130,7 @@ CH3_Error (
 );
 
 CH4_Error (
-	En				:= TRUE,
+	En				:= En,
 	bError			:= ,
 	sErrorMessage	:= ,
 	ErrorPriority	:= ,

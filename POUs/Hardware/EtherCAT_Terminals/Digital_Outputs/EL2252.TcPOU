@@ -4,40 +4,36 @@
     <Declaration><![CDATA[///EL2252 | XFC, 2-channel digital output terminal with time stamp, tri-state
 FUNCTION_BLOCK EL2252
 VAR_INPUT
-	En: BOOL;
-	iTerminal_ID : INT; 
-	bDo_1: BOOL;
-	bDo_2: BOOL;
-ErrorSystem : POINTER TO ST_ErrorSystem;
+	En				: BOOL;
+	iTerminal_ID	: INT;
+	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO : BOOL;
-	bError : BOOL;
+	EnO		: BOOL;
+	bError	: BOOL;
 END_VAR
 
 VAR
-	Channel_1_Output AT %Q*: BOOL;
-	Channel_2_Output AT %Q*: BOOL;
-	WcState_WcState AT %I*: BOOL;
-	InfoData_State AT %I*: UINT;
+	WcState_WcState		AT %I*: BOOL;
+	InfoData_State		AT %I*: UINT;
 	
 	//FB-s
-	EL2252_Error : FB_TerminalError;
+	EL2252_Error	: FB_TerminalError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-* TODO: Doesn't have status registers
+* TODO: DONE!
 *)
 
 EL2252_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
+	En					:= TRUE,
+	iTerminal_ID		:= iTerminal_ID,
+	bWcState			:= WcState_WcState,
+	uiInfoData_State	:= InfoData_State,
+	pErrorSystem		:= ErrorSystem,
+	bError 				=> bError,
 );]]></ST>
     </Implementation>
     <LineIds Name="EL2252">

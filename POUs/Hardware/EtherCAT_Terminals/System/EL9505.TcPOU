@@ -5,7 +5,7 @@
 FUNCTION_BLOCK EL9505
 
 VAR_INPUT
-	En: BOOL;
+	En				: BOOL;
 	iTerminal_ID	: INT;
 	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
@@ -22,7 +22,7 @@ VAR
 	InfoData_State		AT %I*	: UINT;
 	
 	//FB-s
-	EL9505_Error : FB_TerminalError;
+	EL9505_Error	: FB_TerminalError;
 	PWR_Error		: FB_GenericError;
 END_VAR
 ]]></Declaration>
@@ -48,16 +48,16 @@ END_IF
 
 //Error FB instance
 EL9505_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
+	En					:= TRUE,
+	iTerminal_ID		:= iTerminal_ID,
+	bWcState			:= WcState_WcState,
+	uiInfoData_State	:= InfoData_State,
+	pErrorSystem		:= ErrorSystem,
+	bError				=> bError,
 );
 
 PWR_Error (
-	En					:= TRUE,
+	En					:= En,
 	bError				:= ,
 	sErrorMessage		:= ,
 	ErrorPriority		:= ,

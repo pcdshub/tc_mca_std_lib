@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
-  <POU Name="EL1819" Id="{00fa0d24-98b5-49bc-bf41-0a4a34b46bc9}" SpecialFunc="None">
-    <Declaration><![CDATA[///EL1819 | HD EtherCAT Terminals, 16-channel digital input 24 V DC, 10 µs
-FUNCTION_BLOCK EL1819
+  <POU Name="EK1110" Id="{b67642f8-ad4b-49aa-ab86-2ce918244b5d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK EK1110
 
 VAR_INPUT
 	En				: BOOL;
@@ -11,17 +10,17 @@ VAR_INPUT
 END_VAR
 
 VAR_OUTPUT
-	EnO			: BOOL;
-	bError		: BOOL;
+	EnO		: BOOL;
+	bError	: BOOL;
 END_VAR
 
 VAR
-	WcState_WcState		AT %I*	: BOOL;
-	InfoData_State		AT %I*	: UINT;
+	InfoData_State	AT %I*	: UINT;
 	
 	//FB-s
-	EL1819_Error	: FB_TerminalError;
-END_VAR]]></Declaration>
+	EK1110_Error	: FB_TerminalError;
+END_VAR
+]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
 * TODO: DONE!
@@ -29,20 +28,19 @@ END_VAR]]></Declaration>
 EnO:=En;
 
 //Error FB instance
-EL1819_Error(
+EK1110_Error(
 	En					:= TRUE,
 	iTerminal_ID		:= iTerminal_ID,
-	bWcState			:= WcState_WcState,
+	bWcState			:= FALSE,
 	uiInfoData_State	:= InfoData_State,
 	pErrorSystem		:= ErrorSystem,
 	bError				=> bError,
 );]]></ST>
     </Implementation>
-    <LineIds Name="EL1819">
-      <LineId Id="129" Count="0" />
-      <LineId Id="131" Count="1" />
-      <LineId Id="3" Count="1" />
-      <LineId Id="100" Count="7" />
+    <LineIds Name="EK1110">
+      <LineId Id="33" Count="1" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="22" Count="9" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>
