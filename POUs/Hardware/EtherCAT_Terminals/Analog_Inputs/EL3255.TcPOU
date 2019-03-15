@@ -1,83 +1,206 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <POU Name="EL3255" Id="{196b856f-d8fb-491f-ab71-4ec8edd9b398}" SpecialFunc="None">
     <Declaration><![CDATA[//EL3255 | 5-channel potentiometer measurement with sensor supply
 FUNCTION_BLOCK EL3255
 
 VAR_INPUT
-	En: BOOL;
-	iTerminal_ID : INT;
-	ErrorSystem : POINTER TO ST_ErrorSystem;
+	En				: BOOL;
+	iTerminal_ID	: INT;
+	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
 
 VAR_OUTPUT
-	EnO : BOOL;	
-	Ch1_Value : INT;
-	Ch2_Value : INT;
-	Ch3_Value : INT;
-	Ch4_Value : INT;
-	Ch5_Value : INT;
-	bError : BOOL;
+	EnO		: BOOL;	
+	bError	: BOOL;
 END_VAR
 
 VAR
-	AI_Std_Ch1_Value AT %I* : INT;
-	AI_Std_Ch2_Value AT %I* : INT;
-	AI_Std_Ch3_Value AT %I* : INT;
-	AI_Std_Ch4_Value AT %I* : INT;
-	AI_Std_Ch5_Value AT %I* : INT;
-	WcState_WcState AT %I*: BOOL;
-	InfoData_State AT %I*: UINT;
+	wCH1_Status		AT %I*	: WORD;
+	wCH2_Status		AT %I*	: WORD;
+	wCH3_Status		AT %I*	: WORD;
+	wCH4_Status		AT %I*	: WORD;
+	wCH5_Status		AT %I*	: WORD;
+	WcState_WcState	AT %I*	: BOOL;
+	InfoData_State	AT %I*	: UINT;
 	
 	//FB-s
-	EL3255_Error : FB_TerminalError;
+	EL3255_Error 	: FB_TerminalError;
+	CH1_Error		: FB_GenericError;
+	CH2_Error		: FB_GenericError;
+	CH3_Error		: FB_GenericError;
+	CH4_Error		: FB_GenericError;
+	CH5_Error		: FB_GenericError;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-* TODO:
-* Channel Status words
+* TODO: Test on hardware
 *)
-
 EnO:=En;
+
+//Channel #1 Status 
+IF (wCh1_Status AND 16#2057) <> 0 THEN
+	CH1_Error.sErrorMessage := 'EL3255 Channel #1: ';
+	IF wCH1_Status.0	THEN	CONCAT(CH1_Error.sErrorMessage, 'Underrange; ');				CH1_Error.ErrorPriority := 100;			END_IF
+	IF wCH1_Status.1	THEN	CONCAT(CH1_Error.sErrorMessage, 'Overrange; ');					CH1_Error.ErrorPriority := 100;			END_IF
+	IF wCh1_Status.2	THEN	CONCAT(CH1_Error.sErrorMessage, 'Limit 1; ');					CH1_Error.ErrorPriority := 100;			END_IF
+	IF wCh1_Status.4	THEN	CONCAT(CH1_Error.sErrorMessage, 'Limit 2; ');					CH1_Error.ErrorPriority := 100;			END_IF
+	IF wCh1_Status.6	THEN	CONCAT(CH1_Error.sErrorMessage, 'Error; ');						CH1_Error.ErrorPriority := 10;			END_IF
+	IF wCh1_Status.13	THEN	CONCAT(CH1_Error.sErrorMessage, 'Sync error; ');				CH1_Error.ErrorPriority := 10;			END_IF
+	CH1_Error.bError := TRUE;
+ELSE
+	CH1_Error.bError		:= FALSE;
+	CH1_Error.sErrorMessage	:= '';
+END_IF
+
+//Channel #2 Status 
+IF (wCh2_Status AND 16#2057) <> 0 THEN
+	CH2_Error.sErrorMessage := 'EL3255 Channel #2: ';
+	IF wCH2_Status.0	THEN	CONCAT(CH2_Error.sErrorMessage, 'Underrange; ');				CH2_Error.ErrorPriority := 100;			END_IF
+	IF wCH2_Status.1	THEN	CONCAT(CH2_Error.sErrorMessage, 'Overrange; ');					CH2_Error.ErrorPriority := 100;			END_IF
+	IF wCh2_Status.2	THEN	CONCAT(CH2_Error.sErrorMessage, 'Limit 1; ');					CH2_Error.ErrorPriority := 100;			END_IF
+	IF wCh2_Status.4	THEN	CONCAT(CH2_Error.sErrorMessage, 'Limit 2; ');					CH2_Error.ErrorPriority := 100;			END_IF
+	IF wCh2_Status.6	THEN	CONCAT(CH2_Error.sErrorMessage, 'Error; ');						CH2_Error.ErrorPriority := 10;			END_IF
+	IF wCh2_Status.13	THEN	CONCAT(CH2_Error.sErrorMessage, 'Sync error; ');				CH2_Error.ErrorPriority := 10;			END_IF
+	CH2_Error.bError := TRUE;
+ELSE
+	CH2_Error.bError		:= FALSE;
+	CH2_Error.sErrorMessage	:= '';
+END_IF
+
+//Channel #3 Status 
+IF (wCh3_Status AND 16#2057) <> 0 THEN
+	CH3_Error.sErrorMessage := 'EL3255 Channel #3: ';
+	IF wCH3_Status.0	THEN	CONCAT(CH3_Error.sErrorMessage, 'Underrange; ');				CH3_Error.ErrorPriority := 100;			END_IF
+	IF wCH3_Status.1	THEN	CONCAT(CH3_Error.sErrorMessage, 'Overrange; ');					CH3_Error.ErrorPriority := 100;			END_IF
+	IF wCh3_Status.2	THEN	CONCAT(CH3_Error.sErrorMessage, 'Limit 1; ');					CH3_Error.ErrorPriority := 100;			END_IF
+	IF wCh3_Status.4	THEN	CONCAT(CH3_Error.sErrorMessage, 'Limit 2; ');					CH3_Error.ErrorPriority := 100;			END_IF
+	IF wCh3_Status.6	THEN	CONCAT(CH3_Error.sErrorMessage, 'Error; ');						CH3_Error.ErrorPriority := 10;			END_IF
+	IF wCh3_Status.13	THEN	CONCAT(CH3_Error.sErrorMessage, 'Sync error; ');				CH3_Error.ErrorPriority := 10;			END_IF
+	CH3_Error.bError := TRUE;
+ELSE
+	CH3_Error.bError		:= FALSE;
+	CH3_Error.sErrorMessage	:= '';
+END_IF
+
+//Channel #4 Status 
+IF (wCh4_Status AND 16#2057) <> 0 THEN
+	CH4_Error.sErrorMessage := 'EL3255 Channel #4: ';
+	IF wCH4_Status.0	THEN	CONCAT(CH4_Error.sErrorMessage, 'Underrange; ');				CH4_Error.ErrorPriority := 100;			END_IF
+	IF wCH4_Status.1	THEN	CONCAT(CH4_Error.sErrorMessage, 'Overrange; ');					CH4_Error.ErrorPriority := 100;			END_IF
+	IF wCh4_Status.2	THEN	CONCAT(CH4_Error.sErrorMessage, 'Limit 1; ');					CH4_Error.ErrorPriority := 100;			END_IF
+	IF wCh4_Status.4	THEN	CONCAT(CH4_Error.sErrorMessage, 'Limit 2; ');					CH4_Error.ErrorPriority := 100;			END_IF
+	IF wCh4_Status.6	THEN	CONCAT(CH4_Error.sErrorMessage, 'Error; ');						CH4_Error.ErrorPriority := 10;			END_IF
+	IF wCh4_Status.13	THEN	CONCAT(CH4_Error.sErrorMessage, 'Sync error; ');				CH4_Error.ErrorPriority := 10;			END_IF
+	CH4_Error.bError := TRUE;
+ELSE
+	CH4_Error.bError		:= FALSE;
+	CH4_Error.sErrorMessage	:= '';
+END_IF
+
+//Channel #5 Status 
+IF (wCh5_Status AND 16#2057) <> 0 THEN
+	CH5_Error.sErrorMessage := 'EL3255 Channel #5: ';
+	IF wCH5_Status.0	THEN	CONCAT(CH5_Error.sErrorMessage, 'Underrange; ');				CH5_Error.ErrorPriority := 100;			END_IF
+	IF wCH5_Status.1	THEN	CONCAT(CH5_Error.sErrorMessage, 'Overrange; ');					CH5_Error.ErrorPriority := 100;			END_IF
+	IF wCh5_Status.2	THEN	CONCAT(CH5_Error.sErrorMessage, 'Limit 1; ');					CH5_Error.ErrorPriority := 100;			END_IF
+	IF wCh5_Status.4	THEN	CONCAT(CH5_Error.sErrorMessage, 'Limit 2; ');					CH5_Error.ErrorPriority := 100;			END_IF
+	IF wCh5_Status.6	THEN	CONCAT(CH5_Error.sErrorMessage, 'Error; ');						CH5_Error.ErrorPriority := 10;			END_IF
+	IF wCh5_Status.13	THEN	CONCAT(CH5_Error.sErrorMessage, 'Sync error; ');				CH5_Error.ErrorPriority := 10;			END_IF
+	CH5_Error.bError := TRUE;
+ELSE
+	CH5_Error.bError		:= FALSE;
+	CH5_Error.sErrorMessage	:= '';
+END_IF
 
 //Error FB instance
 EL3255_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
+	En 					:= TRUE,
+	iTerminal_ID		:= iTerminal_ID,
+	bWcState			:= WcState_WcState,
+	uiInfoData_State	:= InfoData_State,
+	pErrorSystem		:= ErrorSystem,
+	bError				=> bError,
 );
 
-(*
-IF EN THEN
-	IF NOT bError THEN
-		Ch1_Value := AI_Std_Ch1_Value;
-		Ch2_Value := AI_Std_Ch2_Value;
-		Ch3_Value := AI_Std_Ch3_Value;
-		Ch4_Value := AI_Std_Ch4_Value;
-		Ch5_Value := AI_Std_Ch5_Value;
-	ELSE
-		Ch1_Value := 0;
-		Ch2_Value := 0;
-		Ch3_Value := 0;
-		Ch4_Value := 0;
-		Ch5_Value := 0;
-	END_IF
-END_IF
-*)]]></ST>
+CH1_Error (
+	En				:= TRUE,
+	bError			:= ,
+	sErrorMessage	:= ,
+	ErrorPriority	:= ,
+	iTerminal_ID	:= iTerminal_ID,
+	pErrorSystem	:= ErrorSystem,
+	EnO				=> ,
+);
+
+CH2_Error (
+	En				:= TRUE,
+	bError			:= ,
+	sErrorMessage	:= ,
+	ErrorPriority	:= ,
+	iTerminal_ID	:= iTerminal_ID,
+	pErrorSystem	:= ErrorSystem,
+	EnO				=> ,
+);
+
+CH3_Error (
+	En				:= TRUE,
+	bError			:= ,
+	sErrorMessage	:= ,
+	ErrorPriority	:= ,
+	iTerminal_ID	:= iTerminal_ID,
+	pErrorSystem	:= ErrorSystem,
+	EnO				=> ,
+);
+
+CH4_Error (
+	En				:= TRUE,
+	bError			:= ,
+	sErrorMessage	:= ,
+	ErrorPriority	:= ,
+	iTerminal_ID	:= iTerminal_ID,
+	pErrorSystem	:= ErrorSystem,
+	EnO				=> ,
+);
+
+CH5_Error (
+	En				:= TRUE,
+	bError			:= ,
+	sErrorMessage	:= ,
+	ErrorPriority	:= ,
+	iTerminal_ID	:= iTerminal_ID,
+	pErrorSystem	:= ErrorSystem,
+	EnO				=> ,
+);]]></ST>
     </Implementation>
     <LineIds Name="EL3255">
-      <LineId Id="34" Count="15" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="50" Count="4" />
-      <LineId Id="59" Count="2" />
-      <LineId Id="55" Count="1" />
-      <LineId Id="62" Count="3" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="9" Count="0" />
+      <LineId Id="34" Count="1" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="192" Count="4" />
+      <LineId Id="205" Count="1" />
+      <LineId Id="197" Count="0" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="198" Count="3" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="208" Count="13" />
+      <LineId Id="203" Count="0" />
+      <LineId Id="222" Count="13" />
+      <LineId Id="204" Count="0" />
+      <LineId Id="236" Count="13" />
+      <LineId Id="202" Count="0" />
+      <LineId Id="252" Count="13" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="40" Count="9" />
+      <LineId Id="142" Count="0" />
+      <LineId Id="144" Count="7" />
+      <LineId Id="143" Count="0" />
+      <LineId Id="153" Count="28" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="130" Count="0" />
+      <LineId Id="182" Count="7" />
       <LineId Id="98" Count="0" />
     </LineIds>
   </POU>

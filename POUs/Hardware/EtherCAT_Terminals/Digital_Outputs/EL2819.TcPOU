@@ -14,24 +14,24 @@ VAR_OUTPUT
 END_VAR
 
 VAR
-	wChannel_1_Diag		AT %I*	: WORD;
-	wChannel_2_Diag		AT %I*	: WORD;
-	wChannel_3_Diag		AT %I*	: WORD;
-	wChannel_4_Diag		AT %I*	: WORD;
-	wChannel_5_Diag		AT %I*	: WORD;
-	wChannel_6_Diag		AT %I*	: WORD;
-	wChannel_7_Diag		AT %I*	: WORD;
-	wChannel_8_Diag		AT %I*	: WORD;
-	wChannel_9_Diag		AT %I*	: WORD;
-	wChannel_10_Diag	AT %I*	: WORD;
-	wChannel_11_Diag	AT %I*	: WORD;
-	wChannel_12_Diag	AT %I*	: WORD;
-	wChannel_13_Diag	AT %I*	: WORD;
-	wChannel_14_Diag	AT %I*	: WORD;
-	wChannel_15_Diag	AT %I*	: WORD;
-	wChannel_16_Diag	AT %I*	: WORD;
+	wCH1_Diag		AT %I*	: WORD;
+	wCH2_Diag		AT %I*	: WORD;
+	wCH3_Diag		AT %I*	: WORD;
+	wCH4_Diag		AT %I*	: WORD;
+	wCH5_Diag		AT %I*	: WORD;
+	wCH6_Diag		AT %I*	: WORD;
+	wCH7_Diag		AT %I*	: WORD;
+	wCH8_Diag		AT %I*	: WORD;
+	wCH9_Diag		AT %I*	: WORD;
+	wCH10_Diag		AT %I*	: WORD;
+	wCH11_Diag		AT %I*	: WORD;
+	wCH12_Diag		AT %I*	: WORD;
+	wCH13_Diag		AT %I*	: WORD;
+	wCH14_Diag		AT %I*	: WORD;
+	wCH15_Diag		AT %I*	: WORD;
+	wCH16_Diag		AT %I*	: WORD;
 	
-	wDevice_Diag		AT %I*	: WORD;
+	wDevice_Diag	AT %I*	: WORD;
 	
 	WcState_WcState AT %I*: BOOL;
 	InfoData_State AT %I*: UINT;
@@ -57,9 +57,6 @@ VAR
 	CH16_Error		: FB_GenericError;
 	
 	DEV_Error		: FB_GenericError;
-	_Error: INT;
-	ErrorPriority: INT;
-	CH12: INT;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -69,235 +66,228 @@ END_VAR
 
 EnO:=En;
 
-EL2819_Error(
-	En := TRUE,
-	iTerminal_ID := iTerminal_ID,
-	bWcState := WcState_WcState,
-	uiInfoData_State := InfoData_State,
-	pErrorSystem := ErrorSystem,
-	bError => bError,
-);
+IF En THEN
+	//Channel #1 Diag 
+	IF wCH1_Diag <> 0 THEN
+		CH1_Error.sErrorMessage := 'EL2819 Channel #1: ';
+		IF wCH1_Diag.0	THEN	CONCAT(CH1_Error.sErrorMessage, 'Overtemperature; ');			CH1_Error.ErrorPriority := 10;			END_IF
+		IF wCH1_Diag.1	THEN	CONCAT(CH1_Error.sErrorMessage, 'Open Load; ');					CH1_Error.ErrorPriority := 100;			END_IF
+		IF wCH1_Diag.2	THEN	CONCAT(CH1_Error.sErrorMessage, 'Overcurrent; ');				CH1_Error.ErrorPriority := 10;			END_IF
+		IF wCH1_Diag.3	THEN	CONCAT(CH1_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH1_Error.ErrorPriority := 10;			END_IF
+		CH1_Error.bError := TRUE;
+	ELSE
+		CH1_Error.bError := FALSE;
+		CH1_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #2 Diag 
+	IF wCH2_Diag <> 0 THEN
+		CH1_Error.sErrorMessage := 'EL2819 Channel #2: ';
+		IF wCH2_Diag.0	THEN	CONCAT(CH2_Error.sErrorMessage, 'Overtemperature; ');			CH2_Error.ErrorPriority := 10;			END_IF
+		IF wCH2_Diag.1	THEN	CONCAT(CH2_Error.sErrorMessage, 'Open Load; ');					CH2_Error.ErrorPriority := 100;			END_IF
+		IF wCH2_Diag.2	THEN	CONCAT(CH2_Error.sErrorMessage, 'Overcurrent; ');				CH2_Error.ErrorPriority := 10;			END_IF
+		IF wCH2_Diag.3	THEN	CONCAT(CH2_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH2_Error.ErrorPriority := 10;			END_IF
+		CH2_Error.bError := TRUE;
+	ELSE
+		CH2_Error.bError := FALSE;
+		CH2_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #3 Diag 
+	IF wCH3_Diag <> 0 THEN
+		CH1_Error.sErrorMessage := 'EL2819 Channel #3: ';
+		IF wCH3_Diag.0	THEN	CONCAT(CH3_Error.sErrorMessage, 'Overtemperature; ');			CH3_Error.ErrorPriority := 10;			END_IF
+		IF wCH3_Diag.1	THEN	CONCAT(CH3_Error.sErrorMessage, 'Open Load; ');					CH3_Error.ErrorPriority := 100;			END_IF
+		IF wCH3_Diag.2	THEN	CONCAT(CH3_Error.sErrorMessage, 'Overcurrent; ');				CH3_Error.ErrorPriority := 10;			END_IF
+		IF wCH3_Diag.3	THEN	CONCAT(CH3_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH3_Error.ErrorPriority := 10;			END_IF
+		CH3_Error.bError := TRUE;
+	ELSE
+		CH3_Error.bError := FALSE;
+		CH3_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #4 Diag 
+	IF wCH4_Diag <> 0 THEN
+		CH4_Error.sErrorMessage := 'EL2819 Channel #4: ';
+		IF wCH4_Diag.0	THEN	CONCAT(CH4_Error.sErrorMessage, 'Overtemperature; ');			CH4_Error.ErrorPriority := 10;			END_IF
+		IF wCH4_Diag.1	THEN	CONCAT(CH4_Error.sErrorMessage, 'Open Load; ');					CH4_Error.ErrorPriority := 100;			END_IF
+		IF wCH4_Diag.2	THEN	CONCAT(CH4_Error.sErrorMessage, 'Overcurrent; ');				CH4_Error.ErrorPriority := 10;			END_IF
+		IF wCH4_Diag.3	THEN	CONCAT(CH4_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH4_Error.ErrorPriority := 10;			END_IF
+		CH4_Error.bError := TRUE;
+	ELSE
+		CH4_Error.bError := FALSE;
+		CH4_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #5 Diag 
+	IF wCH5_Diag <> 0 THEN
+		CH5_Error.sErrorMessage := 'EL2819 Channel #5: ';
+		IF wCH5_Diag.0	THEN	CONCAT(CH5_Error.sErrorMessage, 'Overtemperature; ');			CH5_Error.ErrorPriority := 10;			END_IF
+		IF wCH5_Diag.1	THEN	CONCAT(CH5_Error.sErrorMessage, 'Open Load; ');					CH5_Error.ErrorPriority := 100;			END_IF
+		IF wCH5_Diag.2	THEN	CONCAT(CH5_Error.sErrorMessage, 'Overcurrent; ');				CH5_Error.ErrorPriority := 10;			END_IF
+		IF wCH5_Diag.3	THEN	CONCAT(CH5_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH5_Error.ErrorPriority := 10;			END_IF
+		CH5_Error.bError := TRUE;
+	ELSE
+		CH5_Error.bError := FALSE;
+		CH5_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #6 Diag 
+	IF wCH6_Diag <> 0 THEN
+		CH6_Error.sErrorMessage := 'EL2819 Channel #6: ';
+		IF wCH6_Diag.0	THEN	CONCAT(CH6_Error.sErrorMessage, 'Overtemperature; ');			CH6_Error.ErrorPriority := 10;			END_IF
+		IF wCH6_Diag.1	THEN	CONCAT(CH6_Error.sErrorMessage, 'Open Load; ');					CH6_Error.ErrorPriority := 100;			END_IF
+		IF wCH6_Diag.2	THEN	CONCAT(CH6_Error.sErrorMessage, 'Overcurrent; ');				CH6_Error.ErrorPriority := 10;			END_IF
+		IF wCH6_Diag.3	THEN	CONCAT(CH6_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH6_Error.ErrorPriority := 10;			END_IF
+		CH6_Error.bError := TRUE;
+	ELSE
+		CH6_Error.bError := FALSE;
+		CH6_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #7 Diag 
+	IF wCH7_Diag <> 0 THEN
+		CH7_Error.sErrorMessage := 'EL2819 Channel #7: ';
+		IF wCH7_Diag.0	THEN	CONCAT(CH7_Error.sErrorMessage, 'Overtemperature; ');			CH7_Error.ErrorPriority := 10;			END_IF
+		IF wCH7_Diag.1	THEN	CONCAT(CH7_Error.sErrorMessage, 'Open Load; ');					CH7_Error.ErrorPriority := 100;			END_IF
+		IF wCH7_Diag.2	THEN	CONCAT(CH7_Error.sErrorMessage, 'Overcurrent; ');				CH7_Error.ErrorPriority := 10;			END_IF
+		IF wCH7_Diag.3	THEN	CONCAT(CH7_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH7_Error.ErrorPriority := 10;			END_IF
+		CH7_Error.bError := TRUE;
+	ELSE
+		CH7_Error.bError := FALSE;
+		CH7_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #8 Diag 
+	IF wCH8_Diag <> 0 THEN
+		CH8_Error.sErrorMessage := 'EL2819 Channel #8: ';
+		IF wCH8_Diag.0	THEN	CONCAT(CH8_Error.sErrorMessage, 'Overtemperature; ');			CH8_Error.ErrorPriority := 10;			END_IF
+		IF wCH8_Diag.1	THEN	CONCAT(CH8_Error.sErrorMessage, 'Open Load; ');					CH8_Error.ErrorPriority := 100;			END_IF
+		IF wCH8_Diag.2	THEN	CONCAT(CH8_Error.sErrorMessage, 'Overcurrent; ');				CH8_Error.ErrorPriority := 10;			END_IF
+		IF wCH8_Diag.3	THEN	CONCAT(CH8_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH8_Error.ErrorPriority := 10;			END_IF
+		CH8_Error.bError := TRUE;
+	ELSE
+		CH8_Error.bError := FALSE;
+		CH8_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #9 Diag 
+	IF wCH9_Diag <> 0 THEN
+		CH9_Error.sErrorMessage := 'EL2819 Channel #9: ';
+		IF wCH9_Diag.0	THEN	CONCAT(CH9_Error.sErrorMessage, 'Overtemperature; ');			CH9_Error.ErrorPriority := 10;			END_IF
+		IF wCH9_Diag.1	THEN	CONCAT(CH9_Error.sErrorMessage, 'Open Load; ');					CH9_Error.ErrorPriority := 100;			END_IF
+		IF wCH9_Diag.2	THEN	CONCAT(CH9_Error.sErrorMessage, 'Overcurrent; ');				CH9_Error.ErrorPriority := 10;			END_IF
+		IF wCH9_Diag.3	THEN	CONCAT(CH9_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH9_Error.ErrorPriority := 10;			END_IF
+		CH9_Error.bError := TRUE;
+	ELSE
+		CH9_Error.bError := FALSE;
+		CH9_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #10 Diag 
+	IF wCH10_Diag <> 0 THEN
+		CH10_Error.sErrorMessage := 'EL2819 Channel #10: ';
+		IF wCH10_Diag.0		THEN	CONCAT(CH10_Error.sErrorMessage, 'Overtemperature; ');			CH10_Error.ErrorPriority := 10;			END_IF
+		IF wCH10_Diag.1		THEN	CONCAT(CH10_Error.sErrorMessage, 'Open Load; ');				CH10_Error.ErrorPriority := 100;		END_IF
+		IF wCH10_Diag.2		THEN	CONCAT(CH10_Error.sErrorMessage, 'Overcurrent; ');				CH10_Error.ErrorPriority := 10;			END_IF
+		IF wCH10_Diag.3		THEN	CONCAT(CH10_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH10_Error.ErrorPriority := 10;			END_IF
+		CH10_Error.bError := TRUE;
+	ELSE
+		CH10_Error.bError := FALSE;
+		CH10_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #11 Diag 
+	IF wCH11_Diag <> 0 THEN
+		CH11_Error.sErrorMessage := 'EL2819 Channel #11: ';
+		IF wCH11_Diag.0		THEN	CONCAT(CH11_Error.sErrorMessage, 'Overtemperature; ');			CH11_Error.ErrorPriority := 10;			END_IF
+		IF wCH11_Diag.1		THEN	CONCAT(CH11_Error.sErrorMessage, 'Open Load; ');				CH11_Error.ErrorPriority := 100;		END_IF
+		IF wCH11_Diag.2		THEN	CONCAT(CH11_Error.sErrorMessage, 'Overcurrent; ');				CH11_Error.ErrorPriority := 10;			END_IF
+		IF wCH11_Diag.3		THEN	CONCAT(CH11_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH11_Error.ErrorPriority := 10;			END_IF
+		CH11_Error.bError := TRUE;
+	ELSE
+		CH11_Error.bError := FALSE;
+		CH11_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #12 Diag 
+	IF wCH12_Diag <> 0 THEN
+		CH12_Error.sErrorMessage := 'EL2819 Channel #12: ';
+		IF wCH12_Diag.0		THEN	CONCAT(CH12_Error.sErrorMessage, 'Overtemperature; ');			CH12_Error.ErrorPriority := 10;			END_IF
+		IF wCH12_Diag.1		THEN	CONCAT(CH12_Error.sErrorMessage, 'Open Load; ');				CH12_Error.ErrorPriority := 100;		END_IF
+		IF wCH12_Diag.2		THEN	CONCAT(CH12_Error.sErrorMessage, 'Overcurrent; ');				CH12_Error.ErrorPriority := 10;			END_IF
+		IF wCH12_Diag.3		THEN	CONCAT(CH12_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH12_Error.ErrorPriority := 10;			END_IF
+		CH12_Error.bError := TRUE;
+	ELSE
+		CH12_Error.bError := FALSE;
+		CH12_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #13 Diag 
+	IF wCH13_Diag <> 0 THEN
+		CH13_Error.sErrorMessage := 'EL2819 Channel #13: ';
+		IF wCH13_Diag.0		THEN	CONCAT(CH13_Error.sErrorMessage, 'Overtemperature; ');			CH13_Error.ErrorPriority := 10;			END_IF
+		IF wCH13_Diag.1		THEN	CONCAT(CH13_Error.sErrorMessage, 'Open Load; ');				CH13_Error.ErrorPriority := 100;		END_IF
+		IF wCH13_Diag.2		THEN	CONCAT(CH13_Error.sErrorMessage, 'Overcurrent; ');				CH13_Error.ErrorPriority := 10;			END_IF
+		IF wCH13_Diag.3		THEN	CONCAT(CH13_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH13_Error.ErrorPriority := 10;			END_IF
+		CH13_Error.bError := TRUE;
+	ELSE
+		CH13_Error.bError := FALSE;
+		CH13_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #14 Diag 
+	IF wCH14_Diag <> 0 THEN
+		CH14_Error.sErrorMessage := 'EL2819 Channel #14: ';
+		IF wCH14_Diag.0		THEN	CONCAT(CH14_Error.sErrorMessage, 'Overtemperature; ');			CH14_Error.ErrorPriority := 10;			END_IF
+		IF wCH14_Diag.1		THEN	CONCAT(CH14_Error.sErrorMessage, 'Open Load; ');				CH14_Error.ErrorPriority := 100;		END_IF
+		IF wCH14_Diag.2		THEN	CONCAT(CH14_Error.sErrorMessage, 'Overcurrent; ');				CH14_Error.ErrorPriority := 10;			END_IF
+		IF wCH14_Diag.3		THEN	CONCAT(CH14_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH14_Error.ErrorPriority := 10;			END_IF
+		CH14_Error.bError := TRUE;
+	ELSE
+		CH14_Error.bError := FALSE;
+		CH14_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #15 Diag 
+	IF wCH15_Diag <> 0 THEN
+		CH15_Error.sErrorMessage := 'EL2819 Channel #15: ';
+		IF wCH15_Diag.0		THEN	CONCAT(CH15_Error.sErrorMessage, 'Overtemperature; ');			CH15_Error.ErrorPriority := 10;			END_IF
+		IF wCH15_Diag.1		THEN	CONCAT(CH15_Error.sErrorMessage, 'Open Load; ');				CH15_Error.ErrorPriority := 100;		END_IF
+		IF wCH15_Diag.2		THEN	CONCAT(CH15_Error.sErrorMessage, 'Overcurrent; ');				CH15_Error.ErrorPriority := 10;			END_IF
+		IF wCH15_Diag.3		THEN	CONCAT(CH15_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH15_Error.ErrorPriority := 10;			END_IF
+		CH15_Error.bError := TRUE;
+	ELSE
+		CH15_Error.bError := FALSE;
+		CH15_Error.sErrorMessage := '';
+	END_IF
+	
+	//Channel #16 Diag 
+	IF wCH16_Diag <> 0 THEN
+		CH16_Error.sErrorMessage := 'EL2819 Channel #16: ';
+		IF wCH16_Diag.0		THEN	CONCAT(CH16_Error.sErrorMessage, 'Overtemperature; ');			CH16_Error.ErrorPriority := 10;			END_IF
+		IF wCH16_Diag.1		THEN	CONCAT(CH16_Error.sErrorMessage, 'Open Load; ');				CH16_Error.ErrorPriority := 100;		END_IF
+		IF wCH16_Diag.2		THEN	CONCAT(CH16_Error.sErrorMessage, 'Overcurrent; ');				CH16_Error.ErrorPriority := 10;			END_IF
+		IF wCH16_Diag.3		THEN	CONCAT(CH16_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH16_Error.ErrorPriority := 10;			END_IF
+		CH16_Error.bError := TRUE;
+	ELSE
+		CH16_Error.bError := FALSE;
+		CH16_Error.sErrorMessage := '';
+	END_IF
+	
+	//Device Diag
+	IF wDevice_Diag <> 0 THEN
+		DEV_Error.sErrorMessage := 'EL2819: ' ;
+		IF wDevice_Diag.0	THEN	CONCAT(CH4_Error.sErrorMessage, 'Common Fault; ');					CH4_Error.ErrorPriority := 10;			END_IF
+		IF wDevice_Diag.1	THEN	CONCAT(CH4_Error.sErrorMessage, 'Device Overtemperature; ');		CH4_Error.ErrorPriority := 100;			END_IF
+		IF wDevice_Diag.2	THEN	CONCAT(CH4_Error.sErrorMessage, 'Undervoltage; ');					CH4_Error.ErrorPriority := 10;			END_IF
+		IF wDevice_Diag.3	THEN	CONCAT(CH4_Error.sErrorMessage, 'Missing Voltage; ');				CH4_Error.ErrorPriority := 10;			END_IF
+		DEV_Error.bError := TRUE;
+	ELSE
+		DEV_Error.bError := FALSE;
+		DEV_Error.sErrorMessage := '';
+	END_IF
 
-
-//Channel #1 Diag 
-IF wChannel_1_Diag <> 0 THEN
-	CH1_Error.sErrorMessage := 'EL2819 Channel #1: ';
-	IF (wChannel_1_Diag AND 16#01) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Overtemperature; ');			CH1_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_1_Diag AND 16#02) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Open Load; ');					CH1_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_1_Diag AND 16#04) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Overcurrent; ');				CH1_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_1_Diag AND 16#08) = 1 THEN CONCAT(CH1_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH1_Error.ErrorPriority := 10;			END_IF
-	CH1_Error.bError := TRUE;
-ELSE
-	CH1_Error.bError := FALSE;
-	CH1_Error.sErrorMessage := '';
-END_IF
-
-//Channel #2 Diag 
-IF wChannel_2_Diag <> 0 THEN
-	CH1_Error.sErrorMessage := 'EL2819 Channel #2: ';
-	IF (wChannel_2_Diag AND 16#01) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Overtemperature; ');			CH2_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_2_Diag AND 16#02) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Open Load; ');					CH2_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_2_Diag AND 16#04) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Overcurrent; ');				CH2_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_2_Diag AND 16#08) = 1 THEN CONCAT(CH2_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH2_Error.ErrorPriority := 10;			END_IF
-	CH2_Error.bError := TRUE;
-ELSE
-	CH2_Error.bError := FALSE;
-	CH2_Error.sErrorMessage := '';
-END_IF
-
-//Channel #3 Diag 
-IF wChannel_3_Diag <> 0 THEN
-	CH1_Error.sErrorMessage := 'EL2819 Channel #3: ';
-	IF (wChannel_3_Diag AND 16#01) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Overtemperature; ');			CH3_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_3_Diag AND 16#02) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Open Load; ');					CH3_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_3_Diag AND 16#04) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Overcurrent; ');				CH3_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_3_Diag AND 16#08) = 1 THEN CONCAT(CH3_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH3_Error.ErrorPriority := 10;			END_IF
-	CH3_Error.bError := TRUE;
-ELSE
-	CH3_Error.bError := FALSE;
-	CH3_Error.sErrorMessage := '';
-END_IF
-
-//Channel #4 Diag 
-IF wChannel_4_Diag <> 0 THEN
-	CH4_Error.sErrorMessage := 'EL2819 Channel #4: ';
-	IF (wChannel_4_Diag AND 16#01) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Overtemperature; ');			CH4_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_4_Diag AND 16#02) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Open Load; ');					CH4_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_4_Diag AND 16#04) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Overcurrent; ');				CH4_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_4_Diag AND 16#08) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH4_Error.ErrorPriority := 10;			END_IF
-	CH4_Error.bError := TRUE;
-ELSE
-	CH4_Error.bError := FALSE;
-	CH4_Error.sErrorMessage := '';
-END_IF
-
-//Channel #5 Diag 
-IF wChannel_5_Diag <> 0 THEN
-	CH5_Error.sErrorMessage := 'EL2819 Channel #5: ';
-	IF (wChannel_5_Diag AND 16#01) = 1 THEN CONCAT(CH5_Error.sErrorMessage, 'Overtemperature; ');			CH5_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_5_Diag AND 16#02) = 1 THEN CONCAT(CH5_Error.sErrorMessage, 'Open Load; ');					CH5_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_5_Diag AND 16#04) = 1 THEN CONCAT(CH5_Error.sErrorMessage, 'Overcurrent; ');				CH5_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_5_Diag AND 16#08) = 1 THEN CONCAT(CH5_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH5_Error.ErrorPriority := 10;			END_IF
-	CH5_Error.bError := TRUE;
-ELSE
-	CH5_Error.bError := FALSE;
-	CH5_Error.sErrorMessage := '';
-END_IF
-
-//Channel #6 Diag 
-IF wChannel_6_Diag <> 0 THEN
-	CH6_Error.sErrorMessage := 'EL2819 Channel #6: ';
-	IF (wChannel_6_Diag AND 16#01) = 1 THEN CONCAT(CH6_Error.sErrorMessage, 'Overtemperature; ');			CH6_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_6_Diag AND 16#02) = 1 THEN CONCAT(CH6_Error.sErrorMessage, 'Open Load; ');					CH6_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_6_Diag AND 16#04) = 1 THEN CONCAT(CH6_Error.sErrorMessage, 'Overcurrent; ');				CH6_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_6_Diag AND 16#08) = 1 THEN CONCAT(CH6_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH6_Error.ErrorPriority := 10;			END_IF
-	CH6_Error.bError := TRUE;
-ELSE
-	CH6_Error.bError := FALSE;
-	CH6_Error.sErrorMessage := '';
-END_IF
-
-//Channel #7 Diag 
-IF wChannel_7_Diag <> 0 THEN
-	CH7_Error.sErrorMessage := 'EL2819 Channel #7: ';
-	IF (wChannel_7_Diag AND 16#01) = 1 THEN CONCAT(CH7_Error.sErrorMessage, 'Overtemperature; ');			CH7_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_7_Diag AND 16#02) = 1 THEN CONCAT(CH7_Error.sErrorMessage, 'Open Load; ');					CH7_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_7_Diag AND 16#04) = 1 THEN CONCAT(CH7_Error.sErrorMessage, 'Overcurrent; ');				CH7_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_7_Diag AND 16#08) = 1 THEN CONCAT(CH7_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH7_Error.ErrorPriority := 10;			END_IF
-	CH7_Error.bError := TRUE;
-ELSE
-	CH7_Error.bError := FALSE;
-	CH7_Error.sErrorMessage := '';
-END_IF
-
-//Channel #8 Diag 
-IF wChannel_8_Diag <> 0 THEN
-	CH8_Error.sErrorMessage := 'EL2819 Channel #8: ';
-	IF (wChannel_8_Diag AND 16#01) = 1 THEN CONCAT(CH8_Error.sErrorMessage, 'Overtemperature; ');			CH8_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_8_Diag AND 16#02) = 1 THEN CONCAT(CH8_Error.sErrorMessage, 'Open Load; ');					CH8_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_8_Diag AND 16#04) = 1 THEN CONCAT(CH8_Error.sErrorMessage, 'Overcurrent; ');				CH8_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_8_Diag AND 16#08) = 1 THEN CONCAT(CH8_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH8_Error.ErrorPriority := 10;			END_IF
-	CH8_Error.bError := TRUE;
-ELSE
-	CH8_Error.bError := FALSE;
-	CH8_Error.sErrorMessage := '';
-END_IF
-
-//Channel #9 Diag 
-IF wChannel_9_Diag <> 0 THEN
-	CH9_Error.sErrorMessage := 'EL2819 Channel #9: ';
-	IF (wChannel_9_Diag AND 16#01) = 1 THEN CONCAT(CH9_Error.sErrorMessage, 'Overtemperature; ');			CH9_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_9_Diag AND 16#02) = 1 THEN CONCAT(CH9_Error.sErrorMessage, 'Open Load; ');					CH9_Error.ErrorPriority := 100;			END_IF
-	IF (wChannel_9_Diag AND 16#04) = 1 THEN CONCAT(CH9_Error.sErrorMessage, 'Overcurrent; ');				CH9_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_9_Diag AND 16#08) = 1 THEN CONCAT(CH9_Error.sErrorMessage, 'Short Circuit to 24V; ');		CH9_Error.ErrorPriority := 10;			END_IF
-	CH9_Error.bError := TRUE;
-ELSE
-	CH9_Error.bError := FALSE;
-	CH9_Error.sErrorMessage := '';
-END_IF
-
-//Channel #10 Diag 
-IF wChannel_10_Diag <> 0 THEN
-	CH10_Error.sErrorMessage := 'EL2819 Channel #10: ';
-	IF (wChannel_10_Diag AND 16#01) = 1 THEN CONCAT(CH10_Error.sErrorMessage, 'Overtemperature; ');			CH10_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_10_Diag AND 16#02) = 1 THEN CONCAT(CH10_Error.sErrorMessage, 'Open Load; ');				CH10_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_10_Diag AND 16#04) = 1 THEN CONCAT(CH10_Error.sErrorMessage, 'Overcurrent; ');				CH10_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_10_Diag AND 16#08) = 1 THEN CONCAT(CH10_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH10_Error.ErrorPriority := 10;			END_IF
-	CH10_Error.bError := TRUE;
-ELSE
-	CH10_Error.bError := FALSE;
-	CH10_Error.sErrorMessage := '';
-END_IF
-
-//Channel #11 Diag 
-IF wChannel_11_Diag <> 0 THEN
-	CH11_Error.sErrorMessage := 'EL2819 Channel #11: ';
-	IF (wChannel_11_Diag AND 16#01) = 1 THEN CONCAT(CH11_Error.sErrorMessage, 'Overtemperature; ');			CH11_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_11_Diag AND 16#02) = 1 THEN CONCAT(CH11_Error.sErrorMessage, 'Open Load; ');				CH11_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_11_Diag AND 16#04) = 1 THEN CONCAT(CH11_Error.sErrorMessage, 'Overcurrent; ');				CH11_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_11_Diag AND 16#08) = 1 THEN CONCAT(CH11_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH11_Error.ErrorPriority := 10;			END_IF
-	CH11_Error.bError := TRUE;
-ELSE
-	CH11_Error.bError := FALSE;
-	CH11_Error.sErrorMessage := '';
-END_IF
-
-//Channel #12 Diag 
-IF wChannel_12_Diag <> 0 THEN
-	CH12_Error.sErrorMessage := 'EL2819 Channel #12: ';
-	IF (wChannel_12_Diag AND 16#01) = 1 THEN CONCAT(CH12_Error.sErrorMessage, 'Overtemperature; ');			CH12_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_12_Diag AND 16#02) = 1 THEN CONCAT(CH12_Error.sErrorMessage, 'Open Load; ');				CH12_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_12_Diag AND 16#04) = 1 THEN CONCAT(CH12_Error.sErrorMessage, 'Overcurrent; ');				CH12_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_12_Diag AND 16#08) = 1 THEN CONCAT(CH12_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH12_Error.ErrorPriority := 10;			END_IF
-	CH12_Error.bError := TRUE;
-ELSE
-	CH12_Error.bError := FALSE;
-	CH12_Error.sErrorMessage := '';
-END_IF
-
-//Channel #13 Diag 
-IF wChannel_13_Diag <> 0 THEN
-	CH13_Error.sErrorMessage := 'EL2819 Channel #13: ';
-	IF (wChannel_13_Diag AND 16#01) = 1 THEN CONCAT(CH13_Error.sErrorMessage, 'Overtemperature; ');			CH13_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_13_Diag AND 16#02) = 1 THEN CONCAT(CH13_Error.sErrorMessage, 'Open Load; ');				CH13_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_13_Diag AND 16#04) = 1 THEN CONCAT(CH13_Error.sErrorMessage, 'Overcurrent; ');				CH13_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_13_Diag AND 16#08) = 1 THEN CONCAT(CH13_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH13_Error.ErrorPriority := 10;			END_IF
-	CH13_Error.bError := TRUE;
-ELSE
-	CH13_Error.bError := FALSE;
-	CH13_Error.sErrorMessage := '';
-END_IF
-
-//Channel #14 Diag 
-IF wChannel_14_Diag <> 0 THEN
-	CH14_Error.sErrorMessage := 'EL2819 Channel #14: ';
-	IF (wChannel_14_Diag AND 16#01) = 1 THEN CONCAT(CH14_Error.sErrorMessage, 'Overtemperature; ');			CH14_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_14_Diag AND 16#02) = 1 THEN CONCAT(CH14_Error.sErrorMessage, 'Open Load; ');				CH14_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_14_Diag AND 16#04) = 1 THEN CONCAT(CH14_Error.sErrorMessage, 'Overcurrent; ');				CH14_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_14_Diag AND 16#08) = 1 THEN CONCAT(CH14_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH14_Error.ErrorPriority := 10;			END_IF
-	CH14_Error.bError := TRUE;
-ELSE
-	CH14_Error.bError := FALSE;
-	CH14_Error.sErrorMessage := '';
-END_IF
-
-//Channel #15 Diag 
-IF wChannel_15_Diag <> 0 THEN
-	CH15_Error.sErrorMessage := 'EL2819 Channel #15: ';
-	IF (wChannel_15_Diag AND 16#01) = 1 THEN CONCAT(CH15_Error.sErrorMessage, 'Overtemperature; ');			CH15_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_15_Diag AND 16#02) = 1 THEN CONCAT(CH15_Error.sErrorMessage, 'Open Load; ');				CH15_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_15_Diag AND 16#04) = 1 THEN CONCAT(CH15_Error.sErrorMessage, 'Overcurrent; ');				CH15_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_15_Diag AND 16#08) = 1 THEN CONCAT(CH15_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH15_Error.ErrorPriority := 10;			END_IF
-	CH15_Error.bError := TRUE;
-ELSE
-	CH15_Error.bError := FALSE;
-	CH15_Error.sErrorMessage := '';
-END_IF
-
-//Channel #16 Diag 
-IF wChannel_16_Diag <> 0 THEN
-	CH16_Error.sErrorMessage := 'EL2819 Channel #16: ';
-	IF (wChannel_16_Diag AND 16#01) = 1 THEN CONCAT(CH16_Error.sErrorMessage, 'Overtemperature; ');			CH16_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_16_Diag AND 16#02) = 1 THEN CONCAT(CH16_Error.sErrorMessage, 'Open Load; ');				CH16_Error.ErrorPriority := 100;		END_IF
-	IF (wChannel_16_Diag AND 16#04) = 1 THEN CONCAT(CH16_Error.sErrorMessage, 'Overcurrent; ');				CH16_Error.ErrorPriority := 10;			END_IF
-	IF (wChannel_16_Diag AND 16#08) = 1 THEN CONCAT(CH16_Error.sErrorMessage, 'Short Circuit to 24V; ');	CH16_Error.ErrorPriority := 10;			END_IF
-	CH16_Error.bError := TRUE;
-ELSE
-	CH16_Error.bError := FALSE;
-	CH16_Error.sErrorMessage := '';
-END_IF
-
-//Device Diag
-IF wDevice_Diag <> 0 THEN
-	DEV_Error.sErrorMessage := 'EL2819: ' ;
-	IF (wDevice_Diag AND 16#01) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Common Fault; ');					CH4_Error.ErrorPriority := 10;			END_IF
-	IF (wDevice_Diag AND 16#02) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Device Overtemperature; ');		CH4_Error.ErrorPriority := 100;			END_IF
-	IF (wDevice_Diag AND 16#04) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Undervoltage; ');					CH4_Error.ErrorPriority := 10;			END_IF
-	IF (wDevice_Diag AND 16#08) = 1 THEN CONCAT(CH4_Error.sErrorMessage, 'Missing Voltage; ');				CH4_Error.ErrorPriority := 10;			END_IF
-	DEV_Error.bError := TRUE;
-ELSE
-	DEV_Error.bError := FALSE;
-	DEV_Error.sErrorMessage := '';
 END_IF
 
 //FB Instances
@@ -469,14 +459,26 @@ DEV_Error (
 	iTerminal_ID		:=	iTerminal_ID,
 	pErrorSystem		:=	ErrorSystem,
 	EnO					=>	,
+);
+
+EL2819_Error(
+	En := TRUE,
+	iTerminal_ID := iTerminal_ID,
+	bWcState := WcState_WcState,
+	uiInfoData_State := InfoData_State,
+	pErrorSystem := ErrorSystem,
+	bError => bError,
 );]]></ST>
     </Implementation>
     <LineIds Name="EL2819">
       <LineId Id="113" Count="0" />
       <LineId Id="115" Count="1" />
       <LineId Id="114" Count="0" />
-      <LineId Id="66" Count="10" />
-      <LineId Id="157" Count="51" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="651" Count="0" />
+      <LineId Id="157" Count="16" />
+      <LineId Id="658" Count="2" />
+      <LineId Id="177" Count="31" />
       <LineId Id="404" Count="0" />
       <LineId Id="406" Count="11" />
       <LineId Id="419" Count="11" />
@@ -507,6 +509,8 @@ DEV_Error (
       <LineId Id="558" Count="0" />
       <LineId Id="457" Count="0" />
       <LineId Id="210" Count="11" />
+      <LineId Id="655" Count="0" />
+      <LineId Id="654" Count="0" />
       <LineId Id="244" Count="40" />
       <LineId Id="294" Count="0" />
       <LineId Id="296" Count="7" />
@@ -535,6 +539,8 @@ DEV_Error (
       <LineId Id="571" Count="0" />
       <LineId Id="285" Count="8" />
       <LineId Id="12" Count="0" />
+      <LineId Id="643" Count="7" />
+      <LineId Id="641" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
