@@ -16,7 +16,7 @@ VAR_OUTPUT
 END_VAR
 
 VAR
-	WcState_WcState		AT %I* : BOOL;
+	//WC_State is handled by NC, so NOT included here.
 	InfoData_State		AT %I* : UINT;
 	
 	//FB-s
@@ -33,7 +33,7 @@ EnO:=En;
 EL5101_Error(
 	En					:= TRUE,
 	iTerminal_ID		:= iTerminal_ID,
-	bWcState			:= WcState_WcState,
+	bWcState			:= FALSE,
 	uiInfoData_State	:= InfoData_State,
 	pErrorSystem		:= ErrorSystem,
 	bError 				=> bError,
