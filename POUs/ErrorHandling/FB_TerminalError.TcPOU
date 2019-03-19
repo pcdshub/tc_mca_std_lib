@@ -33,7 +33,16 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(*
-* TODO:
+* ================================================================================
+*                                   DESCRIPTION
+* ================================================================================
+* This Function Block provides connection to the Error System specifically 
+* for monitoring an EtherCat terminal's state of operation. The function block 
+* checks the content of the linked variables, that encodes the terminal's state.
+* If any deviation from the nominal state is experienced an entry is created with
+* all the necessary information. If the terminal goes through a series of 
+* different error states each state transition is tracked in a new entry.
+* ================================================================================
 *)
 
 //Connect EN to EnO
@@ -153,8 +162,11 @@ IF En THEN
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_TerminalError">
-      <LineId Id="162" Count="0" />
-      <LineId Id="170" Count="0" />
+      <LineId Id="483" Count="3" />
+      <LineId Id="492" Count="0" />
+      <LineId Id="498" Count="0" />
+      <LineId Id="503" Count="3" />
+      <LineId Id="493" Count="0" />
       <LineId Id="168" Count="0" />
       <LineId Id="452" Count="0" />
       <LineId Id="62" Count="1" />

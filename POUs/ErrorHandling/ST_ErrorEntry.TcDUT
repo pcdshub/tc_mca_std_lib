@@ -3,16 +3,16 @@
   <DUT Name="ST_ErrorEntry" Id="{a3a3bc94-dbfe-4a23-82d7-065e2d88f20a}">
     <Declaration><![CDATA[TYPE ST_ErrorEntry :
 STRUCT
-	Error_ID : ULINT := 0;				//ID for the Error entry
+	Error_ID : ULINT := 0;				//ID of the Error entry
 	ErrorState : DUT_ErrorState;		//State of the error
 	
 	//Error related
 	iTerminalID : INT;					//ID of the terminal
-	sDateTimeOn : STRING(24);			//Date and time when the error occured. Readable format
-	sDateTimeOff : STRING(24);			//Date and time when the error disapeared. Readable format
-	sErrorMessage : STRING (128);		//Error message corresponding to WcState and InfoData.State
+	sDateTimeOn : STRING(24);			//Date and time when the error occured
+	sDateTimeOff : STRING(24);			//Date and time when the error disapeared
+	sErrorMessage : STRING (128);		//Description of the event
 	
-	ErrorPriority : INT; 					//Error types (priorities) need to be developed
+	ErrorPriority : INT; 				//Priority of the error
 END_STRUCT
 END_TYPE
 ]]></Declaration>

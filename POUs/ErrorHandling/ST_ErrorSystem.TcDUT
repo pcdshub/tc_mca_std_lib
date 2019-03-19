@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <DUT Name="ST_ErrorSystem" Id="{7e9a851b-2b87-4b78-9f7e-1a9f1c210ec1}">
     <Declaration><![CDATA[TYPE ST_ErrorSystem :
 STRUCT
@@ -7,7 +7,7 @@ STRUCT
 	aErrorData : ARRAY [0..cSizeOfErrorData - 1] OF ST_ErrorEntry;
 	lNextErrorID : ULINT := 1;					//ErrorID for the next error entry
 	nNoErrors : UINT;							//Number of errors in the list
-	nNoOverflows : INT := 0;					//Number of overflows. How many error entries have been lost
+	nNoOverflows : INT := 0;					//Number of overflows. How many error entries have been lost due to the size of the array
 END_STRUCT
 END_TYPE
 ]]></Declaration>

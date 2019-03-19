@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
   <POU Name="FB_ErrorSystem" Id="{978ea49f-a940-4b4e-9f45-8cdde4adcf37}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorSystem
 
@@ -31,8 +31,6 @@ END_VAR
 * This Function Block implements the core structure of the Error/Warning Handling
 * system. It realizes the datastructure containing every Error Entry, collect
 * statistics about the usage and manage the Error Entries.
-* Note: The system is under development, some functionalities are not
-* implemented or they may change by time.
 * ================================================================================
 *)
 EnO := En;
@@ -83,8 +81,7 @@ END_FOR
       <LineId Id="147" Count="0" />
       <LineId Id="146" Count="0" />
       <LineId Id="148" Count="0" />
-      <LineId Id="150" Count="2" />
-      <LineId Id="156" Count="0" />
+      <LineId Id="150" Count="1" />
       <LineId Id="149" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="30" Count="39" />
