@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
+  <DUT Name="IndexerStruct" Id="{b5fac5fa-b6e4-49ef-aaab-629bacd849a3}">
+    <Declaration><![CDATA[TYPE IndexerStruct :
+STRUCT
+///////Actions//////
+	bStart				: BOOL; //move absolute only?
+	bStop				: BOOL;
+	bReset				: BOOL;
+	
+//////Status////////
+	bResetDone			: BOOL;
+	bBusy				: BOOL;
+	bStopped			: BOOL;
+	bError				: BOOL;
+	bEnabled			: BOOL;
+	bIdle				: BOOL;
+	bHomed				: BOOL;
+	bLimitFwd			: BOOL;
+	bLimitBwd			: BOOL;
+	bHomeSensor			: BOOL;
+	nErrorId			: UDINT;
+	
+//////Parameters/////////
+	fPosition			: LREAL;
+	fVelocity			: LREAL;
+	fAcceleration 		: LREAL;
+	nSoftLimitFwd		: INT;
+	nSoftLimitBwd		: INT;
+	nOverride			: UDINT;
+	
+//////Commands/////////
+	bJogFwd				: BOOL;
+	bJogBwd				: BOOL;
+	bHome				: BOOL;
+
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

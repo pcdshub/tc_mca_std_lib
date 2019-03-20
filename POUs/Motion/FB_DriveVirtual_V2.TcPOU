@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
-  <POU Name="FB_DriveVirtual" Id="{45901cd0-c6d2-4114-b7cf-de832171219f}" SpecialFunc="None">
+  <POU Name="FB_DriveVirtual_V2" Id="{48aa4337-87de-4625-92cb-9b0e0f05c227}" SpecialFunc="None">
     <Declaration><![CDATA[///#########################################################
 ///Function block to run a virtual drive with Nc
 ///	Library:		
@@ -13,124 +13,130 @@
 ///	External functions:
 ///
 ///###########################################################
-FUNCTION_BLOCK FB_DriveVirtual
+FUNCTION_BLOCK FB_DriveVirtual_V2
 VAR
 	sVersion: STRING:='1.0.3';	
 	
 END_VAR
 VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR_IN_OUT
+	stAxisStruct: AxisStruct;	
+	//Axis: AXIS_REF;
+END_VAR
+VAR	
+	InfoData_State AT %I*: UINT;
+	//nCommandLocal: UINT;
+	//nCmdDataLocal: UINT;
+	bFirstScan: BOOL := TRUE;
+	bResetDone: BOOL;
+	En: BOOL;
 	bEnable: BOOL;
 	bReset: BOOL;
 	bExecute: BOOL;
 	bStop: BOOL;
-	/////	nCommandLocal...
-	/////	0 = Jog
-	/////	1 = MoveVelocity
-	/////	2 = MoveRelative
-	/////	3 = MoveAbsolut
-	/////	4 = MoveModulo
-	/////	10 = Homing
-	/////	20 = SuperInp >>>ToBe
-	/////	30 = Gear
-	//nCommand: UINT;
-	//nCmdData: UINT;
 	fVelocity: LREAL;
 	fPosition: LREAL;
 	fAcceleration: LREAL;
+	//fDeceleration: LREAL;
 	//bHome: BOOL;
+	//bMoveAbs: BOOL;
 	bJogFwd: BOOL;
 	bJogBwd: BOOL;
 	bLimitFwd: BOOL;
 	bLimitBwd: BOOL;	
 	fOverride: LREAL := 100;
 	bHomeSensor: BOOL;
-	//fHomePosition:LREAL;
-	//nHomeRevOffset: UINT;
-	MasterAxis: AXIS_REF;
-END_VAR
-VAR_OUTPUT
-	
-	bResetDone: Bool;
-	bEnabled: BOOL;
-	bBusy: BOOL;
-	bDone: BOOL;
-	bError: BOOL;
-	bHomed: BOOL;
-	nErrorId: UDINT;
-	fActVelocity: LREAL;
-	fActPosition: LREAL;
-	Status: ST_AxisStatus;
-	END_VAR
-VAR_IN_OUT
-	Axis: AXIS_REF;
-	stAxisStatus: AxisStruct;
-END_VAR
-VAR	
-	nOverride: INT;	
-	InfoData_State AT %I*: UINT;
-	//nCommandLocal: UINT;
-	//nCmdDataLocal: UINT;
-	bFirstScan: BOOL := TRUE;
 	fbReset: MC_Reset;
 	fbPower: MC_Power;
 	fbHalt: MC_Halt;
 	fbStop: MC_Stop;
 	fbJog: MC_Jog;
-	fbMoveAbsolute: MC_MoveAbsolute;
+	fbHome: MC_Home;
 //	fbMoveVelocity: MC_MoveVelocity;
 //	fbMoveRelative: MC_MoveRelative;
+	fbMoveAbsolute: MC_MoveAbsolute;
 //	fbMoveModulo: MC_MoveModulo;	
 //	fbHomeVirtual:FB_HomeVirtual;
 //	fbGearInDyn: MC_GearInDyn;
 //	fbGearOut: MC_GearOut;
-
 	fbExecuteRiseEdge: R_TRIG;
+	fbFTrig_Reset  			: F_TRIG;
+	eCommState				: CommStates;
+	
+	EnO: BOOL;
+	bEnabled: BOOL;
+	bIdle:	BOOL;	
+	bBusy: BOOL;
+	bDone: BOOL;
+	bError: BOOL;
+	bHomed: BOOL;
+	nErrorId: UDINT;
+	//nMotionAxisID:UDINT:=0;  //Axis id in Motion (NC)
+	
+	//Status: ST_AxisStatus;
+	fActVelocity: LREAL;
+	fActPosition: LREAL;
+	//fActDiff: LREAL;
+    //sErrorMessage:STRING;
+	
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[//NC_LinkAxis
-IF bEnable AND InfoData_State<>16#8 THEN
+      <ST><![CDATA[EnO:=En;
+
+//NC_LinkAxis
+IF En AND InfoData_State<>16#8 THEN
 	bError:=TRUE;
 ELSE
 	bError:=FALSE;
 END_IF
 
-IF bEnable THEN
-	Axis.ReadStatus();
-	Status:=Axis.Status;
+IF En THEN
+	stAxisStruct.Axis.ReadStatus();
+	//Status:=stAxisStruct.Axis.Status;
 END_IF
 
 
-fbExecuteRiseEdge(CLK:=bExecute);
+// Transfer nCommand and nCmdData to local copies at rising edge of bExecute (avoid issues if nCommand or nCmdData are changed during a command) 
+fbExecuteRiseEdge(CLK:=stAxisStruct.bStart);
+(*IF fbExecuteRiseEdge.Q THEN
+  nCmdDataLocal:=nCmdData;
+  nCommandLocal:=nCommand;
+END_IF*)
+
+//bHomed:=fbHomeVirtual.bHomed; //Add in DUT_AxisStatus later
+bDone:=FALSE;
 
 (*Reset*)
 fbReset(
-	Execute:=bReset AND Axis.Status.Error,
-	Axis:=Axis,
-	Done=> bResetDone,
+	Execute:=stAxisStruct.bReset AND stAxisStruct.Axis.Status.Error,
+	Axis:=stAxisStruct.Axis,
+	Done=> stAxisStruct.bResetDone,
 	Busy=> ,
 	Error=> ,
 	ErrorID=> );
 
 (*Power*)
 fbPower(
-	Axis:=Axis,
-	Enable:=bEnable,	
-	Enable_Positive:=bEnable AND bLimitFwd,	
-	Enable_Negative:=bEnable AND bLimitBwd,	
-	Override:= nOverride,
+	Axis:=stAxisStruct.Axis,
+	Enable:=stAxisStruct.bEnable,	
+	Enable_Positive:=stAxisStruct.bEnable AND stAxisStruct.bLimitFwd,	
+	Enable_Negative:=stAxisStruct.bEnable AND stAxisStruct.bLimitBwd,	
+	Override:=stAxisStruct.fOverride,
 	BufferMode:= ,
-	Status=> bEnabled,
+	Status=> stAxisStruct.bEnabled,
 	Busy=> ,
 	Active=> ,
 	Error=> ,
 	ErrorID=> );
 
-
 (*Stop*)
 fbStop(
-				Axis:= Axis, 
-				Execute:= bStop, 
-				Deceleration:= fAcceleration , 
+				Axis:= stAxisStruct.Axis, 
+				Execute:= stAxisStruct.bStop, 
+				Deceleration:= stAxisStruct.fAcceleration , 
 				Jerk:= 0, 
 				Options:= , 
 				Done=> , 
@@ -143,15 +149,15 @@ fbStop(
 			
 (*Jog (Command = 0)*)
 fbJog(
-	JogForward:=bJogFwd AND NOT bExecute ,
-	JogBackwards:=bJogBwd AND NOT bExecute ,
+	JogForward:=stAxisStruct.bJogFwd AND NOT stAxisStruct.bStart ,
+	JogBackwards:=stAxisStruct.bJogBwd AND NOT stAxisStruct.bStart ,
 	Mode:=0,
 	Position:= ,
-	Velocity:=fVelocity,
-	Acceleration:=fAcceleration,
-	Deceleration:=fAcceleration,
+	Velocity:=stAxisStruct.fVelocity,
+	Acceleration:=stAxisStruct.fAcceleration,
+	Deceleration:=stAxisStruct.fAcceleration,
 	Jerk:=0,
-	Axis:=Axis,
+	Axis:=stAxisStruct.Axis,
 	Done=> ,
 	Busy=> ,
 	Active=> ,
@@ -161,24 +167,42 @@ fbJog(
 
 (*MoveAbsolute (Command = 3)*)
 fbMoveAbsolute(
-	Execute:=bExecute,
-	Position:=fPosition,
-	Velocity:=ABS(fVelocity),
-	Acceleration:=fAcceleration,
-	Deceleration:=fAcceleration,
+	Execute:=stAxisStruct.bStart,
+	Position:=stAxisStruct.fPosition,
+	Velocity:=ABS(stAxisStruct.fVelocity),
+	Acceleration:=stAxisStruct.fAcceleration,
+	Deceleration:=stAxisStruct.fAcceleration,
 	Jerk:=0,
 	BufferMode:= ,
 	Options:= ,
-	Axis:=Axis,
-	Done=> ,
+	Axis:=stAxisStruct.Axis,
+	Done=> stAxisStruct.bDone,
 	Busy=> ,
 	Active=> ,
 	CommandAborted=> ,
 	Error=> ,
 	ErrorID=> );
 
+fbHome(
+	Axis:= stAxisStruct.Axis, 
+	Execute:= stAxisStruct.bHome, 
+	Position:= 0, 
+	HomingMode:= MC_DefaultHoming, 
+	BufferMode:= , 
+	Options:= , 
+	bCalibrationCam:= , 
+	Done=> stAxisStruct.bHomed, 
+	Busy=> , 
+	Active=> , 
+	CommandAborted=> , 
+	Error=> , 
+	ErrorID=> );
+
 (*Busy*)
-bBusy:=Axis.Status.HasJob;
+stAxisStruct.bBusy:=stAxisStruct.Axis.Status.HasJob;
+
+(*Enabled*) //Done directly in the FB
+//stAxisStruct.bEnabled:=fbPower.Status;
 
 (*Error from functions and Nc*)
 IF fbPower.Error AND fbPower.Active THEN
@@ -211,68 +235,70 @@ ELSIF fbGearInDyn.Error AND nCommandLocal=30 (*fbGearInDyn.Active*) THEN
 ELSIF fbGearOut.Error AND nCommandLocal=30 AND Axis.Status.Coupled THEN
 	bError:=fbGearOut.Execute;
 	nErrorId:=fbGearOut.ErrorID;*)
-ELSIF Axis.Status.Error  THEN
-	bError:=TRUE;
-	nErrorId:=Axis.Status.ErrorID;
+ELSIF stAxisStruct.Axis.Status.Error  THEN
+	stAxisStruct.bError:=TRUE;
+	stAxisStruct.nErrorId:=stAxisStruct.Axis.Status.ErrorID;
 //ELSIF fbHomeVirtual.bError THEN
 //	bError:=TRUE;
 //	nErrorId:=fbHomeVirtual.nErrorId;
 ELSE
-	bError:=FALSE;
-	nErrorId:=0;
+	stAxisStruct.bError:=FALSE;
+	stAxisStruct.nErrorId:=0;
 END_IF;
 
 (*Converese nErrorID to string*)
 //sErrorMessage:=WORD_TO_HEXSTR(in:=TO_WORD(nErrorID) , iPrecision:= 4, bLoCase:=0 );
 
 (*Status from Nc*)
-Status:=Axis.Status;
+//Status:=stAxisStruct.Axis.Status;
 
 (*Axis id in motion "motor"*)
 //nMotionAxisID:=axis.NcToPlc.AxisId;
 
 (*Actual Velocity*)
-fActVelocity:=Axis.NcToPlc.ActVelo;
+stAxisStruct.fActVelocity:=stAxisStruct.Axis.NcToPlc.ActVelo;
 
 (*Actual Position*)
-IF Axis.Status.OpMode.Modulo THEN
-	fActPosition:=Axis.NcToPlc.ModuloActPos;
+IF stAxisStruct.Axis.Status.OpMode.Modulo THEN
+	stAxisStruct.fActPosition:=stAxisStruct.Axis.NcToPlc.ModuloActPos;
 ELSE
-	fActPosition:=Axis.NcToPlc.ActPos;
+	stAxisStruct.fActPosition:=stAxisStruct.Axis.NcToPlc.ActPos;
 END_IF
-
-(*Actual Position*)
-//fActDiff:=Axis.NcToPlc.PosDiff;
-
-//CHECK IF ALL THE DATA IS THERE
-//Status struct for EPICS communication
-stAxisStatus.bEnable:=bEnable;
-stAxisStatus.bEnabled:=bEnabled;
-stAxisStatus.bError:=bError;
-stAxisStatus.bStart:=bExecute;
-//stAxisStatus.bHomeSensor:=bHomeSensor;
-stAxisStatus.bJogBwd:=bJogBwd;
-stAxisStatus.bJogFwd:=bJogFwd;
-stAxisStatus.bLimitBwd:=bLimitBwd;
-stAxisStatus.bLimitFwd:=bLimitFwd;
-stAxisStatus.bReset:=bReset;
-stAxisStatus.fAcceleration:=fAcceleration;
-//stAxisStatus.fActDiff:=fActDiff;
-stAxisStatus.fActPosition:=fActPosition;
-stAxisStatus.fActVelocity:=fActVelocity;
-//stAxisStatus.fDeceleration:=fDeceleration;
-//stAxisStatus.fOverride:=fOverride;
-stAxisStatus.fPosition:=fPosition;
-stAxisStatus.fVelocity:=fVelocity;
-//stAxisStatus.nCmdData:=nCmdData;  //Or nCmdDataLocal
-//stAxisStatus.nCommand:=nCommand;  //Or nCommandLocal
-stAxisStatus.nErrorId:=nErrorId;
-stAxisStatus.bBusy:=bBusy;
-stAxisStatus.bHomed:=bHomed;
 
 IF bFirstScan THEN
 	bFirstScan:=FALSE;
 END_IF
+(*Actual Position*)
+//fActDiff:=Axis.NcToPlc.PosDiff;
+
+
+(*//Status struct for EPICS communication
+bEnable:=stAxisStruct.bEnable;
+stAxisStruct.bEnabled:=bEnabled;
+stAxisStruct.bError:=bError;
+bExecute:=stAxisStruct.bStart;
+//stAxisStatus.bHomeSensor:=bHomeSensor;
+bJogBwd:=stAxisStruct.bJogBwd;
+bJogFwd:=stAxisStruct.bJogFwd;
+bLimitBwd:=stAxisStruct.bLimitBwd;
+bLimitFwd:=stAxisStruct.bLimitFwd;
+stAxisStruct.bReset:=bReset;
+stAxisStruct.fAcceleration:=fAcceleration;
+//stAxisStatus.fActDiff:=fActDiff;
+stAxisStruct.fActPosition:=fActPosition;
+stAxisStruct.fActVelocity:=fActVelocity;
+//stAxisStatus.fDeceleration:=fDeceleration;
+//stAxisStatus.fOverride:=fOverride;
+stAxisStruct.fPosition:=fPosition;
+stAxisStruct.fVelocity:=fVelocity;
+//stAxisStatus.nCmdData:=nCmdData;  //Or nCmdDataLocal
+//stAxisStatus.nCommand:=nCommand;  //Or nCommandLocal
+stAxisStruct.nErrorId:=nErrorId;
+stAxisStruct.bBusy:=bBusy;
+stAxisStruct.bHomed:=bHomed;
+stAxisStruct.fOverride:=fOverride;*)
+
+
 
 (*(*Halt*)
 fbHalt(
@@ -402,23 +428,24 @@ END_IF
 *)
 ]]></ST>
     </Implementation>
-    <LineIds Name="FB_DriveVirtual">
-      <LineId Id="1908" Count="10" />
+    <LineIds Name="FB_DriveVirtual_V2">
+      <LineId Id="1608" Count="0" />
+      <LineId Id="1907" Count="11" />
       <LineId Id="1906" Count="0" />
-      <LineId Id="1609" Count="0" />
-      <LineId Id="1611" Count="0" />
-      <LineId Id="1616" Count="0" />
-      <LineId Id="1620" Count="21" />
-      <LineId Id="2099" Count="0" />
-      <LineId Id="1642" Count="0" />
+      <LineId Id="1609" Count="33" />
       <LineId Id="1921" Count="0" />
       <LineId Id="1923" Count="10" />
       <LineId Id="1922" Count="0" />
       <LineId Id="2092" Count="0" />
       <LineId Id="1657" Count="18" />
       <LineId Id="1716" Count="17" />
-      <LineId Id="1936" Count="1" />
-      <LineId Id="1941" Count="92" />
+      <LineId Id="2136" Count="12" />
+      <LineId Id="1736" Count="0" />
+      <LineId Id="1935" Count="66" />
+      <LineId Id="2132" Count="2" />
+      <LineId Id="2002" Count="28" />
+      <LineId Id="2131" Count="0" />
+      <LineId Id="2031" Count="0" />
       <LineId Id="1934" Count="0" />
       <LineId Id="2074" Count="0" />
       <LineId Id="2076" Count="13" />
