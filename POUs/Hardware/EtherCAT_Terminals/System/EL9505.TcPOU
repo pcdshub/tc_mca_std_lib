@@ -35,8 +35,8 @@ EnO:=En;
 IF En THEN
 	IF 	(NOT bUoPwr_OK) OR bUo_Overload THEN
 		PWR_Error.sErrorMessage		:= 'EL9505: ';
-		IF NOT bUoPwr_OK	THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Output Voltage Error; ');		PWR_Error.ErrorPriority := 5;		END_IF
-		IF bUo_Overload		THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Overload; ');					PWR_Error.ErrorPriority := 5;		END_IF
+		IF NOT bUoPwr_OK	THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Output Voltage Error; ');		IF PWR_Error.ErrorPriority > 5  THEN PWR_Error.ErrorPriority := 5;	END_IF	END_IF
+		IF bUo_Overload		THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Overload; ');					IF PWR_Error.ErrorPriority > 5  THEN PWR_Error.ErrorPriority := 5;	END_IF	END_IF
 		PWR_Error.bError	:= TRUE;
 	ELSE
 		PWR_Error.sErrorMessage	:= '';

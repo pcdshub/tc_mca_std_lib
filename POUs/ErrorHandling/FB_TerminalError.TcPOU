@@ -105,11 +105,13 @@ IF En THEN
 				16#0002 : ErrorData.sErrorMessage := 'Slave in PREOP state;   ';
 				16#0003 : ErrorData.sErrorMessage := 'Slave in BOOT state;   ';
 				16#0004 : ErrorData.sErrorMessage := 'Slave in SAFEOP state;   ';
-				16#0008 : ;																			//Normal operation state
+				16#0008 : ;																				//Normal operation state
+				IF ErrorData.ErrorPriority > 5 THEN ErrorData.ErrorPriority := 5; END_IF
 			ELSE
-				ErrorData.sErrorMessage := 'Undefined State of operation;   ';						//I hope we will never see this message
+				ErrorData.sErrorMessage := 'Undefined State of operation;   ';							//I hope we will never see this message
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, UINT_TO_STRING(iStateError));
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, '   ');
+				ErrorData.ErrorPriority := 1;
 			END_CASE
 			
 			//Error messages according to the second least significant digit
@@ -118,15 +120,18 @@ IF En THEN
 				16#0010 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Slave signals error;   ');
 				16#0020 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Invalid vendorID/productCode read;   ');
 				16#0040 : ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Initialisation error occured;   ');
+				IF ErrorData.ErrorPriority > 5 THEN ErrorData.ErrorPriority := 5; END_IF
 			ELSE
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Undefined Error ID: ');
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, UINT_TO_STRING(iOtherError));
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, '   ');
+				ErrorData.ErrorPriority := 1;
 			END_CASE
 		
 			//Errormessage according to WcState bit
 			IF bWcState THEN
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, 'Invalid Data;');
+				IF ErrorData.ErrorPriority > 5 THEN ErrorData.ErrorPriority := 5; END_IF
 			END_IF
 			
 			//Check for overflow
@@ -197,7 +202,17 @@ END_IF]]></ST>
       <LineId Id="387" Count="0" />
       <LineId Id="256" Count="0" />
       <LineId Id="258" Count="1" />
-      <LineId Id="262" Count="42" />
+      <LineId Id="262" Count="10" />
+      <LineId Id="536" Count="0" />
+      <LineId Id="273" Count="3" />
+      <LineId Id="537" Count="0" />
+      <LineId Id="277" Count="7" />
+      <LineId Id="538" Count="0" />
+      <LineId Id="285" Count="3" />
+      <LineId Id="539" Count="0" />
+      <LineId Id="289" Count="4" />
+      <LineId Id="540" Count="0" />
+      <LineId Id="294" Count="10" />
       <LineId Id="245" Count="0" />
       <LineId Id="390" Count="0" />
       <LineId Id="250" Count="0" />
