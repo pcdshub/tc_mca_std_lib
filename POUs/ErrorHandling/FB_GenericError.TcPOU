@@ -60,9 +60,8 @@ IF En THEN
 	
 	IF bMsgChanged THEN
 		IF bError THEN
-			IF LocalEntry.ErrorState = DUT_ErrorState.Active THEN			//Close active error
-				
-			
+			IF LocalEntry.ErrorState = DUT_ErrorState.Active THEN
+				//Close active error
 				//Read system time
 				LocalEntry.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
 				LocalEntry.ErrorState := DUT_ErrorState.Inactive;
@@ -147,7 +146,7 @@ END_IF
       <LineId Id="47" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="51" Count="0" />
-      <LineId Id="55" Count="1" />
+      <LineId Id="256" Count="0" />
       <LineId Id="71" Count="0" />
       <LineId Id="57" Count="11" />
       <LineId Id="53" Count="1" />

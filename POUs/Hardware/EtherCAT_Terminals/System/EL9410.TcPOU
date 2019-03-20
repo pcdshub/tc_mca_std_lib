@@ -35,8 +35,8 @@ EnO:=En;
 IF En THEN
 	IF 	bUs_Undervoltage OR bUp_Undervoltage THEN
 		PWR_Error.sErrorMessage		:= 'EL9410: ';
-		IF bUs_Undervoltage		THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Us undervoltage; ');		IF PWR_Error.ErrorPriority > 5  THEN PWR_Error.ErrorPriority := 5;	END_IF	END_IF
-		IF bUp_Undervoltage		THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Up undervoltage; ');		IF PWR_Error.ErrorPriority > 5  THEN PWR_Error.ErrorPriority := 5;	END_IF	END_IF
+		IF bUs_Undervoltage		THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Us undervoltage; ');		IF PWR_Error.ErrorPriority > 5  OR PWR_Error.ErrorPriority = 0	THEN PWR_Error.ErrorPriority := 5;	END_IF	END_IF
+		IF bUp_Undervoltage		THEN	PWR_Error.sErrorMessage := CONCAT (PWR_Error.sErrorMessage, 'Up undervoltage; ');		IF PWR_Error.ErrorPriority > 5  OR PWR_Error.ErrorPriority = 0	THEN PWR_Error.ErrorPriority := 5;	END_IF	END_IF
 		PWR_Error.bError	:= TRUE;
 	ELSE
 		PWR_Error.sErrorMessage	:= '';
