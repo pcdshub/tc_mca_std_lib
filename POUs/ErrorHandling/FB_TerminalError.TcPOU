@@ -140,10 +140,10 @@ IF En THEN
 			END_IF
 			
 			//Write Error Data into Error System
-			ErrorData.Error_ID := pErrorSystem^.lNextErrorID ;
+			ErrorData.Error_ID := pErrorSystem^.nNextErrorID ;
 			MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
 			pErrorSystem^.aErrorData[0] := ErrorData;
-			pErrorSystem^.lNextErrorID := pErrorSystem^.lNextErrorID+1;
+			pErrorSystem^.nNextErrorID := pErrorSystem^.nNextErrorID+1;
 			
 		ELSE
 			//Close Active Error

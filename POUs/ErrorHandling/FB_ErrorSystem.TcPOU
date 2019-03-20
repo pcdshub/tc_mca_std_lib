@@ -6,7 +6,7 @@
 VAR_INPUT
 	En : BOOL;											//Enable input
 	bReset : BOOL;										//Delete all Error entry
-	lErrorID : ULINT;									//ErrorID to be acknoledged
+	nErrorID : ULINT;									//ErrorID to be acknoledged
 	bACK : BOOL;										//Acknoledge the given error and delete it from the list
 END_VAR
 	
@@ -43,7 +43,7 @@ nNoOverflow := ErrorSystem.nNoOverflows;
 
 IF bReset THEN
 	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(ST_ErrorEntry));
-	ErrorSystem.lNextErrorID := 1;
+	ErrorSystem.nNextErrorID := 1;
 END_IF
 
 //Number of errors in the system
@@ -61,7 +61,7 @@ nFreePos := cSizeOfErrorData - nNoError;
 //Acknoledge specified Error entry
 IF bACK THEN
 	FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
-		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = lErrorID THEN
+		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = nErrorID THEN
 			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknowledged;
 		END_IF
 	END_FOR
