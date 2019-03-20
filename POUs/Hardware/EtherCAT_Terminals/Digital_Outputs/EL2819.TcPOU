@@ -14,24 +14,27 @@ VAR_OUTPUT
 END_VAR
 
 VAR
-	wCH1_Diag		AT %I*	: WORD;
-	wCH2_Diag		AT %I*	: WORD;
-	wCH3_Diag		AT %I*	: WORD;
-	wCH4_Diag		AT %I*	: WORD;
-	wCH5_Diag		AT %I*	: WORD;
-	wCH6_Diag		AT %I*	: WORD;
-	wCH7_Diag		AT %I*	: WORD;
-	wCH8_Diag		AT %I*	: WORD;
-	wCH9_Diag		AT %I*	: WORD;
-	wCH10_Diag		AT %I*	: WORD;
-	wCH11_Diag		AT %I*	: WORD;
-	wCH12_Diag		AT %I*	: WORD;
-	wCH13_Diag		AT %I*	: WORD;
-	wCH14_Diag		AT %I*	: WORD;
-	wCH15_Diag		AT %I*	: WORD;
-	wCH16_Diag		AT %I*	: WORD;
+	wCH1_Diag		AT %I*	: BYTE;
+	wCH2_Diag		AT %I*	: BYTE;
+	wCH3_Diag		AT %I*	: BYTE;
+	wCH4_Diag		AT %I*	: BYTE;
+	wCH5_Diag		AT %I*	: BYTE;
+	wCH6_Diag		AT %I*	: BYTE;
+	wCH7_Diag		AT %I*	: BYTE;
+	wCH8_Diag		AT %I*	: BYTE;
+	wCH9_Diag		AT %I*	: BYTE;
+	wCH10_Diag		AT %I*	: BYTE;
+	wCH11_Diag		AT %I*	: BYTE;
+	wCH12_Diag		AT %I*	: BYTE;
+	wCH13_Diag		AT %I*	: BYTE;
+	wCH14_Diag		AT %I*	: BYTE;
+	wCH15_Diag		AT %I*	: BYTE;
+	wCH16_Diag		AT %I*	: BYTE;
 	
-	wDevice_Diag	AT %I*	: WORD;
+	bDev_CommonFault			AT %I*	: BOOL;
+	bDev_Overtemperature		AT %I*	: BOOL;
+	bDev_UnderVoltage			AT %I*	: BOOL;
+	bDev_MissingVoltage			AT %I*	: BOOL;
 	
 	WcState_WcState		AT %I*	: BOOL;
 	InfoData_State		AT %I*	: UINT;
@@ -68,7 +71,7 @@ EnO:=En;
 
 IF En THEN
 	//Channel #1 Diag 
-	IF wCH1_Diag <> 0 THEN
+	IF (wCH1_Diag AND 16#07) <> 0 THEN
 		CH1_Error.sErrorMessage := 'EL2819 Channel #1: ';
 		IF wCH1_Diag.0	THEN	CH1_Error.sErrorMessage := CONCAT(CH1_Error.sErrorMessage, 'Overtemperature; ');			CH1_Error.ErrorPriority := 10;			END_IF
 		IF wCH1_Diag.1	THEN	CH1_Error.sErrorMessage := CONCAT(CH1_Error.sErrorMessage, 'Open Load; ');					CH1_Error.ErrorPriority := 100;			END_IF
@@ -81,8 +84,8 @@ IF En THEN
 	END_IF
 	
 	//Channel #2 Diag 
-	IF wCH2_Diag <> 0 THEN
-		CH1_Error.sErrorMessage := 'EL2819 Channel #2: ';
+	IF (wCH2_Diag AND 16#07) <> 0 THEN
+		CH2_Error.sErrorMessage := 'EL2819 Channel #2: ';
 		IF wCH2_Diag.0	THEN	CH2_Error.sErrorMessage := CONCAT(CH2_Error.sErrorMessage, 'Overtemperature; ');			CH2_Error.ErrorPriority := 10;			END_IF
 		IF wCH2_Diag.1	THEN	CH2_Error.sErrorMessage := CONCAT(CH2_Error.sErrorMessage, 'Open Load; ');					CH2_Error.ErrorPriority := 100;			END_IF
 		IF wCH2_Diag.2	THEN	CH2_Error.sErrorMessage := CONCAT(CH2_Error.sErrorMessage, 'Overcurrent; ');				CH2_Error.ErrorPriority := 10;			END_IF
@@ -95,7 +98,7 @@ IF En THEN
 	
 	//Channel #3 Diag 
 	IF wCH3_Diag <> 0 THEN
-		CH1_Error.sErrorMessage := 'EL2819 Channel #3: ';
+		CH3_Error.sErrorMessage := 'EL2819 Channel #3: ';
 		IF wCH3_Diag.0	THEN	CH3_Error.sErrorMessage := CONCAT(CH3_Error.sErrorMessage, 'Overtemperature; ');			CH3_Error.ErrorPriority := 10;			END_IF
 		IF wCH3_Diag.1	THEN	CH3_Error.sErrorMessage := CONCAT(CH3_Error.sErrorMessage, 'Open Load; ');					CH3_Error.ErrorPriority := 100;			END_IF
 		IF wCH3_Diag.2	THEN	CH3_Error.sErrorMessage := CONCAT(CH3_Error.sErrorMessage, 'Overcurrent; ');				CH3_Error.ErrorPriority := 10;			END_IF
@@ -276,12 +279,12 @@ IF En THEN
 	END_IF
 	
 	//Device Diag
-	IF wDevice_Diag <> 0 THEN
+	IF bDev_CommonFault OR bDev_Overtemperature OR bDev_UnderVoltage OR bDev_MissingVoltage THEN
 		DEV_Error.sErrorMessage := 'EL2819: ' ;
-		IF wDevice_Diag.0	THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Common Fault; ');					CH4_Error.ErrorPriority := 10;			END_IF
-		IF wDevice_Diag.1	THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Device Overtemperature; ');			CH4_Error.ErrorPriority := 100;			END_IF
-		IF wDevice_Diag.2	THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Undervoltage; ');					CH4_Error.ErrorPriority := 10;			END_IF
-		IF wDevice_Diag.3	THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Missing Voltage; ');				CH4_Error.ErrorPriority := 10;			END_IF
+		IF bDev_CommonFault			THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Common Fault; ');					CH4_Error.ErrorPriority := 10;			END_IF
+		IF bDev_Overtemperature		THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Device Overtemperature; ');			CH4_Error.ErrorPriority := 100;			END_IF
+		IF bDev_UnderVoltage		THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Undervoltage; ');					CH4_Error.ErrorPriority := 10;			END_IF
+		IF bDev_MissingVoltage		THEN	DEV_Error.sErrorMessage := CONCAT(DEV_Error.sErrorMessage, 'Missing Voltage; ');				CH4_Error.ErrorPriority := 10;			END_IF
 		DEV_Error.bError := TRUE;
 	ELSE
 		DEV_Error.bError := FALSE;
@@ -510,7 +513,9 @@ DEV_Error (
       <LineId Id="559" Count="11" />
       <LineId Id="558" Count="0" />
       <LineId Id="457" Count="0" />
-      <LineId Id="210" Count="11" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="846" Count="1" />
+      <LineId Id="213" Count="8" />
       <LineId Id="655" Count="0" />
       <LineId Id="654" Count="0" />
       <LineId Id="244" Count="1" />
