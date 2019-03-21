@@ -4,23 +4,39 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ErrorSystem
 
 VAR_INPUT
-	En : BOOL;											//Enable input
-	bReset : BOOL;										//Delete all Error entry
-	nErrorID : ULINT;									//ErrorID to be acknoledged
-	bACK : BOOL;										//Acknoledge the given error and delete it from the list
+	En					: BOOL;							//Enable input
+	bReset				: BOOL;							//Delete all Error entry
+	nErrorID			: ULINT;						//ErrorID to be acknoledged
+	bACK				: BOOL;							//Acknoledge the given error and delete it from the list
+	bValidSelection		: BOOL;							//Visu table valid selection flag
+	nTableRowIndex		: INT;							//Visu table selected row index
 END_VAR
 	
 VAR_OUTPUT
-	EnO : BOOL;											//Enable output
-	nNoError: UINT;										//Number of Errors
-	nNoOverflow : INT;									//Number of Overflows
-	pErrorSystem : POINTER TO ST_ErrorSystem;			//Pointer to ErrorSystem
+	EnO 				: BOOL;							//Enable output
+	nSelectedError		: ULINT;						//Currently selected errorID
+	nNoError			: UINT;							//Number of Errors
+	nActive				: UINT;							//Number of Active Errors
+	nInactive			: UINT;							//Number of Inactive Errors
+	nNoOverflow			: INT;							//Number of Overflows
+	pErrorSystem 		: POINTER TO ST_ErrorSystem;	//Pointer to ErrorSystem
+END_VAR
+
+VAR_IN_OUT
+	
 END_VAR
 
 VAR
 	nFreePos : UINT;									//Number of free position in the list
 	nListCnt1 : UINT;									//work variable
 	ErrorSystem : ST_ErrorSystem;						//Data structure of the Error list
+	
+	bAckInternal		: BOOL;
+	bResetInternal		: BOOL;
+	nErrorIDInternal	: ULINT;
+	
+	Ack_trig		: R_TRIG;
+	RST_trig		: R_TRIG;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -41,16 +57,41 @@ pErrorSystem := ADR(ErrorSystem);
 //Number of overflows
 nNoOverflow := ErrorSystem.nNoOverflows;
 
-IF bReset THEN
+Ack_trig (
+	CLK		:= bAck,
+	Q		=> bAckInternal,
+);
+
+RST_trig (
+	CLK		:= bReset,
+	Q		=> bResetInternal,
+);
+
+IF bValidSelection AND nErrorID = 0 THEN
+	nErrorIDInternal := ErrorSystem.aErrorData[nTableRowIndex].Error_ID;
+ELSE
+	nErrorIDInternal := nErrorID;
+END_IF
+
+nSelectedError := nErrorIDInternal;
+
+IF bResetInternal THEN
 	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(ST_ErrorEntry));
 	ErrorSystem.nNextErrorID := 1;
 END_IF
 
 //Number of errors in the system
 nNoError := 0;
+nActive := 0;
+nInactive := 0;
 FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
 	IF ErrorSystem.aErrorData[nListCnt1].Error_ID <> 0  THEN
-		nNoError := nNoError+1; 
+		nNoError := nNoError+1;
+		IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Active THEN
+			nActive := nActive + 1;
+		ELSE
+			nInactive := nInactive + 1;
+		END_IF
 	END_IF
 END_FOR
 ErrorSystem.nNoErrors := nNoError;
@@ -59,9 +100,9 @@ ErrorSystem.nNoErrors := nNoError;
 nFreePos := cSizeOfErrorData - nNoError;
 
 //Acknoledge specified Error entry
-IF bACK THEN
+IF bAckInternal THEN
 	FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
-		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = nErrorID THEN
+		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = nErrorIDInternal THEN
 			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknowledged;
 		END_IF
 	END_FOR
@@ -84,7 +125,28 @@ END_FOR
       <LineId Id="150" Count="1" />
       <LineId Id="149" Count="0" />
       <LineId Id="96" Count="0" />
-      <LineId Id="30" Count="39" />
+      <LineId Id="30" Count="6" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="180" Count="2" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="186" Count="1" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="199" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="200" Count="0" />
+      <LineId Id="202" Count="1" />
+      <LineId Id="201" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="37" Count="7" />
+      <LineId Id="250" Count="1" />
+      <LineId Id="45" Count="2" />
+      <LineId Id="247" Count="1" />
+      <LineId Id="252" Count="1" />
+      <LineId Id="249" Count="0" />
+      <LineId Id="48" Count="21" />
       <LineId Id="9" Count="0" />
       <LineId Id="72" Count="0" />
     </LineIds>
