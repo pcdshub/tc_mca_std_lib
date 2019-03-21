@@ -1561,7 +1561,7 @@
                 <v n="VisualElementIdentifier">"GenElemInst_8"</v>
                 <n n="VisualElementOfflinePaintCommands" />
                 <n n="VisualElementFrameInformation" />
-                <d n="VisualElementInputActions" t="Hashtable" ckt="String" cvt="IInputAction[]">
+                <d n="VisualElementInputActions" t="Hashtable" ckt="String" cvt="InputBoxInputAction[]">
                   <v>OnMouseUp</v>
                   <a cet="InputBoxInputAction">
                     <o>
@@ -2042,10 +2042,10 @@
                                 <v>TL_ElementProperties.Points</v>
                                 <v>DescriptionUseFromParent</v>
                                 <v></v>
-                                <v>DefaultArraySize</v>
-                                <v>500</v>
                                 <v>''NORMAL__COMMENT</v>
                                 <v> There is no more information than the parent provides</v>
+                                <v>DefaultArraySize</v>
+                                <v>500</v>
                               </d>
                               <v n="ConvDone">true</v>
                             </o>
@@ -2098,8 +2098,6 @@
                         <o n="TypeNodeAttributes" t="TypeNodeAttributes2">
                           <v n="AttrFlags">81920UL</v>
                           <d n="TypeNodeAttributesData" t="CaseInsensitiveHashtable" ckt="String" cvt="String">
-                            <v>PolygonPoints</v>
-                            <v></v>
                             <v>DescriptionTextId</v>
                             <v>TL_ElementProperties.Desc_StaticLinePos</v>
                             <v>DisplayTextId</v>
@@ -2114,6 +2112,8 @@
                             <v>visu_elemdev</v>
                             <v>Storable</v>
                             <v>True</v>
+                            <v>PolygonPoints</v>
+                            <v></v>
                           </d>
                           <v n="ConvDone">true</v>
                         </o>
@@ -3649,8 +3649,8 @@
                 <v>3cddf4b9-ecdc-49cc-b761-2a4cf46bdbd1</v>
                 <v>ContainsPoint</v>
                 <v>e00b6fba-8ae7-4120-8b86-fe66fabffac6</v>
-                <v>HasInputAccess</v>
-                <v>e014d00b-dc34-41e5-b684-2f264ca6a56c</v>
+                <v>SetStaticState</v>
+                <v>b121f12c-6082-4abb-9761-fea60197d88d</v>
                 <v>HasInputAccessIntern</v>
                 <v>5760e327-8bf5-40cc-ad31-884472f1b2fd</v>
                 <v>GetTooltip</v>
@@ -3669,8 +3669,6 @@
                 <v>313d4735-51c4-4221-a05d-7085d2572924</v>
                 <v>SetClientData</v>
                 <v>c2f0ec85-5036-4d70-9763-02ff11cb2e81</v>
-                <v>HasVisibilityAccessIntern</v>
-                <v>ae071e88-9357-4953-be24-de93889dd82d</v>
                 <v>GetInstance</v>
                 <v>852cfa6b-a66f-41d1-88c8-dddb9e663ab2</v>
                 <v>GetClientData</v>
@@ -3687,12 +3685,14 @@
                 <v>41e3971e-9c63-4f4b-b24c-88aef6a1ce4f</v>
                 <v>Initialize</v>
                 <v>a7aacf13-e396-4d0b-8335-2dda26743e22</v>
-                <v>Destruct</v>
-                <v>26276502-e418-43fc-9ccf-d29dc7670d32</v>
-                <v>SetStaticState</v>
-                <v>b121f12c-6082-4abb-9761-fea60197d88d</v>
+                <v>HasInputAccess</v>
+                <v>e014d00b-dc34-41e5-b684-2f264ca6a56c</v>
+                <v>HasVisibilityAccessIntern</v>
+                <v>ae071e88-9357-4953-be24-de93889dd82d</v>
                 <v>GetSurroundingRect</v>
                 <v>88b01ad3-2357-4baf-a49d-1110964f9a84</v>
+                <v>ElementInfo</v>
+                <v>7ba8168d-c61b-485f-8a75-20a6f60a95f8</v>
                 <v>GetResult</v>
                 <v>e69f8cc0-54bc-4be3-828c-fe29b3e85af4</v>
                 <v>GetLocalUsergroup</v>
@@ -3715,8 +3715,8 @@
                 <v>53f24840-b19d-40d6-8729-4966f8d99c6b</v>
                 <v>HandleInput</v>
                 <v>2413d0a3-681e-49cc-8b7c-df1ed30db1e5</v>
-                <v>ElementInfo</v>
-                <v>7ba8168d-c61b-485f-8a75-20a6f60a95f8</v>
+                <v>Destruct</v>
+                <v>26276502-e418-43fc-9ccf-d29dc7670d32</v>
               </d>
               <v n="FbName">"NotImportant"</v>
               <v n="FbGuid">{58d8d61f-4113-4c1e-b3cb-a3d1b2e77b2d}</v>
@@ -3729,10 +3729,10 @@
               <d n="FbMethods" t="CaseInsensitiveHashtable_1" ckt="String" cvt="Guid">
                 <v>FB_Init</v>
                 <v>bd05a340-2ab6-4338-98db-d68f96c471d9</v>
-                <v>FB_Exit</v>
-                <v>9f8a66e2-1da1-446b-8c22-251fb65555cf</v>
                 <v>FB_Reinit</v>
                 <v>8f373791-2e96-4d5b-b3bf-7a5529152c93</v>
+                <v>FB_Exit</v>
+                <v>9f8a66e2-1da1-446b-8c22-251fb65555cf</v>
               </d>
               <v n="FbName">"NotImportant"</v>
               <v n="FbGuid">{5d2e31a8-d359-4f5f-88ea-96c04b16ea9c}</v>
@@ -3830,8 +3830,8 @@
         <Type n="Guid">System.Guid</Type>
         <Type n="Hashtable">System.Collections.Hashtable</Type>
         <Type n="HotkeyConfiguration">{6b108d46-58af-4e41-a3f4-174d8f160cc4}</Type>
-        <Type n="IInputAction[]">_3S.CoDeSys.VisualElem.IInputAction[], VisualElem, Version=3.5.10.0, Culture=neutral, PublicKeyToken=null</Type>
         <Type n="InputBoxInputAction">{e8e7e747-f76f-4dee-ab1c-b9637e41ac26}</Type>
+        <Type n="InputBoxInputAction[]">_3S.CoDeSys.VisualElem.InputBoxInputAction[], VisualElem.plugin, Version=3.5.10.32, Culture=neutral, PublicKeyToken=null</Type>
         <Type n="Int16">System.Int16</Type>
         <Type n="Int32">System.Int32</Type>
         <Type n="Int64">System.Int64</Type>
