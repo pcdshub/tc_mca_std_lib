@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
+  <POU Name="FB_NC_Error" Id="{09ed5ba1-d044-4b29-990f-e88331c21ce5}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_NC_Error
+
+VAR_INPUT
+	En				: BOOL;
+	nNC_ErrorID	: UDINT;
+	nNC_AxisID		: UDINT;
+	ErrorSystem		: POINTER TO ST_ErrorSystem;
+END_VAR
+
+VAR_OUTPUT
+	EnO			: BOOL;
+	bError		: BOOL;
+END_VAR
+
+VAR
+	NCError				: FB_GenericError;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+IF En THEN
+	EnO	:= En;
+	
+	IF nNC_ErrorID <> 0 THEN
+		NCError.sErrorMessage := 'Axis ';
+		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, UDINT_TO_STRING(nNC_AxisID));
+		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, ' is in error state. NC error ID (Decimal): ');
+		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, UDINT_TO_STRING(nNC_ErrorID));
+		NCError.ErrorPriority := 6;
+		NCError.bError := TRUE;
+	ELSE
+		NCError.sErrorMessage := '';
+		NCError.bError := FALSE;
+		NCError.ErrorPriority := 0;
+	END_IF
+
+END_IF
+
+NCError (
+	En		:= TRUE,
+	bError	:= ,
+	sErrorMessage		:= ,
+	ErrorPriority		:= ,
+	iTerminal_ID		:= ,
+	pErrorSystem		:= ErrorSystem,
+	EnO		=> ,
+);]]></ST>
+    </Implementation>
+    <LineIds Name="FB_NC_Error">
+      <LineId Id="28" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="36" Count="1" />
+      <LineId Id="50" Count="8" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="43" Count="6" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
