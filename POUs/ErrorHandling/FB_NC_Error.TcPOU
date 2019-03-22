@@ -5,7 +5,7 @@
 
 VAR_INPUT
 	En				: BOOL;
-	nNC_ErrorID	: UDINT;
+	nNC_ErrorID		: UDINT;
 	nNC_AxisID		: UDINT;
 	ErrorSystem		: POINTER TO ST_ErrorSystem;
 END_VAR
@@ -20,7 +20,14 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
+      <ST><![CDATA[(*
+* ================================================================================
+*                                   DESCRIPTION
+* ================================================================================
+* This Function Block connects FB_DriveVirtual's error output to the Error System.
+* Link the corresponding outputs of FB_DriveVirtual to the inputs of this FB.
+* ================================================================================
+*)
 
 IF En THEN
 	EnO	:= En;
@@ -28,14 +35,14 @@ IF En THEN
 	IF nNC_ErrorID <> 0 THEN
 		NCError.sErrorMessage := 'Axis ';
 		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, UDINT_TO_STRING(nNC_AxisID));
-		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, ' is in error state. NC error ID (Decimal): ');
+		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, ' is in error state. NC error ID (Dec): ');
 		NCError.sErrorMessage := CONCAT (NCError.sErrorMessage, UDINT_TO_STRING(nNC_ErrorID));
 		NCError.ErrorPriority := 6;
-		NCError.bError := TRUE;
+		NCError.bError	:= TRUE;
 	ELSE
-		NCError.sErrorMessage := '';
-		NCError.bError := FALSE;
-		NCError.ErrorPriority := 0;
+		NCError.sErrorMessage	:= '';
+		NCError.bError			:= FALSE;
+		NCError.ErrorPriority	:= 0;
 	END_IF
 
 END_IF
@@ -51,6 +58,10 @@ NCError (
 );]]></ST>
     </Implementation>
     <LineIds Name="FB_NC_Error">
+      <LineId Id="76" Count="3" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="86" Count="0" />
       <LineId Id="28" Count="1" />
       <LineId Id="9" Count="0" />
       <LineId Id="30" Count="0" />

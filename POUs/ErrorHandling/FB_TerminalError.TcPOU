@@ -22,10 +22,9 @@ VAR
 	ErrorData	: ST_ErrorEntry;
 	nErrSysCNT	: UINT;
 	
-	//testing
-	bStateChanged : BOOL;						//Indicate if state change happened
-	uiInfoData_State_Prev : UINT := 16#8;		//Previous value of Infodata.State
-	bWcState_Prev : BOOL := FALSE;				//Previous state of WcState
+	bStateChanged 			: BOOL;				//Indicate if state change happened
+	uiInfoData_State_Prev	: UINT := 16#8;		//Previous value of Infodata.State
+	bWcState_Prev			: BOOL := FALSE;	//Previous state of WcState
 	
 	//FB-s
 	
@@ -67,8 +66,8 @@ IF En THEN
 	END_IF
 	
 	//Update previous values
-	uiInfoData_State_Prev := uiInfoData_State;
-	bWcState_Prev := bWcState;
+	uiInfoData_State_Prev	:= uiInfoData_State;
+	bWcState_Prev			:= bWcState;
 	
 	//Decision tree
 	IF bStateChanged THEN
@@ -76,13 +75,13 @@ IF En THEN
 			IF ErrorData.ErrorState = DUT_ErrorState.Active THEN
 				//Close active error
 				//Read system time
-				ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
-				ErrorData.ErrorState := DUT_ErrorState.Inactive;
+				ErrorData.sDateTimeOff	:= Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
+				ErrorData.ErrorState	:= DUT_ErrorState.Inactive;
 				//Write Off-time to Error System
 				FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
 					IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-						pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
-						pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := DUT_ErrorState.Inactive;
+						pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff	:= ErrorData.sDateTimeOff;
+						pErrorSystem^.aErrorData[nErrSysCNT].ErrorState		:= DUT_ErrorState.Inactive;
 						EXIT;
 					END_IF
 				END_FOR
@@ -92,9 +91,9 @@ IF En THEN
 			END_IF
 			
 			//Open a new error
-			ErrorData.ErrorState := DUT_ErrorState.Active;													//Set Error State
-			ErrorData.sDateTimeOn := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());	//Convert to string
-			ErrorData.iTerminalID := iTerminal_ID;															//Terminal_ID
+			ErrorData.ErrorState	:= DUT_ErrorState.Active;													//Set Error State
+			ErrorData.sDateTimeOn	:= Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());		//Convert to string
+			ErrorData.iTerminalID	:= iTerminal_ID;															//Terminal_ID
 			
 			//Error message according to uiInfoData_State and WcState
 			iStateError := (uiInfoData_State AND 16#000F);												//Mask for operation state 
@@ -115,7 +114,7 @@ IF En THEN
 							IF ErrorData.ErrorPriority >= 5 OR ErrorData.ErrorPriority = 0 THEN ErrorData.ErrorPriority := 5; END_IF
 				16#0008 : ;																				//Normal operation state
 			ELSE
-				ErrorData.sErrorMessage := 'Undefined State of operation;   ';							//I hope we will never see this message
+				ErrorData.sErrorMessage := 'Undefined State of operation;   ';
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, UINT_TO_STRING(iStateError));
 				ErrorData.sErrorMessage := CONCAT (ErrorData.sErrorMessage, '   ');
 				ErrorData.ErrorPriority := 1;
@@ -152,21 +151,21 @@ IF En THEN
 			END_IF
 			
 			//Write Error Data into Error System
-			ErrorData.Error_ID := pErrorSystem^.nNextErrorID ;
+			ErrorData.Error_ID	:= pErrorSystem^.nNextErrorID ;
 			MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
-			pErrorSystem^.aErrorData[0] := ErrorData;
-			pErrorSystem^.nNextErrorID := pErrorSystem^.nNextErrorID+1;
+			pErrorSystem^.aErrorData[0]	:= ErrorData;
+			pErrorSystem^.nNextErrorID	:= pErrorSystem^.nNextErrorID+1;
 			
 		ELSE
 			//Close Active Error
 			//Read system time
-			ErrorData.sDateTimeOff := Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
-			ErrorData.ErrorState := DUT_ErrorState.Inactive;
+			ErrorData.sDateTimeOff	:= Tc2_EtherCat.DCTIME64_TO_STRING(Tc2_EtherCAT.F_GetActualDcTime64());
+			ErrorData.ErrorState	:= DUT_ErrorState.Inactive;
 			//Write Off time to Error System
 			FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
 				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
-					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff := ErrorData.sDateTimeOff;
-					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState := ErrorData.ErrorState;
+					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff	:= ErrorData.sDateTimeOff;
+					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState		:= ErrorData.ErrorState;
 					EXIT;
 				END_IF
 			END_FOR

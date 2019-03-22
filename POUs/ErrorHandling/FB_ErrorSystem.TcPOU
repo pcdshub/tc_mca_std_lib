@@ -57,6 +57,7 @@ pErrorSystem := ADR(ErrorSystem);
 //Number of overflows
 nNoOverflow := ErrorSystem.nNoOverflows;
 
+//Rising-edge detection on inputs
 Ack_trig (
 	CLK		:= bAck,
 	Q		=> bAckInternal,
@@ -67,6 +68,7 @@ RST_trig (
 	Q		=> bResetInternal,
 );
 
+//Entry selection decision 
 IF bValidSelection AND nErrorID = 0 THEN
 	nErrorIDInternal := ErrorSystem.aErrorData[nTableRowIndex].Error_ID;
 ELSE
@@ -75,12 +77,13 @@ END_IF
 
 nSelectedError := nErrorIDInternal;
 
+//Reset the system
 IF bResetInternal THEN
 	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(ST_ErrorEntry));
 	ErrorSystem.nNextErrorID := 1;
 END_IF
 
-//Number of errors in the system
+//Number of errors
 nNoError := 0;
 nActive := 0;
 nInactive := 0;
@@ -96,7 +99,7 @@ FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
 END_FOR
 ErrorSystem.nNoErrors := nNoError;
 
-//Number of free position in the list
+//Number of free positions
 nFreePos := cSizeOfErrorData - nNoError;
 
 //Acknoledge specified Error entry
@@ -126,6 +129,7 @@ END_FOR
       <LineId Id="149" Count="0" />
       <LineId Id="96" Count="0" />
       <LineId Id="30" Count="6" />
+      <LineId Id="291" Count="0" />
       <LineId Id="178" Count="0" />
       <LineId Id="177" Count="0" />
       <LineId Id="180" Count="2" />
@@ -133,6 +137,7 @@ END_FOR
       <LineId Id="184" Count="0" />
       <LineId Id="186" Count="1" />
       <LineId Id="189" Count="0" />
+      <LineId Id="292" Count="0" />
       <LineId Id="199" Count="0" />
       <LineId Id="198" Count="0" />
       <LineId Id="200" Count="0" />
@@ -140,6 +145,7 @@ END_FOR
       <LineId Id="201" Count="0" />
       <LineId Id="244" Count="0" />
       <LineId Id="243" Count="0" />
+      <LineId Id="293" Count="0" />
       <LineId Id="37" Count="7" />
       <LineId Id="250" Count="1" />
       <LineId Id="45" Count="2" />
