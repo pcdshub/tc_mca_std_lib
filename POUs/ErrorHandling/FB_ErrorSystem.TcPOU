@@ -6,7 +6,7 @@
 VAR_INPUT
 	En					: BOOL;							//Enable input
 	bReset				: BOOL;							//Delete all Error entry
-	nErrorID			: ULINT;						//ErrorID to be acknoledged
+	nErrorNum			: ULINT;						//ErrorID to be acknoledged
 	bACK				: BOOL;							//Acknoledge the given error and delete it from the list
 	bValidSelection		: BOOL;							//Visu table valid selection flag
 	nTableRowIndex		: INT;							//Visu table selected row index
@@ -33,7 +33,7 @@ VAR
 	
 	bAckInternal		: BOOL;
 	bResetInternal		: BOOL;
-	nErrorIDInternal	: ULINT;
+	nErrorNumInternal	: ULINT;
 	
 	Ack_trig		: R_TRIG;
 	RST_trig		: R_TRIG;
@@ -69,18 +69,18 @@ RST_trig (
 );
 
 //Entry selection decision 
-IF bValidSelection AND nErrorID = 0 THEN
-	nErrorIDInternal := ErrorSystem.aErrorData[nTableRowIndex].Error_ID;
+IF bValidSelection AND nErrorNum = 0 THEN
+	nErrorNumInternal := ErrorSystem.aErrorData[nTableRowIndex].ErrorNum;
 ELSE
-	nErrorIDInternal := nErrorID;
+	nErrorNumInternal := nErrorNum;
 END_IF
 
-nSelectedError := nErrorIDInternal;
+nSelectedError := nErrorNumInternal;
 
 //Reset the system
 IF bResetInternal THEN
 	MEMSET ( ADR(ErrorSystem.aErrorData[0]), 0, cSizeOfErrorData * SIZEOF(ST_ErrorEntry));
-	ErrorSystem.nNextErrorID := 1;
+	ErrorSystem.nNextErrorNum := 1;
 END_IF
 
 //Number of errors
@@ -88,7 +88,7 @@ nNoError := 0;
 nActive := 0;
 nInactive := 0;
 FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
-	IF ErrorSystem.aErrorData[nListCnt1].Error_ID <> 0  THEN
+	IF ErrorSystem.aErrorData[nListCnt1].ErrorNum <> 0  THEN
 		nNoError := nNoError+1;
 		IF ErrorSystem.aErrorData[nListCnt1].ErrorState = DUT_ErrorState.Active THEN
 			nActive := nActive + 1;
@@ -105,7 +105,7 @@ nFreePos := cSizeOfErrorData - nNoError;
 //Acknoledge specified Error entry
 IF bAckInternal THEN
 	FOR nListCnt1 := 0 TO cSizeOfErrorData - 1 DO
-		IF ErrorSystem.aErrorData[nListCnt1].Error_ID = nErrorIDInternal THEN
+		IF ErrorSystem.aErrorData[nListCnt1].ErrorNum = nErrorNumInternal THEN
 			ErrorSystem.aErrorData[nListCnt1].ErrorState := DUT_ErrorState.Acknowledged;
 		END_IF
 	END_FOR

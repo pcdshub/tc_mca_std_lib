@@ -79,7 +79,7 @@ IF En THEN
 				ErrorData.ErrorState	:= DUT_ErrorState.Inactive;
 				//Write Off-time to Error System
 				FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
-					IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
+					IF pErrorSystem^.aErrorData[nErrSysCNT].ErrorNum = ErrorData.ErrorNum THEN
 						pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff	:= ErrorData.sDateTimeOff;
 						pErrorSystem^.aErrorData[nErrSysCNT].ErrorState		:= DUT_ErrorState.Inactive;
 						EXIT;
@@ -151,10 +151,10 @@ IF En THEN
 			END_IF
 			
 			//Write Error Data into Error System
-			ErrorData.Error_ID	:= pErrorSystem^.nNextErrorID ;
+			ErrorData.ErrorNum	:= pErrorSystem^.nNExtErrorNum ;
 			MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
 			pErrorSystem^.aErrorData[0]	:= ErrorData;
-			pErrorSystem^.nNextErrorID	:= pErrorSystem^.nNextErrorID+1;
+			pErrorSystem^.nNExtErrorNum	:= pErrorSystem^.nNExtErrorNum+1;
 			
 		ELSE
 			//Close Active Error
@@ -163,7 +163,7 @@ IF En THEN
 			ErrorData.ErrorState	:= DUT_ErrorState.Inactive;
 			//Write Off time to Error System
 			FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
-				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = ErrorData.Error_ID THEN
+				IF pErrorSystem^.aErrorData[nErrSysCNT].ErrorNum = ErrorData.ErrorNum THEN
 					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff	:= ErrorData.sDateTimeOff;
 					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState		:= ErrorData.ErrorState;
 					EXIT;

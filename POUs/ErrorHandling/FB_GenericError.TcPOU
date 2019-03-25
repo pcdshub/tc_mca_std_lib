@@ -38,7 +38,7 @@ END_VAR
 * sErrorMessage & bError input variables. If bError becomes '1', a new entry is 
 * created in the Error System. As long as bError stays '1' every change in
 * sErrorMessage inactivate the previous Error and creates a new one with the new 
-* message. When bError becomes '0' the last enty is set to inactive.
+* message. When bError becomes '0' the last enrty is set to inactive.
 * ================================================================================
 *)
 
@@ -66,7 +66,7 @@ IF En THEN
 				LocalEntry.ErrorState	:= DUT_ErrorState.Inactive;
 				//Write Off-time to Error System
 				FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
-					IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = LocalEntry.Error_ID THEN
+					IF pErrorSystem^.aErrorData[nErrSysCNT].ErrorNum = LocalEntry.ErrorNum THEN
 						pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff	:= LocalEntry.sDateTimeOff;
 						pErrorSystem^.aErrorData[nErrSysCNT].ErrorState		:= DUT_ErrorState.Inactive;
 						EXIT;
@@ -90,10 +90,10 @@ IF En THEN
 			END_IF
 			
 			//Write Error Data into Error System
-			LocalEntry.Error_ID	:= pErrorSystem^.nNextErrorID ;
+			LocalEntry.ErrorNum	:= pErrorSystem^.nNExtErrorNum ;
 			MEMMOVE( ADR(pErrorSystem^.aErrorData[1]), ADR(pErrorSystem^.aErrorData[0]), (cSizeOfErrorData-1) * SIZEOF(ST_ErrorEntry));
 			pErrorSystem^.aErrorData[0]	:= LocalEntry;
-			pErrorSystem^.nNextErrorID	:= pErrorSystem^.nNextErrorID+1;
+			pErrorSystem^.nNExtErrorNum	:= pErrorSystem^.nNExtErrorNum+1;
 			
 		ELSE
 			//Close Active Error
@@ -103,7 +103,7 @@ IF En THEN
 			
 			//Write Off time to Error System
 			FOR nErrSysCNT := 0 TO cSizeOfErrorData - 1 DO
-				IF pErrorSystem^.aErrorData[nErrSysCNT].Error_ID = LocalEntry.Error_ID THEN
+				IF pErrorSystem^.aErrorData[nErrSysCNT].ErrorNum = LocalEntry.ErrorNum THEN
 					pErrorSystem^.aErrorData[nErrSysCNT].sDateTimeOff	:= LocalEntry.sDateTimeOff;
 					pErrorSystem^.aErrorData[nErrSysCNT].ErrorState		:= LocalEntry.ErrorState;
 					EXIT;

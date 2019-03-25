@@ -3,7 +3,7 @@
   <DUT Name="ST_ErrorEntry" Id="{a3a3bc94-dbfe-4a23-82d7-065e2d88f20a}">
     <Declaration><![CDATA[TYPE ST_ErrorEntry :
 STRUCT
-	Error_ID	: ULINT := 0;				//ID of the Error entry
+	ErrorNum	: ULINT := 0;				//ID of the Error entry
 	ErrorState	: DUT_ErrorState;			//State of the error
 	
 	//Error related
