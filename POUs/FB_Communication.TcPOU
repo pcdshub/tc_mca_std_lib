@@ -3,12 +3,15 @@
   <POU Name="FB_Communication" Id="{71515715-1dbd-4921-bede-91a04a907ca4}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Communication
 VAR_INPUT
+	En: BOOL;
 END_VAR
+
 VAR_OUTPUT
+	EnO: BOOL;
 END_VAR
 
 VAR_IN_OUT
-	stAxisStruct			: AxisStruct;
+	stAxisStruct			: ST_AxisStruct;
 END_VAR
 
 VAR
@@ -26,7 +29,9 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbRTrig_StartMov(CLK:= stAxisStruct.bStart AND eCommState = 1);
+      <ST><![CDATA[EnO:=En;
+
+fbRTrig_StartMov(CLK:= stAxisStruct.bStart AND eCommState = 1);
 //bStart	:= stAxisStruct.bStart;
 //bStop	:= stAxisStruct.bStop;
 //bReset	:= stAxisStruct.bReset;
@@ -108,6 +113,7 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="FB_Communication">
+      <LineId Id="285" Count="1" />
       <LineId Id="235" Count="0" />
       <LineId Id="239" Count="0" />
       <LineId Id="247" Count="3" />

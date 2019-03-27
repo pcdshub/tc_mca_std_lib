@@ -3,11 +3,14 @@
   <POU Name="FB_Axis" Id="{4b9e9ace-3043-48df-9fdf-571ce181897a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Axis
 VAR_INPUT
+	En: BOOL;
 END_VAR
+
 VAR_OUTPUT
+	EnO: BOOL;
 END_VAR
 VAR_IN_OUT
-	stAxisStruct						: AxisStruct;
+	stAxisStruct						: ST_AxisStruct;
 END_VAR
 VAR
 	fbCommStateMachine			: FB_Communication;
@@ -15,14 +18,22 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
-fbCommStateMachine(stAxisStruct:= stAxisStruct);
-fbDriveVirtual(stAxisStruct:= stAxisStruct);]]></ST>
+      <ST><![CDATA[EnO:=En;
+fbCommStateMachine(En:=TRUE,
+	EnO=> , 
+	stAxisStruct:= stAxisStruct);
+
+fbDriveVirtual(En:= TRUE,
+	EnO=> ,
+	stAxisStruct:=stAxisStruct);]]></ST>
     </Implementation>
     <LineIds Name="FB_Axis">
       <LineId Id="34" Count="0" />
-      <LineId Id="62" Count="0" />
       <LineId Id="90" Count="0" />
+      <LineId Id="106" Count="1" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="111" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>

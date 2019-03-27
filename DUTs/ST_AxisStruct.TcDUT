@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
-  <DUT Name="AxisStruct" Id="{9732127f-85ab-48d1-a591-d13402fe3665}">
-    <Declaration><![CDATA[TYPE AxisStruct :
+  <DUT Name="ST_AxisStruct" Id="{9732127f-85ab-48d1-a591-d13402fe3665}">
+    <Declaration><![CDATA[TYPE ST_AxisStruct :
 STRUCT
 	
 ///////Actions from EPICS/NICOS/////////	
@@ -20,7 +20,7 @@ STRUCT
 	fVelocity			:	LREAL;			//Velocity must be specified, no default used
 	fAcceleration		:	LREAL;			//Not all FBs use, need to change this, 0 is NC default
 	fPosition			:	LREAL;			//Used for absolute positioning	
-	nHomeSeq			:	UDINT;			//Homing sequence to perform
+	nHomeSeq			:	UINT;			//Homing sequence to perform
 
 ///////Axis Inputs///////
 	bLimitFwd			:	BOOL;			//Forward limit switch

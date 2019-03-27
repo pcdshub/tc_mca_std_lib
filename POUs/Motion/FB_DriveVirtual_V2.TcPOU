@@ -18,12 +18,16 @@ VAR
 	sVersion: STRING:='1.0.3';	
 	
 END_VAR
+
 VAR_INPUT
+	En: BOOL;
 END_VAR
+
 VAR_OUTPUT
+	EnO: BOOL;
 END_VAR
 VAR_IN_OUT
-	stAxisStruct: AxisStruct;	
+	stAxisStruct: ST_AxisStruct;	
 	//Axis: AXIS_REF;
 END_VAR
 VAR	
@@ -32,7 +36,6 @@ VAR
 	//nCmdDataLocal: UINT;
 	bFirstScan: BOOL := TRUE;
 	bResetDone: BOOL;
-	En: BOOL;
 	bEnable: BOOL;
 	bReset: BOOL;
 	bExecute: BOOL;
@@ -54,8 +57,7 @@ VAR
 	fbHalt: MC_Halt;
 	fbStop: MC_Stop;
 	fbJog: MC_Jog;
-	fbHome: MC_Home;
-//	fbMoveVelocity: MC_MoveVelocity;
+	//	fbMoveVelocity: MC_MoveVelocity;
 //	fbMoveRelative: MC_MoveRelative;
 	fbMoveAbsolute: MC_MoveAbsolute;
 //	fbMoveModulo: MC_MoveModulo;	
@@ -66,7 +68,6 @@ VAR
 	fbFTrig_Reset  			: F_TRIG;
 	eCommState				: CommStates;
 	
-	EnO: BOOL;
 	bEnabled: BOOL;
 	bIdle:	BOOL;	
 	bBusy: BOOL;
@@ -81,6 +82,12 @@ VAR
 	fActPosition: LREAL;
 	//fActDiff: LREAL;
     //sErrorMessage:STRING;
+	
+///////HOMING vars and FB's////////
+	//fbDirectHome: MC_Home; //direct homing only
+	fbHome: FB_HomingSeq;
+	
+	
 	
 END_VAR]]></Declaration>
     <Implementation>
@@ -182,21 +189,40 @@ fbMoveAbsolute(
 	CommandAborted=> ,
 	Error=> ,
 	ErrorID=> );
-
+	
+	
+///////HOMING//////
 fbHome(
+	En:= TRUE, 
+	bHome:= stAxisStruct.bHome, 
+	bReset:= stAxisStruct.bReset, 
+	nHomeProc:= stAxisStruct.nHomeSeq, 
+	bLimitBwd:= stAxisStruct.bLimitBwd, 
+	bLimitFwd:= stAxisStruct.bLimitFwd, 
+	bHomeSensor:= stAxisStruct.bHomeSensor, 
+	fHomePosition:= 0, 
+	Axis:= stAxisStruct.Axis, 
+	EnO=> , 
+	bHomed=> , 
+	bError=> stAxisStruct.bError, 
+	nErrorId=> stAxisStruct.nErrorID);
+
+(*fbDirectHome(
 	Axis:= stAxisStruct.Axis, 
 	Execute:= stAxisStruct.bHome, 
 	Position:= 0, 
-	HomingMode:= MC_DefaultHoming, 
+	HomingMode:= MC_Direct, 
 	BufferMode:= , 
 	Options:= , 
 	bCalibrationCam:= , 
-	Done=> stAxisStruct.bHomed, 
+	Done=> , 
 	Busy=> , 
 	Active=> , 
 	CommandAborted=> , 
 	Error=> , 
-	ErrorID=> );
+	ErrorID=> );*)
+stAxisStruct.bHomed:=stAxisStruct.Axis.Status.Homed;
+
 
 (*Busy*)
 stAxisStruct.bBusy:=stAxisStruct.Axis.Status.HasJob;
@@ -438,9 +464,15 @@ END_IF
       <LineId Id="1922" Count="0" />
       <LineId Id="2092" Count="0" />
       <LineId Id="1657" Count="18" />
-      <LineId Id="1716" Count="17" />
+      <LineId Id="1716" Count="16" />
+      <LineId Id="2245" Count="1" />
+      <LineId Id="1733" Count="0" />
+      <LineId Id="2279" Count="12" />
+      <LineId Id="2265" Count="0" />
+      <LineId Id="2260" Count="0" />
       <LineId Id="2136" Count="12" />
       <LineId Id="1736" Count="0" />
+      <LineId Id="2230" Count="1" />
       <LineId Id="1935" Count="66" />
       <LineId Id="2132" Count="2" />
       <LineId Id="2002" Count="28" />

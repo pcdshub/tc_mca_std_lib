@@ -3,7 +3,7 @@
   <GVL Name="GVL" Id="{913e21aa-a47e-444c-bfce-679b16c0434b}">
     <Declaration><![CDATA[VAR_GLOBAL
 	nHomingError:UDINT:=16#14D00;
-	axes			:	ARRAY [1..GVL.axisNum] OF AxisStruct;	//Global array of axisControl structure for holding axis parameters and controls
+	axes			:	ARRAY [1..GVL.axisNum] OF ST_AxisStruct;	//Global array of axisControl structure for holding axis parameters and controls
 	//indexer			:	ARRAY [1..GVL.axisNum] OF IndexerStruct;
 	
 END_VAR
