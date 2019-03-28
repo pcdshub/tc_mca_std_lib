@@ -146,8 +146,8 @@ IF En THEN
 			END_IF
 			
 			//Check for overflow
-			IF pErrorSystem^.nNoErrors >= cSizeOfErrorData THEN
-				pErrorSystem^.nNoOverflows := pErrorSystem^.nNoOverflows+1;
+			IF pErrorSystem^.nNoError >= cSizeOfErrorData THEN
+				pErrorSystem^.nNoOverflow := pErrorSystem^.nNoOverflow+1;
 			END_IF
 			
 			//Write Error Data into Error System

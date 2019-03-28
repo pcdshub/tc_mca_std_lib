@@ -389,6 +389,62 @@
                       <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.aErrorData"</v>
                     </o>
                     <o>
+                      <v n="Id">1636615684L</v>
+                      <v n="Value">0</v>
+                    </o>
+                    <o>
+                      <v n="Id">3234392039L</v>
+                      <o n="Value" t="DataVariableInformation">
+                        <v n="DataArrayType">"ARRAY [0..(cSizeOfErrorData - 1)] OF ST_ErrorEntry"</v>
+                        <v n="ColumnCount">7</v>
+                        <v n="RowCount">128</v>
+                        <v n="FirstColumnIndex">0</v>
+                        <v n="FirstRowIndex">0</v>
+                        <a n="ColumnTypes" cet="TypeClass">
+                          <v>ULInt</v>
+                          <v>Userdef</v>
+                          <v>Int</v>
+                          <v>String</v>
+                          <v>String</v>
+                          <v>String</v>
+                          <v>Int</v>
+                        </a>
+                        <a n="ColumnNames" cet="String">
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorNum</v>
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorState</v>
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].iTerminalID</v>
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].sDateTimeOn</v>
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].sDateTimeOff</v>
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].sErrorMessage</v>
+                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorPriority</v>
+                        </a>
+                        <v n="BaseType">false</v>
+                        <a n="Bounds" cet="ArrayBound">
+                          <o>
+                            <v n="Identifier">"(cSizeOfErrorData - 1)"</v>
+                            <v n="Value">127</v>
+                          </o>
+                        </a>
+                        <v n="ArrayType" t="EArrayType">Invalid</v>
+                      </o>
+                    </o>
+                    <o>
+                      <v n="Id">1128707560L</v>
+                      <v n="Value">"cSizeOfErrorData"</v>
+                    </o>
+                    <o>
+                      <v n="Id">1041310536L</v>
+                      <v n="Value">"SEL_ROW"</v>
+                    </o>
+                    <o>
+                      <v n="Id">1137915858L</v>
+                      <v n="Value">"MAIN.fbErrorSystem.nTableRowIndex"</v>
+                    </o>
+                    <o>
+                      <v n="Id">1822360349L</v>
+                      <v n="Value">"MAIN.fbErrorSystem.bValidSelection"</v>
+                    </o>
+                    <o>
                       <v n="Id">1636817830L</v>
                       <v n="Value">"%s"</v>
                     </o>
@@ -418,7 +474,7 @@
                     </o>
                     <o>
                       <v n="Id">3854506369L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].Error_ID"</v>
+                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorNum"</v>
                     </o>
                     <o>
                       <v n="Id">1892666644L</v>
@@ -474,7 +530,7 @@
                     </o>
                     <o>
                       <v n="Id">2685023577L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].Error_ID"</v>
+                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorNum"</v>
                     </o>
                     <o>
                       <v n="Id">3312258591L</v>
@@ -613,10 +669,6 @@
                       <v n="Value">6</v>
                     </o>
                     <o>
-                      <v n="Id">1636615684L</v>
-                      <v n="Value">0</v>
-                    </o>
-                    <o>
                       <v n="Id">1882453005L</v>
                       <v n="Value">true</v>
                     </o>
@@ -643,42 +695,6 @@
                     <o>
                       <v n="Id">2558934606L</v>
                       <v n="Value">true</v>
-                    </o>
-                    <o>
-                      <v n="Id">3234392039L</v>
-                      <o n="Value" t="DataVariableInformation">
-                        <v n="DataArrayType">"ARRAY [0..(cSizeOfErrorData - 1)] OF ST_ErrorEntry"</v>
-                        <v n="ColumnCount">7</v>
-                        <v n="RowCount">128</v>
-                        <v n="FirstColumnIndex">0</v>
-                        <v n="FirstRowIndex">0</v>
-                        <a n="ColumnTypes" cet="TypeClass">
-                          <v>ULInt</v>
-                          <v>Userdef</v>
-                          <v>Int</v>
-                          <v>String</v>
-                          <v>String</v>
-                          <v>String</v>
-                          <v>Int</v>
-                        </a>
-                        <a n="ColumnNames" cet="String">
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].Error_ID</v>
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorState</v>
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].iTerminalID</v>
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].sDateTimeOn</v>
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].sDateTimeOff</v>
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].sErrorMessage</v>
-                          <v>MAIN.fbErrorSystem.ErrorSystem.aErrorData[INDEX].ErrorPriority</v>
-                        </a>
-                        <v n="BaseType">false</v>
-                        <a n="Bounds" cet="ArrayBound">
-                          <o>
-                            <v n="Identifier">"(cSizeOfErrorData - 1)"</v>
-                            <v n="Value">127</v>
-                          </o>
-                        </a>
-                        <v n="ArrayType" t="EArrayType">Invalid</v>
-                      </o>
                     </o>
                     <o>
                       <v n="Id">175837068L</v>
@@ -709,48 +725,8 @@
                       <v n="Value">false</v>
                     </o>
                     <o>
-                      <v n="Id">1128707560L</v>
-                      <v n="Value">"cSizeOfErrorData"</v>
-                    </o>
-                    <o>
                       <v n="Id">3736079596L</v>
                       <v n="Value">"712"</v>
-                    </o>
-                    <o>
-                      <v n="Id">1893244285L</v>
-                      <v n="Value">"0"</v>
-                    </o>
-                    <o>
-                      <v n="Id">1494231439L</v>
-                      <v n="Value">"700"</v>
-                    </o>
-                    <o>
-                      <v n="Id">4151883806L</v>
-                      <v n="Value">"638"</v>
-                    </o>
-                    <o>
-                      <v n="Id">176242795L</v>
-                      <v n="Value">"258"</v>
-                    </o>
-                    <o>
-                      <v n="Id">2766787066L</v>
-                      <v n="Value">"710"</v>
-                    </o>
-                    <o>
-                      <v n="Id">2367776008L</v>
-                      <v n="Value">"434"</v>
-                    </o>
-                    <o>
-                      <v n="Id">1041310536L</v>
-                      <v n="Value">"SEL_ROW"</v>
-                    </o>
-                    <o>
-                      <v n="Id">1137915858L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.nTableRowIndex"</v>
-                    </o>
-                    <o>
-                      <v n="Id">1822360349L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.bValidSelection"</v>
                     </o>
                   </l>
                 </o>
@@ -3047,7 +3023,7 @@
                     </o>
                     <o>
                       <v n="Id">2477733581L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.nNoOverflow"</v>
+                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.nNoOverflow"</v>
                     </o>
                     <o>
                       <v n="Id">823443203L</v>
@@ -3450,7 +3426,7 @@
                     </o>
                     <o>
                       <v n="Id">2477733581L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.nActive"</v>
+                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.nNoActive"</v>
                     </o>
                     <o>
                       <v n="Id">823443203L</v>
@@ -3611,7 +3587,7 @@
                     </o>
                     <o>
                       <v n="Id">2477733581L</v>
-                      <v n="Value">"MAIN.fbErrorSystem.nInactive"</v>
+                      <v n="Value">"MAIN.fbErrorSystem.ErrorSystem.nNoInactive"</v>
                     </o>
                     <o>
                       <v n="Id">823443203L</v>
