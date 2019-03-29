@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="FB_DriveVirtual_V2" Id="{48aa4337-87de-4625-92cb-9b0e0f05c227}" SpecialFunc="None">
     <Declaration><![CDATA[///#########################################################
 ///Function block to run a virtual drive with Nc
@@ -16,6 +16,7 @@
 FUNCTION_BLOCK FB_DriveVirtual_V2
 VAR
 	sVersion: STRING:='1.0.3';	
+	
 	
 END_VAR
 
@@ -35,23 +36,24 @@ VAR
 	//nCommandLocal: UINT;
 	//nCmdDataLocal: UINT;
 	bFirstScan: BOOL := TRUE;
-	bResetDone: BOOL;
-	bEnable: BOOL;
-	bReset: BOOL;
-	bExecute: BOOL;
-	bStop: BOOL;
-	fVelocity: LREAL;
-	fPosition: LREAL;
-	fAcceleration: LREAL;
+	//bResetDone: BOOL;
+	//bEnable: BOOL;
+	//bReset: BOOL;
+	//bExecute: BOOL;
+	//bStop: BOOL;
+	//fVelocity: LREAL;
+	//fPosition: LREAL;
+	//fAcceleration: LREAL;
 	//fDeceleration: LREAL;
 	//bHome: BOOL;
 	//bMoveAbs: BOOL;
-	bJogFwd: BOOL;
-	bJogBwd: BOOL;
-	bLimitFwd: BOOL;
-	bLimitBwd: BOOL;	
-	fOverride: LREAL := 100;
-	bHomeSensor: BOOL;
+	//bJogFwd: BOOL;
+	//bJogBwd: BOOL;
+	//bLimitFwd: BOOL;
+	//bLimitBwd: BOOL;
+	//bEncLatch: BOOL;	
+	//fOverride: LREAL := 100;
+	//bHomeSensor: BOOL;
 	fbReset: MC_Reset;
 	fbPower: MC_Power;
 	fbHalt: MC_Halt;
@@ -86,6 +88,9 @@ VAR
 ///////HOMING vars and FB's////////
 	//fbDirectHome: MC_Home; //direct homing only
 	fbHome: FB_HomingSeq;
+	fbRTrigLatch: R_TRIG;
+	bLatched: BOOL;
+	fbSetLatch :SR;
 	
 	
 	
@@ -192,20 +197,26 @@ fbMoveAbsolute(
 	
 	
 ///////HOMING//////
+//fbRTrigLatch(CLK:= stAxisStruct.bEncLatch, Q=> );
+//fbSetLatch(SET1:= NOT stAxisStruct.bLimitBwd OR NOT stAxisStruct.bLimitFwd, 
+//	RESET:=(fbRTrigLatch.Q AND bLatched) OR bFirstScan , 
+//	Q1=>bLatched );
+
 fbHome(
-	En:= TRUE, 
+	En:= En, 
 	bHome:= stAxisStruct.bHome, 
 	bReset:= stAxisStruct.bReset, 
 	nHomeProc:= stAxisStruct.nHomeSeq, 
 	bLimitBwd:= stAxisStruct.bLimitBwd, 
 	bLimitFwd:= stAxisStruct.bLimitFwd, 
+	bEncLatch:= stAxisStruct.bEncLatch,
 	bHomeSensor:= stAxisStruct.bHomeSensor, 
 	fHomePosition:= 0, 
 	Axis:= stAxisStruct.Axis, 
 	EnO=> , 
 	bHomed=> , 
-	bError=> stAxisStruct.bError, 
-	nErrorId=> stAxisStruct.nErrorID);
+	bError=> , 
+	nErrorId=> );
 
 (*fbDirectHome(
 	Axis:= stAxisStruct.Axis, 
@@ -467,7 +478,13 @@ END_IF
       <LineId Id="1716" Count="16" />
       <LineId Id="2245" Count="1" />
       <LineId Id="1733" Count="0" />
-      <LineId Id="2279" Count="12" />
+      <LineId Id="2385" Count="0" />
+      <LineId Id="2384" Count="0" />
+      <LineId Id="2389" Count="1" />
+      <LineId Id="2383" Count="0" />
+      <LineId Id="2279" Count="6" />
+      <LineId Id="2388" Count="0" />
+      <LineId Id="2286" Count="5" />
       <LineId Id="2265" Count="0" />
       <LineId Id="2260" Count="0" />
       <LineId Id="2136" Count="12" />

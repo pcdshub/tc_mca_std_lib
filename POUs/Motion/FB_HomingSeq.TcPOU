@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.17">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
   <POU Name="FB_HomingSeq" Id="{9504e6ea-30a8-43fd-9cc1-4227ce39269a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HomingSeq
 VAR_INPUT
@@ -9,6 +9,7 @@ VAR_INPUT
 	nHomeProc: UINT;
 	bLimitBwd: BOOL;
 	bLimitFwd: BOOL;
+	bEncLatch: BOOL;
 	bHomeSensor: BOOL;
 	fHomePosition: LREAL;
 END_VAR
@@ -37,15 +38,19 @@ VAR
 	nHomeProcLocal: UINT;  //Ensure that nCmdData is not changed during sequence
 	bSequenceReady:BOOL:=TRUE;
 	bRestoreNCDataNeeded: BOOL:=FALSE;
+	fbRTrigLatch: R_TRIG;
+	bLatched: BOOL;
+	fbSetLatch :SR;
+	
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[EnO:=En;
 
-//IF bReset THEN	
-	//bError:=FALSE;
-	//nErrorId:=0;
-//END_IF
+IF bReset THEN	
+	bError:=FALSE;
+	nErrorId:=0;
+END_IF
 
 // Reset when bExecute is low
 IF NOT bHome THEN
@@ -71,6 +76,8 @@ IF fbExecuteRiseEdge.Q THEN
     2:
     3:
     4:
+	5:
+	6:
     15:
     ELSE //nCmdData not valid	
       bError:=TRUE;
@@ -85,6 +92,12 @@ fbHomePrepare(
   bReset:=bReset,
   Axis:=Axis,
 );
+
+/////LAtch signal of enconder///////
+fbRTrigLatch(CLK:=bEncLatch, Q=> );
+//fbSetLatch(SET1:=, 
+//	RESET:=(fbRTrigLatch.Q AND bLatched), 
+//	Q1=>bLatched );
 
 CASE nHomeProc OF  
 	
@@ -282,7 +295,112 @@ CASE nHomeProc OF
 			  bHomed:=Axis.Status.Homed;
 	        END_IF;	 
 	   END_CASE;
-		  	    
+	5: // Home on Enc Latch via LimtBwd
+   	   CASE nHomingState OF
+		  0:
+		    bHomed:=Axis.Status.Homed;
+            // Wait for read of velocities from NC and reset of calibration flag
+	        IF fbHomePrepare.bDone AND bHome AND NOT bSequenceReady THEN
+			  bRestoreNCDataNeeded:=TRUE;
+			  IF bLimitBwd THEN
+                nHomingState:=1;
+              ELSE
+				nHomingState:=2;  //Standing on limit switch go direct to state 2 
+              END_IF                                          		  
+	        END_IF
+		  1: // wait for reach low limit then trigger fbHomeToSwitch
+		    bHomed:=FALSE;
+			//bEncLatch:=TRUE;
+			bSequenceReady:=FALSE;
+			fbMoveVelocity.Velocity:=ABS(fbHomePrepare.fVelocityToCam);
+            fbMoveVelocity.Direction:=MC_Negative_Direction;
+	        bExecuteMoveVelocity:=bHome;  // Execute MC_MoveVelocity
+		    IF NOT bLimitBwd AND NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN //MC_MoveVelocity.Busy goes down when ramp down initiates (not ends).
+			  nHomingState:=2;
+			 // bEncLatch:=TRUE;
+		    END_IF
+		  2: // Wait for Latch signal
+			fbSetLatch(SET1:= NOT bLimitBwd AND NOT fbSetLatch.Q1 , 
+				RESET:=fbRTrigLatch.Q , 
+				Q1=>bLatched );
+		    bHomed:=FALSE;
+		    bSequenceReady:=FALSE;
+            bExecuteMoveVelocity:=FALSE;			
+            bExecuteHomeToSwitch:=TRUE;	
+            fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Positive_Direction;
+            fbHomeToSwitch.nSearchDirOffCam:=MC_Positive_Direction;	             
+	        fbHomeToSwitch.fVelocityToCamNC:=fbHomePrepare.fVelocityToCam; // High speed
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomePrepare.fVelocityFromCam;  // Low speed              		
+		    fbHomeToSwitch.bCamSensor:=fbSetLatch.Q1;            	 		    
+	        IF fbHomeToSwitch.bDone THEN	          
+			  nHomingState:=3;
+			  bExecuteFinish:=TRUE;
+			  fbHomeFinish.bSofLimEnableHigh:=fbHomePrepare.bSofLimEnableHighOriginal;
+			  fbHomeFinish.bSofLimEnableLow:=fbHomePrepare.bSofLimEnableLowOriginal;
+	        END_IF;	
+          3: // restore softlimit enable
+            bHomed:=FALSE;
+		    bSequenceReady:=FALSE;            		            	
+	        IF fbHomeFinish.bDone THEN
+		      bRestoreNCDataNeeded:=FALSE;
+	          bSequenceReady:=TRUE;
+			  nHomingState:=0;
+			  bHomed:=Axis.Status.Homed;
+	        END_IF;	 
+	   END_CASE;
+	   
+	6: // Home on Enc Latch via bLimitFwd	   
+	   CASE nHomingState OF
+		  0:
+		    bHomed:=Axis.Status.Homed;
+            // Wait for read of velocities from NC and reset of calibration flag
+	        IF fbHomePrepare.bDone AND bHome AND NOT bSequenceReady THEN
+			  bRestoreNCDataNeeded:=TRUE;
+			  IF bLimitFwd THEN
+                nHomingState:=1;
+              ELSE
+				nHomingState:=2;  //Standing on limit switch go direct to state 2 
+              END_IF                                          		  
+	        END_IF
+		  1: // wait for reach low limit then trigger fbHomeToSwitch
+		    bHomed:=FALSE;
+			bSequenceReady:=FALSE;
+			fbMoveVelocity.Velocity:=ABS(fbHomePrepare.fVelocityToCam);
+            fbMoveVelocity.Direction:=MC_Positive_Direction;
+	        bExecuteMoveVelocity:=bHome;  // Execute MC_MoveVelocity
+		    IF NOT bLimitFwd AND NOT fbMoveVelocity.Busy AND Axis.Status.NotMoving THEN //MC_MoveVelocity.Busy goes down when ramp down initiates (not ends).
+			  nHomingState:=2;
+		    END_IF
+		  2: // Wait for Latch signal
+		  	fbSetLatch(SET1:= NOT bLimitFwd AND NOT fbSetLatch.Q1 , 
+				RESET:=fbRTrigLatch.Q , 
+				Q1=>bLatched );
+		    bHomed:=FALSE;
+		    bSequenceReady:=FALSE;
+            bExecuteMoveVelocity:=FALSE;			
+            bExecuteHomeToSwitch:=TRUE;	
+            fbHomeToSwitch.nSearchDirTwoardsCam:=MC_Negative_Direction;
+            fbHomeToSwitch.nSearchDirOffCam:=MC_Negative_Direction;	             
+	        fbHomeToSwitch.fVelocityToCamNC:=fbHomePrepare.fVelocityToCam; // High speed
+  	        fbHomeToSwitch.fVelocityFromCamNC:=fbHomePrepare.fVelocityFromCam;  // Low speed              		
+		    fbHomeToSwitch.bCamSensor:=bLatched;            	 		    
+	        IF fbHomeToSwitch.bDone THEN	          
+			  nHomingState:=3;
+			  bExecuteFinish:=TRUE;
+			  fbHomeFinish.bSofLimEnableHigh:=fbHomePrepare.bSofLimEnableHighOriginal;
+			  fbHomeFinish.bSofLimEnableLow:=fbHomePrepare.bSofLimEnableLowOriginal;
+	        END_IF;	
+          3: // Restore softlimit enable
+            bHomed:=FALSE;
+		    bSequenceReady:=FALSE;            		            	
+	        IF fbHomeFinish.bDone THEN
+			  bRestoreNCDataNeeded:=FALSE;
+	          bSequenceReady:=TRUE;
+			  nHomingState:=0;
+			  bHomed:=Axis.Status.Homed;
+	        END_IF;	 
+	   END_CASE;  	    
+	   
    15: //Set current position (simplest homing sequence)
      bExecuteHomeDirect:=bHome;
 	 bHomed:=Axis.Status.Homed;
@@ -359,9 +477,33 @@ bBusy:=NOT bSequenceReady;
 bHomed:=Axis.Status.Homed;]]></ST>
     </Implementation>
     <LineIds Name="FB_HomingSeq">
-      <LineId Id="220" Count="43" />
-      <LineId Id="178" Count="1" />
-      <LineId Id="264" Count="208" />
+      <LineId Id="220" Count="30" />
+      <LineId Id="666" Count="0" />
+      <LineId Id="716" Count="0" />
+      <LineId Id="251" Count="12" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="719" Count="0" />
+      <LineId Id="718" Count="0" />
+      <LineId Id="721" Count="3" />
+      <LineId Id="179" Count="0" />
+      <LineId Id="264" Count="195" />
+      <LineId Id="567" Count="14" />
+      <LineId Id="730" Count="0" />
+      <LineId Id="582" Count="5" />
+      <LineId Id="717" Count="0" />
+      <LineId Id="588" Count="1" />
+      <LineId Id="735" Count="1" />
+      <LineId Id="734" Count="0" />
+      <LineId Id="590" Count="23" />
+      <LineId Id="460" Count="0" />
+      <LineId Id="714" Count="0" />
+      <LineId Id="667" Count="22" />
+      <LineId Id="732" Count="1" />
+      <LineId Id="731" Count="0" />
+      <LineId Id="690" Count="23" />
+      <LineId Id="566" Count="0" />
+      <LineId Id="715" Count="0" />
+      <LineId Id="461" Count="11" />
       <LineId Id="60" Count="0" />
       <LineId Id="473" Count="55" />
       <LineId Id="9" Count="0" />
