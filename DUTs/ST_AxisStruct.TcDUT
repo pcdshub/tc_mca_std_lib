@@ -9,6 +9,7 @@ STRUCT
 	bReset				:	BOOL;			//Reset axis signal, must be combined with other signals
 	bStop				:	BOOL;			//Stop axis movement
 	bEnable				: 	BOOL;			//Controller enable
+	eCommand			:	MotionFunctions;
 	
 ///////Axis////////
 	bJogFwd				:	BOOL;			//Jog forward
@@ -19,6 +20,7 @@ STRUCT
 	fOverride			:	LREAL := 100;	//Controller override %
 	fVelocity			:	LREAL;			//Velocity must be specified, no default used
 	fAcceleration		:	LREAL;			//Not all FBs use, need to change this, 0 is NC default
+	fDeceleration		:	LREAL;
 	fPosition			:	LREAL;			//Used for absolute positioning	
 	nHomeSeq			:	UINT;			//Homing sequence to perform
 
