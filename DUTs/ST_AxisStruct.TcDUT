@@ -5,7 +5,7 @@
 STRUCT
 	
 ///////Actions from EPICS/NICOS/////////	
-	bStart				:	BOOL;			//Rising edge to execute move absolute
+	bExecute			:	BOOL;			//Rising edge to execute move absolute
 	bReset				:	BOOL;			//Reset axis signal, must be combined with other signals
 	bStop				:	BOOL;			//Stop axis movement
 	bEnable				: 	BOOL;			//Controller enable
@@ -25,10 +25,10 @@ STRUCT
 	nHomeSeq			:	UINT;			//Homing sequence to perform
 
 ///////Axis Inputs///////
-	bLimitFwd			:	BOOL;			//Forward limit switch
-	bLimitBwd			:	BOOL;			//Backward limit switch
-	bHomeSensor			:	BOOL;			//Reference siganl for homing
-	bEncLatch			: 	BOOL;			//Reference index signal from inc. enconder
+	bLimitFwd AT %I*	:	BOOL;			//Forward limit switch
+	bLimitBwd AT %I*	:	BOOL;			//Backward limit switch
+	bHomeSensor AT %I*	:	BOOL;			//Reference siganl for homing
+	bEncLAtch AT %I*	: 	BOOL;			//Reference index signal from inc. enconder
 	
 ///////Outputs/Status/////////
 	bEnabled			:	BOOL;			//Axis drive enabled		
@@ -49,7 +49,6 @@ STRUCT
 	//fGearRatioNum		:	LREAL;			//GearIn ratio numerator
 	//iGearRatioDen		:	UINT;			//GearIn ratio denominator
 ///////Axis Ref/////
-	{attribute 'OPC.UA.DA' := '0'}
 	Axis				:	AXIS_REF;		//Link NC axis to this
 		
 //////Extra things of original ISIS Structure/////

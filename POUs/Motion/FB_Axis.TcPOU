@@ -19,7 +19,6 @@ VAR
 	
 END_VAR
 VAR_INPUT
-	En: BOOL;
 	bEnable: BOOL;
 	bReset: BOOL;
 	bExecute: BOOL;
@@ -27,7 +26,6 @@ VAR_INPUT
 	eCommand: MotionFunctions; 
 END_VAR
 VAR_OUTPUT
-	EnO:	BOOL;
 	bEnabled: BOOL;
 	bBusy: BOOL;
 	bDone: BOOL;
@@ -38,9 +36,6 @@ VAR_IN_OUT
 	stAxisStruct: ST_AxisStruct;
 END_VAR
 VAR	
-	
-	InfoData_State AT %I*: UINT;
-	bFirstScan: BOOL := TRUE;
 	fbReset: MC_Reset;
 	fbPower: MC_Power;
 	fbStop: MC_Stop;
@@ -56,166 +51,89 @@ VAR
 	fbExecuteRiseEdge: R_TRIG;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[En:=EnO;
-
-//NC_LinkAxis
-IF bEnable AND InfoData_State<>16#8 THEN
-	bError:=TRUE;
-ELSE
-	bError:=FALSE;
-END_IF
-
-IF bEnable THEN
-	stAxisStruct.Axis.ReadStatus();
-END_IF
-
-
-fbExecuteRiseEdge(CLK:=bExecute);
+      <ST><![CDATA[//Connection of variables to tha Axis Structure//
+bExecute:= stAxisStruct.bExecute;
+eCommand:=stAxisStruct.eCommand;
 
 ////Call of all MC Instances//////
 
 fbPower(Axis:=stAxisStruct.Axis);
+fbPower.Enable:= FALSE;
 fbReset(Axis:=stAxisStruct.Axis);
+fbReset.Execute:= FALSE;
 fbStop(Axis:=stAxisStruct.Axis);
+fbStop.Execute:=FALSE;
 fbHalt(Axis:=stAxisStruct.Axis);
+fbHalt.Execute:=FALSE;
 fbJog(Axis:=stAxisStruct.Axis);
 fbHome(Axis:=stAxisStruct.Axis);
+fbHome.bExecute:=FALSE;
 fbMoveAbsolute(Axis:=stAxisStruct.Axis);
+fbMoveAbsolute.Execute:=FALSE;
 fbMoveRelative(Axis:=stAxisStruct.Axis);
+fbMoveRelative.Execute:=FALSE;
 fbMoveVelocity(Axis:=stAxisStruct.Axis);
+fbMoveVelocity.Execute:=FALSE;
 fbMoveModulo(Axis:=stAxisStruct.Axis);
+fbMoveModulo.Execute:=FALSE;
 //fbGearInDyn(Master:=, Slave:=);
+fbGearInDyn.Enable:=FALSE;
 //fbGearOut(Slave:=);
+fbGearOut.Execute:=FALSE;
 
 
 (*Power*)
-fbPower(
-	Axis:=stAxisStruct.Axis,
-	Enable:=bEnable,	
-	Enable_Positive:=bEnable AND stAxisStruct.bLimitFwd,	
-	Enable_Negative:=bEnable AND stAxisStruct.bLimitBwd,	
-	Override:= stAxisStruct.fOverride,
-	BufferMode:= ,
-	Status=> bEnabled,
-	Busy=> ,
-	Active=> ,
-	Error=> ,
-	ErrorID=> );
+	fbPower.Enable:=bEnable;
+	fbPower.Enable_Positive:=bEnable AND stAxisStruct.bLimitFwd;	
+	fbPower.Enable_Negative:=bEnable AND stAxisStruct.bLimitBwd;
+	fbPower.Override:= stAxisStruct.fOverride;
+	bEnabled:=fbPower.Status;
 
-(*Stop*)
-fbStop(		
-	Axis:= stAxisStruct.Axis, 
-	Execute:= bStop, 
-	Deceleration:= stAxisStruct.fDeceleration , 
-	Jerk:= , 
-	Options:= , 
-	Done=> , 
-	Busy=> , 
-	Active=> , 
-	CommandAborted=> , 
-	Error=> , 
-	ErrorID=> );
+(*Stop*)	
+	fbStop.Execute:= bStop;
+	fbStop.Deceleration:= stAxisStruct.fDeceleration;
 				
 (*Reset*)
-fbReset(
-	Execute:=bReset AND stAxisStruct.Axis.Status.Error,
-	Axis:=stAxisStruct.Axis,
-	Done=>,
-	Busy=> ,
-	Error=> ,
-	ErrorID=> );
+	fbReset.Execute:=bReset AND stAxisStruct.Axis.Status.Error;
+
 
 CASE eCommand OF
 	MotionFunctions.MoveAbsolute:
-		fbMoveAbsolute(
-				Execute:=bExecute,
-				Position:=stAxisStruct.fPosition,
-				Velocity:=ABS(stAxisStruct.fVelocity),
-				Acceleration:=stAxisStruct.fAcceleration,
-				Deceleration:=stAxisStruct.fDeceleration,
-				Jerk:=,
-				BufferMode:= ,
-				Options:= ,
-				Axis:=stAxisStruct.Axis,
-				Done=> ,
-				Busy=> ,
-				Active=> ,
-				CommandAborted=> ,
-				Error=> ,
-				ErrorID=> );
+		fbMoveAbsolute.Execute:=bExecute;
+		fbMoveAbsolute.Position:=stAxisStruct.fPosition;
+		fbMoveAbsolute.Velocity:=ABS(stAxisStruct.fVelocity);
+		fbMoveAbsolute.Acceleration:=stAxisStruct.fAcceleration;
+		fbMoveAbsolute.Deceleration:=stAxisStruct.fDeceleration;
 				
 	MotionFunctions.MoveRelative:
-		fbMoveRelative(
-				Execute:=bExecute, 
-				Distance:=stAxisStruct.fPosition, 
-				Velocity:=ABS(stAxisStruct.fVelocity), 
-				Acceleration:=stAxisStruct.fAcceleration,
-				Deceleration:=stAxisStruct.fDeceleration,
-				Jerk:=0,
-				BufferMode:= , 
-				Options:= , 
-				Axis:=stAxisStruct.Axis, 
-				Done=> , 
-				Busy=> , 
-				Active=> , 
-				CommandAborted=> , 
-				Error=> , 
-				ErrorID=> );
+		fbMoveRelative.Execute:=bExecute;
+		fbMoveRelative.Distance:=stAxisStruct.fPosition;
+		fbMoveRelative.Velocity:=ABS(stAxisStruct.fVelocity);
+		fbMoveRelative.Acceleration:=stAxisStruct.fAcceleration;
+		fbMoveRelative.Deceleration:=stAxisStruct.fDeceleration;
 				
 	MotionFunctions.Jog:
-		fbJog(
-				JogForward:=stAxisStruct.bJogFwd AND NOT bExecute ,
-				JogBackwards:=stAxisStruct.bJogBwd AND NOT bExecute ,
-				Mode:=0,
-				Position:= ,
-				Velocity:=stAxisStruct.fVelocity,
-				Acceleration:=stAxisStruct.fAcceleration,
-				Deceleration:=stAxisStruct.fDeceleration,
-				Jerk:=,
-				Axis:=stAxisStruct.Axis,
-				Done=> ,
-				Busy=> ,
-				Active=> ,
-				CommandAborted=> ,
-				Error=> ,
-				ErrorID=> );
+		fbJog.JogForward:=stAxisStruct.bJogFwd AND NOT bExecute;
+		fbJog.JogBackwards:=stAxisStruct.bJogBwd AND NOT bExecute;
+		fbJog.Mode:=0;
+		fbJog.Velocity:=stAxisStruct.fVelocity;
+		fbJog.Acceleration:=stAxisStruct.fAcceleration;
+		fbJog.Deceleration:=stAxisStruct.fDeceleration;
 				
 	MotionFunctions.MoveVelocity:
-		fbMoveVelocity(
-				Execute:=bExecute,
-				Velocity:=ABS(stAxisStruct.fVelocity),
-				Acceleration:=stAxisStruct.fAcceleration,
-				Deceleration:=stAxisStruct.fDeceleration,
-				Jerk:=,
-				Direction:=SEL(stAxisStruct.fVelocity<0, MC_Positive_Direction, MC_Negative_Direction),
-				BufferMode:= ,
-				Options:= ,
-				Axis:=stAxisStruct.Axis,
-				InVelocity=> ,
-				Busy=> ,
-				Active=> ,
-				CommandAborted=> ,
-				Error=> ,
-				ErrorID=> );
-				
+		fbMoveVelocity.Execute:=bExecute;
+		fbMoveVelocity.Velocity:=ABS(stAxisStruct.fVelocity);
+		fbMoveVelocity.Acceleration:=stAxisStruct.fAcceleration;
+		fbMoveVelocity.Deceleration:=stAxisStruct.fDeceleration;
+		fbMoveVelocity.Direction:=SEL(stAxisStruct.fVelocity<0, MC_Positive_Direction, MC_Negative_Direction);
+
 	MotionFunctions.Movemodulo:
-		fbMoveModulo(
-				Execute:=bExecute, 
-				Position:=stAxisStruct.fPosition, 
-				Velocity:=ABS(stAxisStruct.fVelocity), 
-				Acceleration:=stAxisStruct.fAcceleration, 
-				Deceleration:=stAxisStruct.fDeceleration, 
-				Jerk:=, 
-				Direction:=, 
-				BufferMode:= , 
-				Options:= , 
-				Axis:=stAxisStruct.Axis, 
-				Done=> , 
-				Busy=> , 
-				Active=> , 
-				CommandAborted=> , 
-				Error=> , 
-				ErrorID=> );
+		fbMoveModulo.Execute:=bExecute;
+		fbMoveModulo.Position:=stAxisStruct.fPosition;
+		fbMoveModulo.Velocity:=ABS(stAxisStruct.fVelocity);
+		fbMoveModulo.Acceleration:=stAxisStruct.fAcceleration; 
+		fbMoveModulo.Deceleration:=stAxisStruct.fDeceleration;
+
 				
 	MotionFunctions.SingleGearIn:
 	
@@ -224,21 +142,15 @@ CASE eCommand OF
 	MotionFunctions.MultiGear:
 			
 	MotionFunctions.Home:
-		fbHome(
-				En:=TRUE , 
-				bExecute:= bExecute, 
-				bReset:= bReset, 
-				nHomeProc:= stAxisStruct.nHomeSeq, 
-				bLimitBwd:= stAxisStruct.bLimitBwd, 
-				bLimitFwd:= stAxisStruct.bLimitFwd, 
-				bEncLatch:= stAxisStruct.bEncLatch, 
-				bHomeSensor:= stAxisStruct.bHomeSensor, 
-				fHomePosition:= 0, 
-				Axis:= stAxisStruct.Axis, 
-				EnO=> , 
-				bHomed=> stAxisStruct.bHomed, 
-				bError=> , 
-				nErrorId=> );
+		fbHome.bExecute:= bExecute;
+		fbHome.bReset:= bReset;
+		fbHome.nHomeProc:= stAxisStruct.nHomeSeq;
+		fbHome.bLimitBwd:= stAxisStruct.bLimitBwd; 
+		fbHome.bLimitFwd:= stAxisStruct.bLimitFwd; 
+		fbHome.bEncLatch:= stAxisStruct.bEncLatch;
+		fbHome.bHomeSensor:= stAxisStruct.bHomeSensor;
+		fbHome.fHomePosition:= 0; 
+		stAxisStruct.bHomed:=fbHome.bHomed;
 				
 END_CASE			
 
@@ -295,63 +207,77 @@ ELSE
 	stAxisStruct.fActPosition:=stAxisStruct.Axis.NcToPlc.ActPos;
 END_IF
 
-
-IF bFirstScan THEN
-	bFirstScan:=FALSE;
-END_IF]]></ST>
+]]></ST>
     </Implementation>
     <LineIds Name="FB_Axis">
-      <LineId Id="2371" Count="1" />
-      <LineId Id="1908" Count="8" />
-      <LineId Id="1918" Count="0" />
-      <LineId Id="1906" Count="0" />
-      <LineId Id="1609" Count="0" />
-      <LineId Id="1611" Count="0" />
-      <LineId Id="2186" Count="0" />
+      <LineId Id="2439" Count="0" />
+      <LineId Id="2441" Count="0" />
+      <LineId Id="2448" Count="0" />
+      <LineId Id="2440" Count="0" />
       <LineId Id="2185" Count="0" />
       <LineId Id="2203" Count="0" />
       <LineId Id="2189" Count="0" />
-      <LineId Id="1616" Count="0" />
+      <LineId Id="2377" Count="2" />
       <LineId Id="2190" Count="0" />
-      <LineId Id="2193" Count="2" />
-      <LineId Id="2197" Count="3" />
+      <LineId Id="2380" Count="0" />
+      <LineId Id="2193" Count="0" />
+      <LineId Id="2381" Count="0" />
+      <LineId Id="2194" Count="1" />
+      <LineId Id="2383" Count="0" />
+      <LineId Id="2197" Count="0" />
+      <LineId Id="2384" Count="0" />
+      <LineId Id="2198" Count="0" />
+      <LineId Id="2385" Count="0" />
+      <LineId Id="2199" Count="0" />
+      <LineId Id="2437" Count="0" />
+      <LineId Id="2200" Count="0" />
+      <LineId Id="2438" Count="0" />
       <LineId Id="2202" Count="0" />
+      <LineId Id="2445" Count="0" />
       <LineId Id="2201" Count="0" />
-      <LineId Id="1627" Count="15" />
+      <LineId Id="2446" Count="0" />
+      <LineId Id="1627" Count="2" />
+      <LineId Id="1632" Count="3" />
+      <LineId Id="1637" Count="0" />
+      <LineId Id="1642" Count="0" />
       <LineId Id="1921" Count="0" />
-      <LineId Id="1923" Count="0" />
-      <LineId Id="2214" Count="0" />
-      <LineId Id="1925" Count="8" />
-      <LineId Id="2215" Count="0" />
+      <LineId Id="1925" Count="1" />
       <LineId Id="2205" Count="0" />
-      <LineId Id="2207" Count="6" />
-      <LineId Id="2206" Count="0" />
-      <LineId Id="2092" Count="0" />
+      <LineId Id="2207" Count="0" />
+      <LineId Id="2209" Count="0" />
+      <LineId Id="2375" Count="1" />
       <LineId Id="1657" Count="0" />
       <LineId Id="2366" Count="0" />
-      <LineId Id="2220" Count="15" />
+      <LineId Id="2220" Count="0" />
+      <LineId Id="2222" Count="3" />
       <LineId Id="2238" Count="0" />
       <LineId Id="2236" Count="0" />
-      <LineId Id="2239" Count="14" />
-      <LineId Id="2237" Count="0" />
+      <LineId Id="2239" Count="0" />
+      <LineId Id="2241" Count="1" />
+      <LineId Id="2442" Count="0" />
+      <LineId Id="2244" Count="0" />
       <LineId Id="2254" Count="0" />
       <LineId Id="2219" Count="0" />
-      <LineId Id="2257" Count="14" />
-      <LineId Id="2255" Count="0" />
+      <LineId Id="2258" Count="0" />
+      <LineId Id="2443" Count="0" />
+      <LineId Id="2260" Count="0" />
+      <LineId Id="2262" Count="2" />
       <LineId Id="2274" Count="0" />
       <LineId Id="2273" Count="0" />
-      <LineId Id="2275" Count="14" />
-      <LineId Id="2218" Count="0" />
+      <LineId Id="2276" Count="3" />
+      <LineId Id="2281" Count="0" />
       <LineId Id="2290" Count="1" />
-      <LineId Id="2293" Count="15" />
-      <LineId Id="2292" Count="0" />
+      <LineId Id="2294" Count="4" />
+      <LineId Id="2303" Count="0" />
       <LineId Id="2310" Count="0" />
       <LineId Id="2343" Count="0" />
-      <LineId Id="2361" Count="3" />
+      <LineId Id="2361" Count="1" />
+      <LineId Id="2444" Count="0" />
+      <LineId Id="2364" Count="0" />
       <LineId Id="2344" Count="0" />
       <LineId Id="2311" Count="0" />
-      <LineId Id="2327" Count="13" />
-      <LineId Id="2312" Count="0" />
+      <LineId Id="2329" Count="7" />
+      <LineId Id="2339" Count="0" />
       <LineId Id="2309" Count="0" />
       <LineId Id="2216" Count="0" />
       <LineId Id="1674" Count="0" />
@@ -361,7 +287,6 @@ END_IF]]></ST>
       <LineId Id="1979" Count="3" />
       <LineId Id="1992" Count="9" />
       <LineId Id="2272" Count="0" />
-      <LineId Id="2031" Count="2" />
       <LineId Id="1934" Count="0" />
     </LineIds>
   </POU>

@@ -3,7 +3,6 @@
   <POU Name="FB_Homing" Id="{9504e6ea-30a8-43fd-9cc1-4227ce39269a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Homing
 VAR_INPUT
-	En: BOOL;
 	bExecute: BOOL;
 	bReset: BOOL;
 	nHomeProc: UINT;
@@ -16,13 +15,13 @@ END_VAR
 VAR_IN_OUT
 	Axis: AXIS_REF;
 END_VAR
-VAR_OUTPUT
-	EnO: BOOL;	
+VAR_OUTPUT	
 	bHomed:BOOL;
 	bError: BOOL;
 	nErrorId: UDINT;
 END_VAR
 VAR
+	En: BOOL:=TRUE;
 	fbHomeToSwitch: FB_HomeToSwitch;
     fbHomeDirect: FB_HomeDirect; //Only used for direct homing (set of position)
     fbMoveVelocity:MC_MoveVelocity;
@@ -45,7 +44,7 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[EnO:=En;
+      <ST><![CDATA[
 
 IF bReset THEN	
 	bError:=FALSE;
