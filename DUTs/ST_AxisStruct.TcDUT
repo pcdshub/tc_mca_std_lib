@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+  <DUT Name="ST_AxisStruct" Id="{9732127f-85ab-48d1-a591-d13402fe3665}">
+    <Declaration><![CDATA[TYPE ST_AxisStruct :
+STRUCT
+	
+///////Actions from EPICS/NICOS/////////	
+	bExecute			:	BOOL;			//Rising edge to execute move absolute
+	bReset				:	BOOL;			//Reset axis signal, must be combined with other signals
+	bStop				:	BOOL;			//Stop axis movement
+	bEnable				: 	BOOL;			//Controller enable
+	eCommand			:	MotionFunctions;
+	
+///////Axis////////
+	bJogFwd				:	BOOL;			//Jog forward
+	bJogBwd				:	BOOL;			//Jog backward
+	bHome				:	BOOL;			//Perform homing sequence
+	
+///////Axis Parameters//////
+	fOverride			:	LREAL := 100;	//Controller override %
+	fVelocity			:	LREAL;			//Velocity must be specified, no default used
+	fAcceleration		:	LREAL;			//Not all FBs use, need to change this, 0 is NC default
+	fDeceleration		:	LREAL;
+	fPosition			:	LREAL;			//Used for absolute positioning	
+	nHomeSeq			:	UINT;			//Homing sequence to perform
+
+///////Axis Inputs///////
+	bLimitFwd AT %I*	:	BOOL;			//Forward limit switch
+	bLimitBwd AT %I*	:	BOOL;			//Backward limit switch
+	bHomeSensor AT %I*	:	BOOL;			//Reference siganl for homing
+	bEncLAtch AT %I*	: 	BOOL;			//Reference index signal from inc. enconder
+	
+///////Outputs/Status/////////
+	bEnabled			:	BOOL;			//Axis drive enabled		
+	bWarning			:	BOOL;			//Warning violation (need to be deinfed all the warning stages)	
+	bBusy				:	BOOL;			//Axis busy
+	bDone				:	BOOL;			//Last function block executed successfully
+	bResetDone			:	BOOL;			//MC_Reset FB finished			
+	bHomed				:	BOOL;			//Axis homed
+	bFwEnabled			:	BOOL;			//Positive movement of axis is enabled/disabled
+	bBwEnabled			:	BOOL;			//Negative movement of axis is enabled/disabled
+	fActPosition		:	LREAL;			//Actual position value
+	fActVelocity		:	LREAL;			//Actual velocity	
+	bError				:	BOOL;			//Motion function block has produced error (NC drive not necessarily in error state)
+	nErrorID			:	UDINT;			//Motion function block errorID				
+
+//////Geraing Parameters//////
+	//masterAxis		:	UINT:=1;		//Axes[ ] index for master		
+	//fGearRatioNum		:	LREAL;			//GearIn ratio numerator
+	//iGearRatioDen		:	UINT;			//GearIn ratio denominator
+///////Axis Ref/////
+	Axis				:	AXIS_REF;		//Link NC axis to this
+		
+//////Extra things of original ISIS Structure/////
+
+	//	bSoftLimPosEn		:	BOOL;			//Enable/disable positive direction software limit
+	//	bSoftLimNegEn		:	BOOL;			//Enable/disable negative direction software limit
+	//bPosLagEn			:	BOOL;			//Enable/disable position lag
+	
+	//Gearing parameters
+	
+	//masterAxes			:	ARRAY[1..4] OF ST_MasterAxis;	//ST to hold index and ratio for masters 	- GearInMultiMaster
+	//fDeceleration		:	LREAL;			//Not all FBs use, need to change this, 0 is NC default
+	//	Status				: ST_AxisStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
