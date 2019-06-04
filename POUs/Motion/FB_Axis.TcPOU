@@ -38,13 +38,14 @@ VAR
 	fbMoveVelocity: MC_MoveVelocity;
 	fbMoveRelative: MC_MoveRelative;
 	fbMoveModulo: MC_MoveModulo;	
-	fbGearInDyn: MC_GearInDyn;
+	fbGearIn: MC_GearIn;
 	fbGearOut: MC_GearOut;
 	fbHome: FB_Homing;
 	fbExecuteRiseEdge: R_TRIG;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
+      <ST><![CDATA[stAxisStruct.Axis.ReadStatus();
+
 
 ////Call of all MC Instances//////
 
@@ -67,16 +68,27 @@ fbMoveVelocity(Axis:=stAxisStruct.Axis);
 fbMoveVelocity.Execute:=FALSE;
 fbMoveModulo(Axis:=stAxisStruct.Axis);
 fbMoveModulo.Execute:=FALSE;
-//fbGearInDyn(Master:=, Slave:=);
-fbGearInDyn.Enable:=FALSE;
-//fbGearOut(Slave:=);
+
+fbGearin(Slave:= stAxisStruct.Axis, Master:= GVL.axes[stAxisStruct.masterAxis.index].Axis);
+fbGearIn.Execute:=FALSE;
+fbGearOut(Slave:=stAxisStruct.Axis);
 fbGearOut.Execute:=FALSE;
+
+stAxisStruct.status.bFwEnabled:= stAxisStruct.inputs.bLimitFwd;
+stAxisStruct.status.bBwEnabled:= stAxisStruct.inputs.bLimitBwd;
+
+
+//fbMoveVelocity.Direction:=SEL(stAxisStruct.config.fVelocity<0, MC_Positive_Direction, MC_Negative_Direction);
+IF (stAxisStruct.slaveAxis.index>0) THEN
+	stAxisStruct.status.bFwEnabled:=stAxisStruct.status.bFwEnabled AND SEL(stAxisStruct.slaveAxis.ratio>0, GVL.axes[stAxisStruct.slaveAxis.index].inputs.bLimitBwd, GVL.axes[stAxisStruct.slaveAxis.index].inputs.bLimitFwd);
+	stAxisStruct.status.bBwEnabled:=stAxisStruct.status.bBwEnabled AND SEL(stAxisStruct.slaveAxis.ratio>0, GVL.axes[stAxisStruct.slaveAxis.index].inputs.bLimitFwd, GVL.axes[stAxisStruct.slaveAxis.index].inputs.bLimitBwd);
+END_IF
 
 
 (*Power*)
 	fbPower.Enable:=stAxisStruct.control.bEnable;
-	fbPower.Enable_Positive:=stAxisStruct.control.bEnable AND stAxisStruct.inputs.bLimitFwd;	
-	fbPower.Enable_Negative:=stAxisStruct.control.bEnable AND stAxisStruct.inputs.bLimitBwd;
+	fbPower.Enable_Positive:= stAxisStruct.status.bFwEnabled;	
+	fbPower.Enable_Negative:= stAxisStruct.status.bBwEnabled;
 	fbPower.Override:= stAxisStruct.config.fOverride;
 	stAxisStruct.status.bEnabled:=fbPower.Status;
 
@@ -126,11 +138,25 @@ CASE stAxisStruct.control.eCommand OF
 		fbMoveModulo.Deceleration:=stAxisStruct.config.fDeceleration;
 
 				
-	MotionFunctions.SingleGearIn:
+	MotionFunctions.GearIn:
+		
+		fbGearIn.Execute:=			stAxisStruct.control.bExecute;
+		fbGearIn.RatioNumerator:=	stAxisStruct.masterAxis.ratio;
+		fbGearIn.RatioDenominator:=1;		//kept static as numerator is LREAL and consistent with multigearing
+		
+		IF fbGearIn.InGear AND (GVL.axes[stAxisStruct.masterAxis.index].slaveAxis.index=0) THEN	//only update index and ratios on new gearIns, change of ratio requires gearOut
+			GVL.axes[stAxisStruct.masterAxis.index].slaveAxis.index:=GVL.iAxis;	//Link current axis as a slave of master
+			GVL.axes[stAxisStruct.masterAxis.index].slaveAxis.ratio:=stAxisStruct.masterAxis.ratio;
+		END_IF
 	
-	MotionFunctions.SingleGearOut:
+	MotionFunctions.GearOut:
+		fbGearOut.Execute:=			stAxisStruct.control.bExecute;
+		IF fbGearOut.Done THEN
+			GVL.axes[stAxisStruct.masterAxis.index].slaveAxis.index:=0;
+			GVL.axes[stAxisStruct.masterAxis.index].slaveAxis.ratio:=0;
+		END_IF
 	
-	MotionFunctions.MultiGear:
+	MotionFunctions.MultiGearIn:
 			
 	MotionFunctions.Home:
 		fbHome.bExecute:= stAxisStruct.control.bExecute;
@@ -174,9 +200,9 @@ ELSIF fbMoveModulo.Error THEN
 ELSIF fbHome.bError THEN
 	stAxisStruct.status.bError:=fbHome.bError;
 	stAxisStruct.status.nErrorId:=fbHome.nErrorID;
-ELSIF fbGearInDyn.Error THEN
-	stAxisStruct.status.bError:=fbGearInDyn.Enable;
-	stAxisStruct.status.nErrorId:=fbGearInDyn.ErrorID;
+ELSIF fbGearIn.Error THEN
+	stAxisStruct.status.bError:=fbGearIn.Execute;
+	stAxisStruct.status.nErrorId:=fbGearIn.ErrorID;
 ELSIF fbGearOut.Error and stAxisStruct.Axis.Status.Coupled THEN
 	stAxisStruct.status.bError:=fbGearOut.Execute;
 	stAxisStruct.status.nErrorId:=fbGearOut.ErrorID;
@@ -187,6 +213,8 @@ ELSE
 	stAxisStruct.status.bError:=FALSE;
 	stAxisStruct.status.nErrorId:=0;
 END_IF;
+
+stAxisStruct.status.bGeared:= stAxisStruct.Axis.Status.Coupled;
 
 (*Actual Velocity*)
 stAxisStruct.status.fActVelocity:=stAxisStruct.Axis.NcToPlc.ActVelo;
@@ -202,6 +230,7 @@ END_IF
     </Implementation>
     <LineIds Name="FB_Axis">
       <LineId Id="2448" Count="0" />
+      <LineId Id="2500" Count="0" />
       <LineId Id="2440" Count="0" />
       <LineId Id="2185" Count="0" />
       <LineId Id="2203" Count="0" />
@@ -221,11 +250,22 @@ END_IF
       <LineId Id="2437" Count="0" />
       <LineId Id="2200" Count="0" />
       <LineId Id="2438" Count="0" />
-      <LineId Id="2202" Count="0" />
-      <LineId Id="2445" Count="0" />
+      <LineId Id="2491" Count="0" />
+      <LineId Id="2490" Count="0" />
+      <LineId Id="2493" Count="0" />
       <LineId Id="2201" Count="0" />
       <LineId Id="2446" Count="0" />
-      <LineId Id="1627" Count="2" />
+      <LineId Id="1627" Count="1" />
+      <LineId Id="2515" Count="0" />
+      <LineId Id="2522" Count="1" />
+      <LineId Id="2519" Count="0" />
+      <LineId Id="2518" Count="0" />
+      <LineId Id="2520" Count="0" />
+      <LineId Id="2525" Count="0" />
+      <LineId Id="2521" Count="0" />
+      <LineId Id="2517" Count="0" />
+      <LineId Id="2516" Count="0" />
+      <LineId Id="1629" Count="0" />
       <LineId Id="1632" Count="3" />
       <LineId Id="1637" Count="0" />
       <LineId Id="1642" Count="0" />
@@ -260,7 +300,16 @@ END_IF
       <LineId Id="2303" Count="0" />
       <LineId Id="2310" Count="0" />
       <LineId Id="2343" Count="0" />
+      <LineId Id="2504" Count="0" />
+      <LineId Id="2495" Count="2" />
+      <LineId Id="2506" Count="2" />
+      <LineId Id="2510" Count="0" />
+      <LineId Id="2509" Count="0" />
       <LineId Id="2361" Count="1" />
+      <LineId Id="2498" Count="0" />
+      <LineId Id="2511" Count="1" />
+      <LineId Id="2514" Count="0" />
+      <LineId Id="2513" Count="0" />
       <LineId Id="2444" Count="0" />
       <LineId Id="2364" Count="0" />
       <LineId Id="2344" Count="0" />
@@ -274,7 +323,10 @@ END_IF
       <LineId Id="1936" Count="1" />
       <LineId Id="1941" Count="34" />
       <LineId Id="1979" Count="3" />
-      <LineId Id="1992" Count="9" />
+      <LineId Id="2501" Count="0" />
+      <LineId Id="1992" Count="0" />
+      <LineId Id="2502" Count="0" />
+      <LineId Id="1993" Count="8" />
       <LineId Id="2272" Count="0" />
       <LineId Id="1934" Count="0" />
     </LineIds>
