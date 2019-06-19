@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4020.14">
   <POU Name="FB_CalculateFrequency_3702_v0_01" Id="{c78cb51e-c142-4983-bbe4-9ac5ede33751}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CalculateFrequency_3702_v0_01
 VAR CONSTANT
@@ -51,7 +51,7 @@ IF En AND bCalculate THEN
 	
 	IF nFirstZeroCrossing < nLastZeroCrossing  AND  nCrossings>2 THEN
 		//interpolate zero crossings for higher accuracy
-		rTimeRes:=aBufferDcTime[1]-aBufferDcTime[0]; //Buffer must contain more than 2 values
+		rTimeRes:=UDINT_TO_REAL(aBufferDcTime[1]-aBufferDcTime[0]); //Buffer must contain more than 2 values
 		rRange:=INT_TO_REAL(ABS(aBufferValue[nFirstZeroCrossing-1]-aBufferValue[nFirstZeroCrossing]));
 		rTimeFirst:=UDINT_TO_REAL( aBufferDcTime[nFirstZeroCrossing-1])+ABS(INT_TO_REAL(aBufferValue[nFirstZeroCrossing-1])/rRange*rTimeRes);
 		rRange:=INT_TO_REAL(ABS(aBufferValue[nLastZeroCrossing-1]-aBufferValue[nLastZeroCrossing]));
