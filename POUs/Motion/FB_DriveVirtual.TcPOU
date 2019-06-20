@@ -46,6 +46,7 @@ VAR_INPUT
 	fHomePosition:LREAL;
 	nHomeRevOffset: UINT;
 	MasterAxis: AXIS_REF;
+	bPowerSelf: BOOL;
 END_VAR
 VAR_OUTPUT
 	EnO: BOOL;
@@ -106,6 +107,7 @@ fbReset(
 	ErrorID=> );
 
 (*Power*)
+IF bPowerSelf THEN
 fbPower(
 	Axis:=Axis,
 	Enable:=bEnable,	
@@ -118,6 +120,7 @@ fbPower(
 	Active=> ,
 	Error=> ,
 	ErrorID=> );
+END_IF
 
 (*Halt*)
 fbHalt(
@@ -393,8 +396,12 @@ END_IF]]></ST>
       <LineId Id="1154" Count="0" />
       <LineId Id="1148" Count="0" />
       <LineId Id="1153" Count="0" />
-      <LineId Id="5" Count="12" />
-      <LineId Id="1029" Count="25" />
+      <LineId Id="5" Count="11" />
+      <LineId Id="1239" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="1029" Count="10" />
+      <LineId Id="1240" Count="0" />
+      <LineId Id="1040" Count="14" />
       <LineId Id="44" Count="19" />
       <LineId Id="66" Count="88" />
       <LineId Id="939" Count="1" />
