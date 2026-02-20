@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.10">
+<TcPlcObject Version="1.1.0.1">
   <POU Name="FB_HomeVirtual" Id="{a69b16ef-d088-4494-bcb3-4c391e3a9c2d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HomeVirtual
 VAR_INPUT
@@ -71,10 +71,15 @@ IF fbExecuteRiseEdge.Q THEN
   //Check if valid nCmdDataLocal
   CASE nCmdDataLocal OF  	
     1:
+		;
     2:
+		;
     3:
+		;
     4:
+		;
     15:
+		;
     ELSE //nCmdData not valid	
       bError:=TRUE;
       nErrorId:=16#4FFF;   
@@ -384,7 +389,16 @@ RETURN;]]></ST>
       <LineId Id="646" Count="0" />
       <LineId Id="648" Count="0" />
       <LineId Id="647" Count="0" />
-      <LineId Id="651" Count="4" />
+      <LineId Id="1559" Count="0" />
+      <LineId Id="651" Count="0" />
+      <LineId Id="1560" Count="0" />
+      <LineId Id="652" Count="0" />
+      <LineId Id="1561" Count="0" />
+      <LineId Id="653" Count="0" />
+      <LineId Id="1562" Count="0" />
+      <LineId Id="654" Count="0" />
+      <LineId Id="1563" Count="0" />
+      <LineId Id="655" Count="0" />
       <LineId Id="658" Count="1" />
       <LineId Id="650" Count="0" />
       <LineId Id="100" Count="0" />
